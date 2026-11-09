@@ -54,6 +54,8 @@ function onTicks(outs: TickOutput[]): void {
   const events = outs.flatMap((o) => o.events);
   if (events.length > 0) for (const l of bridge.eventListeners) l(events);
   const results = outs.flatMap((o) => o.results).filter((r) => !r.ok);
+  // TEMP driving diagnostics (dev builds only): per-Tick van updates are otherwise silent when rejected.
+  if (import.meta.env.DEV) for (const r of results) if (!r.ok && r.type === 'manualVehicleUpdate') console.warn('[drive] manualVehicleUpdate rejected', r.reason);
   for (const r of results) if (!r.ok && r.type !== 'ceoMove' && r.type !== 'manualVehicleUpdate') {
     const amount = r.missingGold !== undefined ? Math.ceil(r.missingGold / 100) : 0;
     useHud.getState().pushToast(`reason.${r.reason}`, { amount });

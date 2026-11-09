@@ -17,10 +17,23 @@ const fwd = new THREE.Vector3();
 const quat = new THREE.Quaternion();
 const euler = new THREE.Euler(0, 0, 0, 'YXZ');
 
+// TEMP driving diagnostics (dev builds only, about once a second). Remove once driving is fixed.
+let debugElapsed = 0;
+function driveDebug(dt: number, data: () => Record<string, unknown>): void {
+  if (!import.meta.env.DEV) return;
+  debugElapsed += dt;
+  if (debugElapsed < 1) return;
+  debugElapsed = 0;
+  console.info('[drive]', data());
+}
+
 function Van({ vehicleId }: { vehicleId: string }) {
   const body = useRef<RapierRigidBody>(null);
   const wobble = useRef<THREE.Group>(null);
   const squash = useRef(0);
+  // Heading cached every frame while the body is alive. The unmount cleanup reads this instead of
+  // calling Rapier, because the physics world may already be freed by then (crash fix).
+  const lastHeading = useRef<number | null>(null);
   const monitor = useRef(newUprightState());
   const loop = bridge.loop;
   const v = loop?.sim.state.vehicles[vehicleId];
@@ -40,14 +53,11 @@ function Van({ vehicleId }: { vehicleId: string }) {
       sim.submit({ type: 'manualVehicleUpdate', vehicleId, x: t.x, z: t.z, heading: euler.y, speed: Math.hypot(lv.x, lv.z) }, 'physics');
     };
     return () => {
+      // Never touch the Rapier body here. On exit the physics world is torn down around this
+      // cleanup, and reading a freed body passes a null pointer into the WASM side (the crash).
       inputState.physicsBeforeTick = null;
       camState.physicsPose = null;
-      const b = body.current;
-      if (b) {
-        quat.set(b.rotation().x, b.rotation().y, b.rotation().z, b.rotation().w);
-        euler.setFromQuaternion(quat);
-        renderHeadings.set(vehicleId, euler.y);
-      }
+      if (lastHeading.current !== null) renderHeadings.set(vehicleId, lastHeading.current);
     };
   }, [vehicleId]);
 
@@ -58,6 +68,8 @@ function Van({ vehicleId }: { vehicleId: string }) {
     const dt = Math.min(0.05, rawDt);
     const r = b.rotation();
     quat.set(r.x, r.y, r.z, r.w);
+    euler.setFromQuaternion(quat);
+    lastHeading.current = euler.y;
     fwd.set(0, 0, -1).applyQuaternion(quat);
     up.set(0, 1, 0).applyQuaternion(quat);
     fwd.y = 0;
@@ -111,6 +123,25 @@ function Van({ vehicleId }: { vehicleId: string }) {
     camState.physicsPose = { x: t.x, z: t.z };
     const cache = lp.sim.paths();
     const verdict = updateUpright(monitor.current, up.y, cache.drivable(t.x, t.z), dt * 1000);
+    driveDebug(dt, () => {
+      const cv = b.linvel();
+      const simVan = lp.sim.state.vehicles[vehicleId];
+      return {
+        keys: [...keys].join(''),
+        throttle,
+        steer,
+        stick: [+inputState.stickX.toFixed(2), +inputState.stickY.toFixed(2)],
+        vel: [+cv.x.toFixed(2), +cv.z.toFixed(2)],
+        speed: +Math.hypot(cv.x, cv.z).toFixed(2),
+        body: [+t.x.toFixed(2), +t.z.toFixed(2)],
+        simPose: simVan ? [+simVan.pose.x.toFixed(2), +simVan.pose.z.toFixed(2)] : null,
+        simControl: simVan?.control ?? null,
+        simDriving: lp.sim.state.ceo.drivingVehicleId,
+        drivable: cache.drivable(t.x, t.z),
+        upY: +up.y.toFixed(2),
+        verdict,
+      };
+    });
     if (verdict !== 'ok') {
       const rp = cache.nearestRoadPoint(t.x, t.z);
       if (rp) {
