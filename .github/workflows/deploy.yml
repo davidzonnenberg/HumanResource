@@ -1,0 +1,42 @@
+name: Deploy HumanResource
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: humanresource-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to homeserver
+    runs-on: [self-hosted, linux, x64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Sync production files
+        run: |
+          rsync -a --delete \
+            --exclude='.git/' \
+            "${GITHUB_WORKSPACE}/" \
+            /srv/docker/apps/humanresource/
+
+      - name: Validate Docker Compose
+        working-directory: /srv/docker/apps/humanresource
+        run: docker compose config
+
+      - name: Build Docker image
+        working-directory: /srv/docker/apps/humanresource
+        run: docker compose build
+
+      - name: Deploy container
+        working-directory: /srv/docker/apps/humanresource
+        run: docker compose up -d
+
+      - name: Show container status
+        working-directory: /srv/docker/apps/humanresource
+        run: docker compose ps
