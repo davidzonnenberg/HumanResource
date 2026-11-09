@@ -6,8 +6,8 @@
   "description": "Save_API: stores Profiles and Save_Documents, serves the built web app.",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "esbuild src/index.ts src/cli.ts --bundle --platform=node --format=esm --target=node22 --outdir=dist --packages=external",
-    "start": "node dist/index.js",
+    "build": "esbuild src/index.ts src/cli.ts --bundle --platform=node --format=esm --target=node22 --outdir=dist --external:fastify --external:@fastify/static --external:zod",
+        "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
