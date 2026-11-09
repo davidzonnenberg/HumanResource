@@ -16,6 +16,7 @@
   },
   "scripts": {
     "dev": "npm run dev --workspace @hr/web",
+    "dev:all": "node scripts/dev.mjs",
     "build": "npm run build --workspace @hr/web",
     "preview": "npm run preview --workspace @hr/web",
     "test": "vitest run",

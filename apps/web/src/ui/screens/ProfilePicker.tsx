@@ -25,13 +25,17 @@ export function ProfilePicker({ onPick }: { onPick: (p: LocalProfile) => void })
     const s = getServices();
     if (!s) return;
     const res = await s.api.listProfiles();
+    const localList = await s.repo.listProfiles();
     if (res.kind === 'ok') {
-      const list = res.data.map(fromDto);
-      for (const p of list) await s.repo.putProfile(p); // cache for offline use (22.5)
-      setProfiles(list);
+      const serverList = res.data.map(fromDto);
+      for (const p of serverList) await s.repo.putProfile(p); // cache for offline use (22.5)
+      // Merge: keep local-only profiles the server hasn't adopted yet.
+      const serverNames = new Set(serverList.map((p) => p.displayName.toLocaleLowerCase()));
+      const localOnly = localList.filter((p) => !serverNames.has(p.displayName.toLocaleLowerCase()));
+      setProfiles([...serverList, ...localOnly]);
       setOffline(false);
     } else {
-      setProfiles(await s.repo.listProfiles());
+      setProfiles(localList);
       setOffline(true);
     }
   }
@@ -42,20 +46,35 @@ export function ProfilePicker({ onPick }: { onPick: (p: LocalProfile) => void })
     if (!s) return;
     if (validateDisplayName(name)) return setError(t('profiles.error.invalid_name'));
     if (validatePin(pin)) return setError(t('profiles.error.invalid_pin'));
-    const res = await s.api.createProfile(name.trim(), pin || undefined);
-    if (res.kind === 'ok') {
-      await s.repo.putProfile(fromDto(res.data));
-    } else if (res.kind === 'error') {
-      return setError(res.error.error === 'display_name_taken' ? t('profiles.error.name_taken') : t('profiles.error.invalid_name'));
-    } else {
-      // Offline: a local-only profile; it syncs once the server knows it.
-      await s.repo.putProfile({ id: newId(), displayName: name.trim(), pin: null, createdAt: new Date().toISOString() });
+    const displayName = name.trim();
+    if (profiles.some((p) => p.displayName.toLocaleLowerCase() === displayName.toLocaleLowerCase())) return setError(t('profiles.error.name_taken'));
+
+    // Local-first: create and show the profile immediately, so Create always works even when the
+    // server is unreachable. The server call (which also stores the PIN hash) runs in the
+    // background; if it succeeds we adopt the server's id and PIN record.
+    const local: LocalProfile = { id: newId(), displayName, pin: null, createdAt: new Date().toISOString() };
+    try {
+      await s.repo.putProfile(local);
+    } catch (err) {
+      console.error('[profiles] local create failed', err);
+      return setError(t('profiles.error.invalid_name'));
     }
+    setProfiles((prev) => [...prev.filter((p) => p.id !== local.id), local]);
     setCreating(false);
     setName('');
     setPin('');
     setError(null);
-    await refresh();
+
+    void s.api.createProfile(displayName, pin || undefined).then(async (res) => {
+      if (res.kind === 'ok') {
+        await s.repo.deleteProfile(local.id);
+        await s.repo.putProfile(fromDto(res.data));
+        await refresh();
+      } else if (res.kind === 'error' && res.error.error === 'display_name_taken') {
+        // The server already has this name (e.g. the girlfriend's device created it). Keep the
+        // local profile; sync will reconcile when slots are pushed.
+      }
+    });
   }
 
   function pick(p: LocalProfile) {

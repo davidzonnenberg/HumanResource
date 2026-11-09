@@ -26,12 +26,12 @@ let services: AppServices | null = null;
 export const getServices = (): AppServices | null => services;
 
 /** Registry first: Definition errors block starting or loading (1.1, 1.7). */
-export async function boot(): Promise<Boot> {
+export async function boot(overrides?: { api?: ApiClient; store?: Awaited<ReturnType<typeof openLocalStore>>['store'] }): Promise<Boot> {
   const res = loadRegistry(rawContent);
   if (!res.ok) return { ok: false, errors: res.errors };
-  const { store, showFallbackWarning } = await openLocalStore();
+  const { store, showFallbackWarning } = overrides?.store ? { store: overrides.store, showFallbackWarning: false } : await openLocalStore();
   const repo = new SaveRepository(store);
-  const api = httpApiClient();
+  const api = overrides?.api ?? httpApiClient();
   const sync = new SyncService(repo, api, {
     onStatus: (_k, s) => useHud.getState().set({ syncStatus: s }),
     onConflict: (_p, slotId) => {

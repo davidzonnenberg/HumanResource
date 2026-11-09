@@ -25,11 +25,25 @@ export interface LocalSlot {
 export const slotKey = (profileId: string, slotId: string): string => `${profileId}/${slotId}`;
 
 export function newId(): string {
-  return globalThis.crypto.randomUUID();
+  const c = globalThis.crypto;
+  // crypto.randomUUID only exists in a secure context (https or localhost). Over plain-HTTP LAN
+  // or Tailscale IPs it is undefined, so build a UUIDv4 from getRandomValues, with a last-resort
+  // Math.random fallback so profile/slot creation never throws.
+  if (c?.randomUUID) return c.randomUUID();
+  const b = new Uint8Array(16);
+  if (c?.getRandomValues) c.getRandomValues(b);
+  else for (let i = 0; i < 16; i++) b[i] = Math.floor(Math.random() * 256);
+  b[6] = ((b[6] ?? 0) & 0x0f) | 0x40; // version 4
+  b[8] = ((b[8] ?? 0) & 0x3f) | 0x80; // variant 10
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0'));
+  const g = (i: number): string => h[i] ?? '00';
+  return `${g(0)}${g(1)}${g(2)}${g(3)}-${g(4)}${g(5)}-${g(6)}${g(7)}-${g(8)}${g(9)}-${g(10)}${g(11)}${g(12)}${g(13)}${g(14)}${g(15)}`;
 }
 
 export function newSeed(): number {
-  return globalThis.crypto.getRandomValues(new Int32Array(1))[0] ?? 1;
+  const c = globalThis.crypto;
+  if (c?.getRandomValues) return c.getRandomValues(new Int32Array(1))[0] ?? 1;
+  return (Math.floor(Math.random() * 0x100000000) - 0x80000000) || 1;
 }
 
 export class SaveRepository {
@@ -46,6 +60,9 @@ export class SaveRepository {
   }
   putProfile(p: LocalProfile): Promise<void> {
     return this.store.put('profiles', p.id, p);
+  }
+  deleteProfile(id: string): Promise<void> {
+    return this.store.delete('profiles', id);
   }
 
   // ---------- Slots ----------

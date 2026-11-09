@@ -42,7 +42,23 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
-    proxy: { '/api': { target: 'http://127.0.0.1:8787', changeOrigin: false } },
+    proxy: {
+      // The Save_API is optional in dev; when it is not running the app falls back to local
+      // profiles and saves. Swallow the connection errors so the console stays readable.
+      '/api': {
+        target: 'http://127.0.0.1:8787',
+        changeOrigin: false,
+        configure(proxy) {
+          proxy.on('error', (_err, _req, res) => {
+            const r = res as import('node:http').ServerResponse | undefined;
+            if (r && 'writeHead' in r && !r.headersSent) {
+              r.writeHead(503, { 'content-type': 'application/json' });
+              r.end('{"error":"offline"}');
+            }
+          });
+        },
+      },
+    },
   },
   build: {
     target: 'es2022',

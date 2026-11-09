@@ -4,6 +4,7 @@ import { useSession, useUi } from '../store/stores';
 import { bridge } from '../store/simBridge';
 import { setPauseMenu } from '../input/actions';
 import { getServices, replaceRunningState, runningSession } from '../game/session';
+import { newId } from '../persistence/saves';
 
 export function PauseMenu({ onExit }: { onExit: () => void }) {
   const open = useUi((u) => u.pauseMenuOpen);
@@ -97,7 +98,7 @@ export function GameDialogs() {
     if (r && s) {
       const doc = await s.repo.getRawSave(r.profile.id, r.slot.slotId);
       if (doc) {
-        const slotId = globalThis.crypto.randomUUID();
+        const slotId = newId();
         await s.repo.putSlot({ ...r.slot, slotId, revision: doc.revision, syncedRevision: 0, updatedAt: new Date().toISOString() });
         await s.repo.putDocument({ ...doc, slotId, syncedRevision: 0 });
         await s.repo.deleteSlot(r.profile.id, r.slot.slotId);
