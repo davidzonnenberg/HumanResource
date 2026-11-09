@@ -32,6 +32,7 @@ ENV NODE_ENV=production \
 # Install only the real registry-based runtime dependencies.
 # @hr/shared is bundled into the server during Stage 1.
 RUN npm init -y \
+ && npm pkg set type=module \
  && npm install --omit=dev --no-audit --no-fund \
       fastify@5.12.8 \
       @fastify/static@10.1.10 \
