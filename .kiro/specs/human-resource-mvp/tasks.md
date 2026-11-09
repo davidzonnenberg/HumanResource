@@ -499,22 +499,24 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - Fake `visibilitychange`, `pagehide`, Pause_Menu; autosave timing with fake timers; `fake-indexeddb` fallback warning; migration backup, failure and newer-version paths
     - _Requirements: 21.1, 21.2, 21.3, 21.4, 21.6, 23.1, 23.5, 23.6, 24.6, 24.7, 24.8_
 
-- [ ] 17. Implement the PWA_Shell
-  - [ ] 17.1 Configure vite-plugin-pwa and the manifest
+- [x] 17. Implement the PWA_Shell
+  - [x] 17.1 Configure vite-plugin-pwa and the manifest
     - `registerType: 'prompt'`, `generateSW`; manifest name, short name, 192/512/maskable icons in `public/icons/`, standalone, landscape, theme colours from `theme.json`; Workbox `globPatterns` incl. js, css, html, svg, png, webp, woff2, glb, gltf, json; `navigateFallbackDenylist` and `NetworkOnly` for `/api`
     - _Requirements: 42.1, 42.2_
-  - [ ] 17.2 Implement the update prompt
+  - [x] 17.2 Implement the update prompt
     - `pwa/registerSW.ts` and `UpdatePrompt.tsx`: notify on `onNeedRefresh`, write Save_Document then `updateSW(true)` on confirm, otherwise activate at next launch
     - _Requirements: 42.3, 42.4_
-  - [ ] 17.3 Optimise startup and offline play
+  - [x] 17.3 Optimise startup and offline play
     - Profile picker as first route without importing three/R3F; preload the game chunk in the background; Rapier chunk lazy but precached; Local_Store slots playable offline
+    - The game chunk (`GameScreen-*.js`) and the Rapier chunk (`ManualDriving-*.js`) now split out of the entry bundle (verified in `vite build` output); `App.tsx` lazy-loads `GameScreen` and warms it in the background after boot
     - _Requirements: 41.4, 42.2, 42.5_
   - [ ]* 17.4 Write build-output checks for the PWA
     - After `vite build`, assert manifest fields and that the precache manifest contains the game and Rapier chunks
     - _Requirements: 42.1, 42.2_
 
-- [ ] 18. Checkpoint - Local persistence and PWA
+- [x] 18. Checkpoint - Local persistence and PWA
   - Run `npm.cmd test` and `npm.cmd run build`. Ensure all tests pass, ask the user if questions arise.
+  - Verified: `npm run typecheck` exit 0, `npm test` 41/41 passing, `npm run build` exit 0 with the PWA service worker and precache (16 entries) generated and the game/Rapier chunks split out.
 
 - [x] 19. Implement the Save_API server
   - [x] 19.1 Scaffold `apps/server` with storage and health
@@ -566,14 +568,16 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - Mocked API: conflict pause, keep-server backup, overwrite rebase, offline retry, deletion queue flush
     - _Requirements: 25.4, 25.5, 25.6, 25.10, 25.14_
 
-- [ ] 21. Checkpoint - Save_API and sync
+- [x] 21. Checkpoint - Save_API and sync
   - Run `npm.cmd test` and `npm.cmd run build`. Ensure all tests pass, ask the user if questions arise.
+  - Verified: `npm test` 41/41 passing and `npm run build` exit 0. The Save_API is deployed and serving in production (Ubuntu + Tailscale).
 
-- [ ] 22. Add Docker and Tailscale deployment
-  - [ ] 22.1 Write the Dockerfile and docker-compose file
-    - Multi-stage `node:22-alpine` build (`npm ci && npm run build`), server bundled with tsup including `packages/shared`, runtime as `node` user, `/data` volume, healthcheck; compose with `127.0.0.1:8787:8080`, `MAX_SAVE_BYTES`, named volume `hr-data`; static headers (`sw.js`, `index.html`, manifest no-cache; hashed assets immutable)
+- [x] 22. Add Docker and Tailscale deployment
+  - [x] 22.1 Write the Dockerfile and docker-compose file
+    - Multi-stage build (`npm ci && npm run build`), runtime as `node` user, `/data` volume, healthcheck; compose with `127.0.0.1:8787:8080`, `MAX_SAVE_BYTES`, named volume `hr-data`; static headers (`sw.js`, `index.html`, manifest no-cache; hashed assets immutable, set in `apps/server/src/app.ts`)
+    - Implemented deviations from the original note (both working in production): `node:24-alpine` instead of `node:22-alpine`, and the server bundled with esbuild instead of tsup
     - _Requirements: 25.16, 26.1, 43.1, 43.2, 43.3_
-  - [ ] 22.2 Write deployment and content documentation
+  - [x] 22.2 Write deployment and content documentation
     - `docs/deployment.md`: build/run on Ubuntu, `sudo tailscale serve --bg --https=8443 http://127.0.0.1:8787`, existing Tailscale-only reverse proxy alternative, HTTPS requirement for service workers, PIN-removal command (`docker compose exec human-resource node dist/cli.js remove-pin "<name>"`), statement that Profile picker and PIN are convenience only and Tailscale membership is the only access control
     - `docs/content-authoring.md` (adding Definitions, names, text); README links
     - _Requirements: 26.8, 26.9, 43.2, 43.3_

@@ -1,5 +1,7 @@
 // Screen flow: boot (registry + storage) -> Profile picker -> Slot list -> Game.
-import { useEffect, useState } from 'react';
+// The GameScreen (and with it three/R3F) is lazy so the Profile picker starts without the 3D
+// bundle (41.4, 42.5); the chunk is preloaded in the background once boot succeeds.
+import { lazy, Suspense, useEffect, useState } from 'react';
 import type { DefinitionError } from '@hr/sim';
 import { t } from '../text/t';
 import { boot, getServices } from '../game/session';
@@ -7,7 +9,9 @@ import { useSession } from '../store/stores';
 import type { LocalProfile } from '../persistence/saves';
 import { ProfilePicker } from '../ui/screens/ProfilePicker';
 import { SlotList } from '../ui/screens/SlotList';
-import { GameScreen } from '../ui/screens/GameScreen';
+
+const importGameScreen = () => import('../ui/screens/GameScreen');
+const GameScreen = lazy(async () => ({ default: (await importGameScreen()).GameScreen }));
 
 type Screen = { kind: 'loading' } | { kind: 'defErrors'; errors: DefinitionError[] } | { kind: 'profiles' } | { kind: 'slots'; profile: LocalProfile } | { kind: 'game'; profile: LocalProfile };
 
@@ -20,6 +24,7 @@ export function App() {
       const testing = await getServices()?.repo.store.get<boolean>('meta', 'devTesting');
       useSession.getState().set({ devTesting: testing === true });
       setScreen({ kind: 'profiles' });
+      void importGameScreen(); // warm the game chunk in the background (42.5)
     });
   }, []);
 
@@ -45,6 +50,10 @@ export function App() {
     case 'slots':
       return <SlotList profile={screen.profile} onPlay={() => setScreen({ kind: 'game', profile: screen.profile })} onBack={() => setScreen({ kind: 'profiles' })} />;
     case 'game':
-      return <GameScreen onExit={() => setScreen({ kind: 'slots', profile: screen.profile })} />;
+      return (
+        <Suspense fallback={<div className="screen center">{t('app.loading')}</div>}>
+          <GameScreen onExit={() => setScreen({ kind: 'slots', profile: screen.profile })} />
+        </Suspense>
+      );
   }
 }
