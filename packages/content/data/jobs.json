@@ -1,0 +1,7 @@
+[
+  { "id": "bartender", "nameKey": "job.bartender", "requiredQualifications": ["regular"], "movementSpeed": 2.5, "maxHeadcountPerSlot": 1, "service": true },
+  { "id": "server", "nameKey": "job.server", "requiredQualifications": ["regular"], "movementSpeed": 2.5, "maxHeadcountPerSlot": 1, "service": true },
+  { "id": "driver", "nameKey": "job.driver", "requiredQualifications": ["regular"], "movementSpeed": 3, "maxHeadcountPerSlot": 1, "service": false },
+  { "id": "brewer", "nameKey": "job.brewer", "requiredQualifications": ["regular"], "movementSpeed": 2, "maxHeadcountPerSlot": 1, "service": false },
+  { "id": "warehouse_worker", "nameKey": "job.warehouseWorker", "requiredQualifications": ["regular"], "movementSpeed": 2.5, "maxHeadcountPerSlot": 1, "service": false }
+]

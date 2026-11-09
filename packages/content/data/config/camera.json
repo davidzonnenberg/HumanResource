@@ -1,0 +1,28 @@
+{
+  "yawDeg": 0,
+  "fovDeg": 35,
+  "tiltNearDeg": 52,
+  "tiltFarDeg": 68,
+  "dMin": 8,
+  "dMax": 260,
+  "startDistance": 16,
+  "bands": [
+    { "id": "person", "max": 14 },
+    { "id": "business", "max": 30 },
+    { "id": "street", "max": 60 },
+    { "id": "block", "max": 120 },
+    { "id": "neighbourhood", "max": 200 },
+    { "id": "city", "max": 260 }
+  ],
+  "modeSwitchThreshold": 30,
+  "hysteresis": 0.05,
+  "zoomSmoothing": 8,
+  "followSmoothing": 6,
+  "recentreSeconds": 0.4,
+  "wheelZoomFactor": 0.0015,
+  "keyZoomFactor": 1.15,
+  "panSpeed": 1.2,
+  "labelMaxDistance": 30,
+  "labelMaxCount": 12,
+  "aggregationThreshold": 20
+}

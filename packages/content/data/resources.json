@@ -1,0 +1,3 @@
+[
+  { "id": "beer", "kind": "storable", "tradable": true, "modelKey": "crate_beer", "nameKey": "resource.beer", "crateUnits": 10 }
+]

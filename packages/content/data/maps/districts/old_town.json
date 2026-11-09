@@ -1,0 +1,66 @@
+{
+  "id": "old_town",
+  "nameKey": "district.oldTown",
+  "bounds": [[-66, -40], [66, -40], [66, 40], [-66, 40]],
+  "nodes": [
+    { "id": "w_end", "x": -60, "z": 0 },
+    { "id": "west_lot", "x": -46, "z": 0 },
+    { "id": "x_w", "x": -30, "z": 0 },
+    { "id": "home", "x": -14, "z": 0 },
+    { "id": "centre", "x": 0, "z": 0 },
+    { "id": "rival", "x": 14, "z": 0 },
+    { "id": "x_e", "x": 30, "z": 0 },
+    { "id": "sup", "x": 46, "z": 0 },
+    { "id": "e_end", "x": 60, "z": 0 },
+    { "id": "nw", "x": -30, "z": -32 },
+    { "id": "ne", "x": 30, "z": -32 },
+    { "id": "sw", "x": -30, "z": 32 },
+    { "id": "s_mid", "x": 0, "z": 32 },
+    { "id": "se", "x": 30, "z": 32 }
+  ],
+  "edges": [
+    { "id": "m1", "a": "w_end", "b": "west_lot" },
+    { "id": "m2", "a": "west_lot", "b": "x_w" },
+    { "id": "m3", "a": "x_w", "b": "home" },
+    { "id": "m4", "a": "home", "b": "centre" },
+    { "id": "m5", "a": "centre", "b": "rival" },
+    { "id": "m6", "a": "rival", "b": "x_e" },
+    { "id": "m7", "a": "x_e", "b": "sup" },
+    { "id": "m8", "a": "sup", "b": "e_end" },
+    { "id": "n1", "a": "x_w", "b": "nw" },
+    { "id": "n2", "a": "nw", "b": "ne" },
+    { "id": "n3", "a": "ne", "b": "x_e" },
+    { "id": "s1", "a": "x_w", "b": "sw" },
+    { "id": "s2", "a": "sw", "b": "s_mid" },
+    { "id": "s3", "a": "s_mid", "b": "se" },
+    { "id": "s4", "a": "se", "b": "x_e" }
+  ],
+  "plots": [
+    {
+      "id": "plot_home", "x": -14, "z": -12, "w": 16, "d": 12, "rotation": 0, "tags": ["commercial"],
+      "accessNode": "home", "unloadingZone": { "x": -14, "z": -2, "w": 12, "d": 6 }, "initial": { "kind": "reserved" }
+    },
+    {
+      "id": "plot_rival", "x": 14, "z": -12, "w": 16, "d": 12, "rotation": 0, "tags": ["commercial"],
+      "accessNode": "rival", "unloadingZone": { "x": 14, "z": -2, "w": 12, "d": 6 }, "initial": { "kind": "reserved" }
+    },
+    {
+      "id": "plot_supplier", "x": 46, "z": 13, "w": 18, "d": 14, "rotation": 0, "tags": ["industrial"],
+      "accessNode": "sup", "unloadingZone": { "x": 46, "z": 2, "w": 12, "d": 6 }, "initial": { "kind": "reserved" }
+    },
+    {
+      "id": "plot_west", "x": -46, "z": -12, "w": 16, "d": 12, "rotation": 0, "tags": ["commercial"],
+      "accessNode": "west_lot", "unloadingZone": { "x": -46, "z": -2, "w": 12, "d": 6 }, "initial": { "kind": "empty" }
+    },
+    {
+      "id": "plot_south", "x": -14, "z": 13, "w": 16, "d": 12, "rotation": 0, "tags": ["commercial"],
+      "accessNode": "home", "unloadingZone": { "x": -14, "z": 2, "w": 12, "d": 6 }, "initial": { "kind": "empty" }
+    },
+    {
+      "id": "plot_for_sale", "x": 14, "z": 13, "w": 16, "d": 12, "rotation": 0, "tags": ["commercial"],
+      "accessNode": "rival", "unloadingZone": { "x": 14, "z": 2, "w": 12, "d": 6 }, "initial": { "kind": "for_sale", "price": 600000 }
+    }
+  ],
+  "drivableBounds": [[-66, -40], [66, -40], [66, 40], [-66, 40]],
+  "walkableBounds": [[-66, -40], [66, -40], [66, 40], [-66, 40]]
+}

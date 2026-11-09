@@ -1,0 +1,26 @@
+// Public API of the Simulation package.
+export * from './state/types';
+export { simStateSchema } from './state/schema';
+export { newGame, emptyPubMetrics } from './state/newGame';
+export { Simulation, stepPure, cloneState, type TickOutput } from './core/simulation';
+export type { DomainEvent, DomainEventType } from './core/events';
+export type { Command, CommandEnvelope, CommandResult, CommandType, Issuer, ReasonCode, RouteStopInput } from './commands/types';
+export { loadRegistry, pointInOrOnPolygon, type DefinitionRegistry, type DefinitionError, type RawContentInput, type WorldInfo, type PlotInfo, type RoadNode, type RoadEdge } from './defs/registry';
+export type * from './defs/schemas';
+export { demandPerMinute, recommendedServiceHumans, piecewise } from './defs/formulas';
+export { pathCacheFor, unlockedDistricts, type PathCache, type RoadPoint } from './logistics/pathCache';
+export { buildPath, advancePath, pathPosition, pathLength } from './logistics/paths';
+export { GOLD_LIMIT, goldToWholeFloor, goldFromWhole, financeSummary, costOf, type FinanceSummary } from './money/gold';
+export { displayName, drawHumanName, uniqueInWorkforce, baseName } from './names/names';
+export { slotCapacity, jobCapacity, workingHumans, isJobUnstaffed } from './staffing/capacity';
+export { contextActionFor, type ContextAction, type ContextActionKind } from './interaction/contextAction';
+export { nextViewMode, clampDistance, type ViewMode, type ViewModeConfig } from './interaction/viewMode';
+export { checkInvariants, checkGoldLimit, physicalTotals, type InvariantViolation } from './invariants/check';
+export { pubMetricsView, vehicleDeliveriesPerMinute, type PubMetricsView } from './selectors/metrics';
+export { isRevealed } from './systems/observe';
+export { evaluateCondition } from './conditions/evaluate';
+export { entrance, parkingPoint, plotCenter, inUnloadingZone, frontSign, isBusinessInUnlockedDistrict } from './world/geometry';
+export { humanPosition, pendingQuantity, supplierFor, storageCapacity, cargoTotal, vehicleNextDropoff, firstPlayerPub } from './world/queries';
+export { emptyStock, addToStock, takeFromStock, freeCapacity } from './storage/stock';
+export { seedRng, rngNext } from './rng/xoshiro128ss';
+export { PIPELINE } from './core/pipeline';

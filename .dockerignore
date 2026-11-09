@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+**/dist
+**/dev-dist
+.vite
+.vitest
+coverage
+.git
+data
+*.tsbuildinfo
+.kiro
+docs

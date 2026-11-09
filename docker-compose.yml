@@ -1,0 +1,19 @@
+services:
+  human-resource:
+    build: .
+    image: human-resource:latest
+    container_name: human-resource
+    restart: unless-stopped
+    # Bound to localhost only; Tailscale serve exposes it on the tailnet (see docs/deployment.md).
+    ports:
+      - "127.0.0.1:8787:8080"
+    environment:
+      PORT: "8080"
+      DATA_DIR: /data
+      WEB_DIR: /app/web
+      MAX_SAVE_BYTES: "5242880"
+    volumes:
+      - hr-data:/data
+
+volumes:
+  hr-data:

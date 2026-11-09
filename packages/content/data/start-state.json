@@ -1,0 +1,41 @@
+{
+  "gold": 50000,
+  "reputation": 50,
+  "districts": { "old_town": { "unlocked": true }, "harbour": { "unlocked": false } },
+  "businesses": [
+    { "key": "supplier", "plotId": "plot_supplier", "defId": "supplier_beer", "owner": "npc" },
+    {
+      "key": "playerPub", "plotId": "plot_home", "defId": "pub_cosy_local", "owner": "player",
+      "stockPct": { "beer": 50 },
+      "autoReorder": { "beer": { "enabled": true, "thresholdPct": 50 } }
+    },
+    {
+      "key": "rivalPub", "plotId": "plot_rival", "defId": "pub_sports", "owner": "cmp_rival",
+      "stockPct": { "beer": 60 },
+      "autoReorder": { "beer": { "enabled": true, "thresholdPct": 50 } }
+    }
+  ],
+  "competitors": [{ "id": "cmp_rival", "nameKey": "competitor.rival", "colorToken": "rival" }],
+  "vehicles": [
+    {
+      "key": "playerVan", "defId": "delivery_van", "owner": "player", "parkedAt": "playerPub",
+      "route": [{ "stop": "supplier", "action": "pickup" }, { "stop": "playerPub", "action": "dropoff" }]
+    },
+    {
+      "key": "rivalVan", "defId": "delivery_van", "owner": "cmp_rival", "parkedAt": "rivalPub",
+      "route": [{ "stop": "supplier", "action": "pickup" }, { "stop": "rivalPub", "action": "dropoff" }]
+    }
+  ],
+  "humans": [
+    { "name": "Jan", "owner": "player", "defId": "regular", "job": { "business": "playerPub", "jobId": "bartender" } },
+    { "name": "Julia", "owner": "player", "defId": "regular", "job": { "business": "playerPub", "jobId": "server" } },
+    { "name": "Thomas", "owner": "player", "defId": "regular", "job": { "vehicle": "playerVan", "jobId": "driver" }, "onBoard": true },
+    { "owner": "cmp_rival", "defId": "regular", "job": { "business": "rivalPub", "jobId": "bartender" } },
+    { "owner": "cmp_rival", "defId": "regular", "job": { "business": "rivalPub", "jobId": "server" } },
+    { "owner": "cmp_rival", "defId": "regular", "job": { "vehicle": "rivalVan", "jobId": "driver" }, "onBoard": true }
+  ],
+  "orders": [
+    { "owner": "player", "source": "supplier", "destination": "playerPub", "resourceId": "beer", "pctOfCapacity": 25 }
+  ],
+  "ceo": { "nearBusiness": "playerPub" }
+}

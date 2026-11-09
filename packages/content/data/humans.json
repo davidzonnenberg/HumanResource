@@ -1,0 +1,11 @@
+[
+  {
+    "id": "regular",
+    "qualifications": ["regular"],
+    "salaryPerMinute": 500,
+    "severance": 3000,
+    "walkingSpeed": 3,
+    "hiring": { "factor": 0.05, "minutes": 60 },
+    "modelKey": "human"
+  }
+]

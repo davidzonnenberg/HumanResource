@@ -1,0 +1,20 @@
+[
+  {
+    "id": "delivery_van",
+    "type": "van",
+    "nameKey": "vehicle.deliveryVan",
+    "capacity": 40,
+    "speed": 7,
+    "driverRequirement": { "jobId": "driver" },
+    "allowedResources": ["beer"],
+    "handling": {
+      "acceleration": 22,
+      "steeringLooseness": 0.55,
+      "bodyRoll": 0.35,
+      "bounciness": 0.6,
+      "mass": 1.2,
+      "turnRate": 2.6
+    },
+    "modelKey": "vehicle_van"
+  }
+]

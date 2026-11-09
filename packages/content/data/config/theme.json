@@ -1,0 +1,32 @@
+{
+  "palette": {
+    "ground": "#9fd36b",
+    "groundLocked": "#b8bfae",
+    "road": "#5b5f6a",
+    "roadLine": "#f4f1de",
+    "plotEmpty": "#c9e7a1",
+    "plotForSale": "#ffd166",
+    "unloadingZone": "#ffffff",
+    "sky": "#bde3ff",
+    "crate": "#c68642",
+    "crateBand": "#8a5a2b",
+    "human": "#ff8fab",
+    "customer": "#8ecae6",
+    "ceo": "#ffb703",
+    "roof": "#e76f51",
+    "wallInside": "#f6e7cb",
+    "bar": "#8d5524",
+    "table": "#b5835a",
+    "highlight": "#ffe066",
+    "bottleneck": "#ef476f",
+    "route": "#ffffff"
+  },
+  "owners": {
+    "player": "#3a86ff",
+    "rival": "#ef476f",
+    "npc": "#8d99ae"
+  },
+  "vehicleScale": 1.25,
+  "crateScale": 1.4,
+  "pwa": { "themeColor": "#3a86ff", "backgroundColor": "#bde3ff" }
+}

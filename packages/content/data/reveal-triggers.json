@@ -1,0 +1,26 @@
+[
+  {
+    "id": "storage_responses",
+    "condition": { "kind": "event", "event": "storageFull", "where": { "owner": "player" } },
+    "reveals": ["storageResponses"],
+    "phase": 1
+  },
+  {
+    "id": "hiring_option",
+    "condition": { "kind": "event", "event": "customerLost", "where": { "reason": "patience_expired", "owner": "player" } },
+    "reveals": ["hiring"],
+    "phase": 1
+  },
+  {
+    "id": "first_management_view",
+    "condition": { "kind": "event", "event": "uiManagementViewOpened" },
+    "reveals": ["managementHighlight"],
+    "phase": 1
+  },
+  {
+    "id": "game_speed",
+    "condition": { "kind": "goldAtLeast", "amount": 500000 },
+    "reveals": ["gameSpeed"],
+    "phase": 1
+  }
+]

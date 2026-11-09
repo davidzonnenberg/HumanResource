@@ -1,0 +1,30 @@
+{
+  "id": "harbour",
+  "nameKey": "district.harbour",
+  "bounds": [[66, -40], [192, -40], [192, 40], [66, 40]],
+  "nodes": [
+    { "id": "gate", "x": 72, "z": 0 },
+    { "id": "quay", "x": 110, "z": 0 },
+    { "id": "pier", "x": 150, "z": 0 },
+    { "id": "end", "x": 186, "z": 0 },
+    { "id": "north", "x": 110, "z": -30 }
+  ],
+  "edges": [
+    { "id": "h1", "a": "gate", "b": "quay" },
+    { "id": "h2", "a": "quay", "b": "pier" },
+    { "id": "h3", "a": "pier", "b": "end" },
+    { "id": "h4", "a": "quay", "b": "north" }
+  ],
+  "plots": [
+    {
+      "id": "plot_harbour_dock", "x": 130, "z": -13, "w": 20, "d": 14, "rotation": 0, "tags": ["industrial"],
+      "accessNode": "quay", "unloadingZone": { "x": 130, "z": -2, "w": 12, "d": 6 }, "initial": { "kind": "for_sale", "price": 1500000 }
+    },
+    {
+      "id": "plot_harbour_shed", "x": 150, "z": 14, "w": 18, "d": 14, "rotation": 0, "tags": ["industrial"],
+      "accessNode": "pier", "unloadingZone": { "x": 150, "z": 2, "w": 12, "d": 6 }, "initial": { "kind": "empty" }
+    }
+  ],
+  "drivableBounds": [[66, -40], [192, -40], [192, 40], [66, 40]],
+  "walkableBounds": [[66, -40], [192, -40], [192, 40], [66, 40]]
+}

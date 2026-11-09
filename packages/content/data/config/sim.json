@@ -1,0 +1,23 @@
+{
+  "tickMs": 100,
+  "ticksPerSecond": 10,
+  "maxTicksPerFrame": 10,
+  "gameSpeeds": [1, 2, 4],
+  "interactionRange": 2.5,
+  "manualSpeedBonus": 0.1,
+  "manualTipFactor": 0.05,
+  "stoppedSpeed": 0.5,
+  "lostAlertPct": 10,
+  "lostAlertMinArrivals": 10,
+  "bottleneckPct": 10,
+  "routeWaitSeconds": 10,
+  "repeatChanceMax": 0.9,
+  "reputationStart": 50,
+  "popularityBands": { "low": 4, "high": 9 },
+  "ceoWalkingSpeed": 5,
+  "boardingDistance": 2,
+  "pubWindowSeconds": 60,
+  "vehicleWindowSeconds": 300,
+  "financeWindowSeconds": 300,
+  "newsLimit": 50
+}

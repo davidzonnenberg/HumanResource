@@ -1,0 +1,9 @@
+{
+  "districts": [
+    { "id": "old_town", "file": "old_town", "unlockCondition": null },
+    { "id": "harbour", "file": "harbour", "unlockCondition": { "kind": "never" } }
+  ],
+  "connectors": [
+    { "id": "old_town_harbour", "a": { "district": "old_town", "node": "e_end" }, "b": { "district": "harbour", "node": "gate" } }
+  ]
+}
