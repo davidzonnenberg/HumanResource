@@ -128,7 +128,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [x] 3.8 Build the shared test harness and arbitraries
     - `arbCommand(state)` (valid and invalid mix), `arbRun()` (`{registry, seed, schedule, ticks}`), run harness recording per-Tick snapshots, events and ledger, `arbSimState()`
     - _Requirements: 44.2_
-  - [ ]* 3.9 Write unit tests for RNG, money and stock helpers
+  - [x]* 3.9 Write unit tests for RNG, money and stock helpers
     - Rounding rules, `missingGold`, FIFO order, remainder on full storage
     - _Requirements: 2.6, 8.1, 8.4, 9.4_
   - [x]* 3.10 Write unit tests for the start state
@@ -392,7 +392,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [x] 12.2 Implement the joystick and Context_Action button
     - Floating left-thumb joystick (left 40%), right-side Context_Action button (≥ 72 px, min 44 px) showing `contextActionFor` result or hidden; one `ceoMove` per Tick; tap outside joystick selects objects
     - _Requirements: 14.1, 14.2, 14.3, 14.6, 18.3, 18.4_
-  - [ ]* 12.3 Write unit tests for input mapping
+  - [x]* 12.3 Write unit tests for input mapping
     - Default keymap, joystick vector normalisation, Tab ordering
     - _Requirements: 18.6, 14.1_
   - [x] 12.4 Add Game_Speed keys and fixed screen-aligned axes
@@ -404,7 +404,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [x] 13.1 Implement the HUD
     - Gold floored to whole Gold, debt warning when negative, Alert stack merged with client Alerts (one per type per object, tap selects object, out_of_beer rows merged), pause button, landscape-first layout and portrait rotate prompt; Gold is the only counter until a reveal adds others
     - _Requirements: 3.5, 8.6, 8.8, 18.1, 18.2, 18.9, 18.10_
-  - [ ]* 13.2 Write property test for Gold display rounding
+  - [x]* 13.2 Write property test for Gold display rounding
     - **Property 45: Gold display rounding**
     - **Validates: Requirements 8.8**
   - [ ] 13.3 Implement the Panel framework
@@ -427,7 +427,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [x] 13.8 Implement the HUD Game_Speed control and the Pause_Menu "Testing" toggle
     - Segmented pause / 1x / 2x / 4x touch control (≥ 44 × 44 CSS px per segment) shown only while speeds are available, current speed highlighted; Pause_Menu "Testing" toggle wired to Dev_Mode; all labels via `t()`
     - _Requirements: 18.3, 18.9, 47.4, 47.5, 47.6, 47.7, 47.9_
-  - [ ]* 13.9 Write unit tests for Game_Speed rules
+  - [x]* 13.9 Write unit tests for Game_Speed rules
     - Locked until the `game_speed` reveal or Dev_Mode (`?dev=1`, dev build, Testing toggle); Dev_Mode leaves `SimState` unchanged; reset to 1x on load; speed keys ignored while locked; speed pause triggers a save
     - _Requirements: 47.3, 47.4, 47.5, 47.6, 47.8, 47.9_
 
@@ -444,7 +444,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [x] 14.4 Implement upright, out-of-bounds and init-failure handling
     - `uprightMonitor.ts`: > 90° tilt for 2 s real time → `resetVehicle` at `nearestRoadPoint`; out of drivable polygon → reset after 0.5 s fade; Rapier init failure disables Manual_Driving with a toast
     - _Requirements: 13.14, 13.15, 13.16_
-  - [ ]* 14.5 Write unit tests for the upright monitor
+  - [x]* 14.5 Write unit tests for the upright monitor
     - Fake timers for tilt and out-of-bounds resets with cargo intact
     - _Requirements: 13.14, 13.15_
 
@@ -480,7 +480,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - **Property 27: Migration validity**
     - Required by Requirement 44.2; iterates `packages/shared/test/fixtures/v*/` and generated older documents (no older versions exist until task 24.2 adds v1 fixtures)
     - **Validates: Requirements 24.5, 24.10**
-  - [ ]* 16.8 Write property test for name and PIN validation
+  - [x]* 16.8 Write property test for name and PIN validation
     - **Property 33: Profile and slot name and PIN validation**
     - **Validates: Requirements 22.1, 22.3, 22.9**
   - [x] 16.9 Implement the Local_Store
@@ -510,7 +510,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - Profile picker as first route without importing three/R3F; preload the game chunk in the background; Rapier chunk lazy but precached; Local_Store slots playable offline
     - The game chunk (`GameScreen-*.js`) and the Rapier chunk (`ManualDriving-*.js`) now split out of the entry bundle (verified in `vite build` output); `App.tsx` lazy-loads `GameScreen` and warms it in the background after boot
     - _Requirements: 41.4, 42.2, 42.5_
-  - [ ]* 17.4 Write build-output checks for the PWA
+  - [x]* 17.4 Write build-output checks for the PWA
     - After `vite build`, assert manifest fields and that the precache manifest contains the game and Rapier chunks
     - _Requirements: 42.1, 42.2_
 
@@ -525,10 +525,10 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [x] 19.2 Implement PIN hashing and lockout in `packages/shared`
     - PBKDF2-SHA256 (16-byte salt, 210 000 iterations, 32-byte hash) with node:crypto and WebCrypto adapters; pure lockout function (5 failures in 5 min → 5 min lock, remaining time)
     - _Requirements: 22.7, 26.2, 26.3, 26.4, 26.5, 26.6_
-  - [ ]* 19.3 Write property test for PIN hash parity
+  - [x]* 19.3 Write property test for PIN hash parity
     - **Property 34: PIN hash verification parity**
     - **Validates: Requirements 22.7, 26.2, 26.3**
-  - [ ]* 19.4 Write property test for PIN lockout
+  - [x]* 19.4 Write property test for PIN lockout
     - **Property 35: PIN lockout**
     - **Validates: Requirements 26.4, 26.5, 26.6**
   - [x] 19.5 Implement Profile routes and the access guard
