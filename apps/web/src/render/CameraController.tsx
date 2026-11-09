@@ -3,7 +3,7 @@
 // Also drives the GameLoop once per rendered frame (priority -1 runs before other useFrames).
 import { useFrame, useThree } from '@react-three/fiber';
 import { useRef } from 'react';
-import { clampDistance, nextViewMode, unlockedDistricts, pathCacheFor } from '@hr/sim';
+import { clampDistance, unlockedDistricts, pathCacheFor } from '@hr/sim';
 import { bridge, publish } from '../store/simBridge';
 import { useUi } from '../store/stores';
 import { inputState } from '../input/inputState';
@@ -29,12 +29,9 @@ export function CameraController() {
     const k = 1 - Math.exp(-camCfg.zoomSmoothing * dt);
     camState.distance += (camState.targetDistance - camState.distance) * k;
 
-    // Mode switch with hysteresis (15.3, 15.4)
-    const mode = nextViewMode(ui.viewMode, camState.distance, camCfg);
-    if (mode !== ui.viewMode) {
-      ui.set({ viewMode: mode });
-      if (mode === 'management') loop.sim.submit({ type: 'uiEvent', event: 'managementViewOpened' }, 'ui');
-    }
+    // View mode is an explicit toggle now (15.3): follow the CEO/van in CEO_Mode, pan in
+    // Management_View. Driving always follows the van regardless of the stored mode (15.7).
+    const mode = ui.viewMode;
 
     // Target: follow the CEO / van in CEO_Mode, pan in Management_View (15.5, 15.9)
     if (mode === 'ceo' || driving) {

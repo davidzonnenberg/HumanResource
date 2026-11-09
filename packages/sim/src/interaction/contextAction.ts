@@ -34,8 +34,7 @@ export function contextActionFor(state: SimState, reg: DefinitionRegistry): Cont
     }
     return { kind: 'exitVehicle', targetKind: 'vehicle', targetId: v.id };
   }
-  if (ceo.insideBusinessId) return { kind: 'exitBuilding', targetKind: 'business', targetId: ceo.insideBusinessId };
-
+  // Entering/leaving an owned Business is automatic (ceoProximitySystem, 14.3); no button for it.
   let best: { action: ContextAction; d: number } | null = null;
   const consider = (action: ContextAction, d: number): void => {
     if (d <= range && (!best || d < best.d - 1e-9)) best = { action, d };
@@ -46,8 +45,9 @@ export function contextActionFor(state: SimState, reg: DefinitionRegistry): Cont
   }
   for (const b of Object.values(state.businesses)) {
     if (!isBusinessInUnlockedDistrict(reg, state, b)) continue; // 48.9
+    if (b.owner === PLAYER) continue; // owned Businesses are entered automatically, not via a button
     const door = entrance(reg, b.plotId);
-    consider({ kind: b.owner === PLAYER ? 'enter' : 'inspect', targetKind: 'business', targetId: b.id }, dist2d(ceo.x, ceo.z, door.x, door.z));
+    consider({ kind: 'inspect', targetKind: 'business', targetId: b.id }, dist2d(ceo.x, ceo.z, door.x, door.z));
   }
   for (const p of Object.values(state.plots)) {
     if (p.status !== 'for_sale' || !state.districts[p.districtId]?.unlocked) continue;

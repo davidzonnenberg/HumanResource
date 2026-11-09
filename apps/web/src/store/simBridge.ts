@@ -14,6 +14,9 @@ interface Bridge {
 
 export const bridge: Bridge = { reg: null, loop: null, lastPublish: 0, eventListeners: new Set() };
 
+/** Tracks the Business the CEO was inside last publish, to auto-open/close its Panel (14.3). */
+let lastInsideBusinessId: string | null = null;
+
 export const currentSim = (): Simulation | null => bridge.loop?.sim ?? null;
 
 export function attachSimulation(sim: Simulation, extraHooks: LoopHooks = {}, dev = false): GameLoop {
@@ -75,6 +78,19 @@ export function publish(force: boolean): void {
   if (caChanged) patch.contextAction = ca;
   if (revealed.length !== hud.revealed.length) patch.revealed = revealed;
   if (Object.keys(patch).length > 0) hud.set(patch);
+
+  // Auto-open the Business panel on entry; close it on leave if it is still the selection (14.3).
+  const inside = s.ceo.insideBusinessId;
+  if (inside !== lastInsideBusinessId) {
+    const ui = useUi.getState();
+    if (inside && s.businesses[inside]) {
+      ui.set({ selection: { kind: 'business', id: inside }, pickingSlot: null, financeOpen: false });
+    } else if (lastInsideBusinessId && ui.selection?.kind === 'business' && ui.selection.id === lastInsideBusinessId) {
+      ui.set({ selection: null });
+    }
+    lastInsideBusinessId = inside;
+  }
+
   const now = performance.now();
   if (force || now - bridge.lastPublish >= 200) {
     bridge.lastPublish = now;

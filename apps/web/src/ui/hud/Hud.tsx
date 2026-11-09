@@ -6,7 +6,7 @@ import { t, tDynamic } from '../../text/t';
 import { useHud, useSession, useUi } from '../../store/stores';
 import { onDomainEvents } from '../../store/simBridge';
 import { Joystick } from '../../input/Joystick';
-import { runContextAction, setPauseMenu, setSpeed, speedsAvailable, toggleSpeedPause, zoomIn, zoomOut } from '../../input/actions';
+import { runContextAction, setPauseMenu, setSpeed, speedsAvailable, toggleSpeedPause, toggleViewMode, zoomIn, zoomOut } from '../../input/actions';
 import { alertRows } from './alertText';
 import type { GameSpeed } from '../../loop/gameSpeed';
 
@@ -88,7 +88,9 @@ export function Hud() {
       <div className="hud-top-left">
         <div className={`gold ${gold < 0 ? 'debt' : ''}`}>{t('hud.gold', { amount: goldToWholeFloor(gold).toLocaleString() })}</div>
         {gold < 0 && <div className="debt-warning">{t('hud.debt')}</div>}
-        <div className="mode-label">{t(viewMode === 'ceo' ? 'hud.mode.ceo' : 'hud.mode.management')}</div>
+        <button className="mode-label" onClick={toggleViewMode} aria-label={t('hud.mode.toggle')}>
+          {t(viewMode === 'ceo' ? 'hud.mode.ceo' : 'hud.mode.management')}
+        </button>
         {sync === 'offline' || sync === 'pending' ? <div className="sync-badge">{t('hud.notSynced')}</div> : null}
       </div>
       <div className="hud-top-right">

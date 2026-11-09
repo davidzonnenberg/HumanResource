@@ -14,6 +14,7 @@ import {
   type Vehicle,
 } from '@hr/sim';
 import { t, tDynamic } from '../../text/t';
+import { useUi } from '../../store/stores';
 import { Card, Panel, PanelButton, Row } from '../components/Card';
 import { fire, resumeRoute, setRoute, unassign } from './panelActions';
 
@@ -50,23 +51,35 @@ function routeText(reg: DefinitionRegistry, state: SimState, v: Vehicle): string
 
 export function VehiclePanel({ reg, state, v, onClose }: { reg: DefinitionRegistry; state: SimState; v: Vehicle; onClose: () => void }) {
   const def = reg.vehicles[v.defId];
-  const driver = v.jobSlots.find((s) => s.filledBy?.kind === 'human');
-  const driverHuman = driver?.filledBy?.kind === 'human' ? state.humans[driver.filledBy.humanId] : null;
+  const driverJobId = def?.driverRequirement?.jobId;
+  const driverSlot = v.jobSlots.find((s) => s.jobId === driverJobId) ?? v.jobSlots[0];
+  const driverHuman = driverSlot?.filledBy?.kind === 'human' ? state.humans[driverSlot.filledBy.humanId] : null;
   const owned = v.owner === 'player';
   const status = v.control === 'manual' ? 'manual' : v.control === 'parked' ? 'parked' : 'auto';
+  // Re-drive is possible when the van is parked or has a suspended route but still has its route.
+  const canResume = owned && !!v.routeId && v.control !== 'manual' && (v.routeSuspended || v.control === 'parked');
   return (
     <Panel title={tDynamic(v.name)} onClose={onClose}>
       <Card>
         <Row label={t('panel.vehicle.status.auto').replace(/:.*/, '')} value={t(`panel.vehicle.status.${status}` as Parameters<typeof t>[0])} />
         <Row label={t('panel.vehicle.capacity', { value: '' }).replace('{value}', '').trim()} value={`${cargoTotal(v)} / ${def?.capacity ?? 0}`} />
-        <Row label={t('panel.vehicle.driver', { name: '' }).replace('{name}', '').trim()} value={driverHuman ? displayName(driverHuman) : t('panel.vehicle.noDriver')} />
         <Row label={t('panel.vehicle.deliveries', { value: '' }).replace('{value}', '').trim()} value={vehicleDeliveriesPerMinute(state, v.id, reg.config.ticksPerSecond).toFixed(1)} />
         <Row label={t('panel.vehicle.route', { stops: '' }).replace('{stops}', '').trim()} value={routeText(reg, state, v)} />
       </Card>
       {owned && (
+        <Card title={t('panel.vehicle.driver', { name: '' }).replace('{name}', '').replace(':', '').trim()}>
+          {driverSlot && (
+            <button className="slot-row" onClick={() => useUi.getState().set({ pickingSlot: { kind: 'vehicle', id: v.id, slotId: driverSlot.slotId } })}>
+              <span className="slot-job">{tDynamic(reg.jobs[driverSlot.jobId]?.nameKey ?? driverSlot.jobId)}</span>
+              <span className="slot-fill">{driverHuman ? displayName(driverHuman) : t('panel.vehicle.noDriver')}</span>
+            </button>
+          )}
+          {canResume && <PanelButton kind="primary" onClick={() => resumeRoute(v.id)}>{t('panel.vehicle.resume')}</PanelButton>}
+        </Card>
+      )}
+      {owned && (
         <Card>
           <RouteEditor reg={reg} state={state} v={v} />
-          {v.routeSuspended && v.routeId && <PanelButton kind="primary" onClick={() => resumeRoute(v.id)}>{t('panel.vehicle.resume')}</PanelButton>}
         </Card>
       )}
     </Panel>

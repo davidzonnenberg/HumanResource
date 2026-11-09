@@ -49,6 +49,29 @@ export function zoomOut(): void {
   zoomBy(camCfg.keyZoomFactor);
 }
 
+/** Comfortable CEO distance to ease to when switching back from Management_View (not max zoom). */
+const CEO_VIEW_DISTANCE = camCfg.startDistance;
+/** Overview distance to ease to when switching to Management_View. */
+const MANAGEMENT_VIEW_DISTANCE = Math.min(camCfg.dMax, camCfg.modeSwitchThreshold * 3);
+
+/**
+ * Explicit Management_View <-> CEO_Mode toggle (15.3). The mode is authoritative; the camera
+ * smoothly zooms/pans to a comfortable distance for the new mode. Zooming inside a mode never
+ * flips it, so Management_View can zoom all the way in to inspect something.
+ */
+export function toggleViewMode(): void {
+  const ui = useUi.getState();
+  if (bridge.loop?.sim.state.ceo.drivingVehicleId) return; // driving stays in CEO follow (15.7)
+  const next = ui.viewMode === 'ceo' ? 'management' : 'ceo';
+  ui.set({ viewMode: next });
+  if (next === 'management') {
+    camState.targetDistance = MANAGEMENT_VIEW_DISTANCE;
+    bridge.loop?.sim.submit({ type: 'uiEvent', event: 'managementViewOpened' }, 'ui');
+  } else {
+    camState.targetDistance = CEO_VIEW_DISTANCE;
+  }
+}
+
 export function devModeOn(): boolean {
   return isDevMode(window.location.search, import.meta.env.DEV, useSession.getState().devTesting);
 }

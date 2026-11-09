@@ -34,6 +34,7 @@
   "hud.speed.x4": "4x",
   "hud.mode.ceo": "CEO Mode",
   "hud.mode.management": "Management View",
+  "hud.mode.toggle": "Switch view",
   "hud.zoomIn": "Zoom in",
   "hud.zoomOut": "Zoom out",
   "hud.notSynced": "Not synced",

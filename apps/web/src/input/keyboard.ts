@@ -3,7 +3,7 @@
 import { useHud, useUi } from '../store/stores';
 import { inputState } from './inputState';
 import { joystick } from './joystickState';
-import { runContextAction, setPauseMenu, setSpeed, stepGameSpeed, toggleSpeedPause, zoomIn, zoomOut } from './actions';
+import { runContextAction, setPauseMenu, setSpeed, stepGameSpeed, toggleSpeedPause, toggleViewMode, zoomIn, zoomOut } from './actions';
 import { screenToWorld } from '../render/theme';
 import { bridge } from '../store/simBridge';
 import { camState } from '../render/cameraState';
@@ -86,6 +86,9 @@ export function installKeyboard(): () => void {
         break;
       case 'p':
         setPauseMenu(!useUi.getState().pauseMenuOpen);
+        break;
+      case 'v':
+        toggleViewMode();
         break;
       case '1':
         setSpeed(1);

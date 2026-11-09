@@ -1,6 +1,6 @@
 // CEO Commands (Requirement 14): walking, entering and leaving Businesses.
 import type { TickContext } from '../core/context';
-import { clamp, dist2d } from '../core/math';
+import { dist2d } from '../core/math';
 import type { Command, Rejection } from '../commands/types';
 import { PLAYER } from '../state/types';
 import { entrance, isBusinessInUnlockedDistrict, plotInfo } from '../world/geometry';
@@ -17,23 +17,56 @@ export function handleCeoMove(ctx: TickContext, cmd: Extract<Command, { type: 'c
     dz /= len;
   }
   const step = ctx.cfg.ceoWalkingSpeed * ctx.dt;
-  if (ceo.insideBusinessId) {
-    const b = ctx.state.businesses[ceo.insideBusinessId];
-    if (!b) return null;
-    const p = plotInfo(ctx.reg, b.plotId).def;
-    ceo.x = clamp(ceo.x + dx * step, p.x - p.w / 2 + 0.6, p.x + p.w / 2 - 0.6);
-    ceo.z = clamp(ceo.z + dz * step, p.z - p.d / 2 + 0.6, p.z + p.d / 2 - 0.6);
-    return null;
-  }
   const cache = ctx.paths();
   const nx = ceo.x + dx * step;
   const nz = ceo.z + dz * step;
+  // The CEO walks freely on walkable ground; entering/leaving a Business is now proximity-based
+  // (handled by ceoProximitySystem), so there is no separate "inside" movement mode.
   if (cache.walkable(nx, nz)) {
     ceo.x = nx;
     ceo.z = nz;
   } else if (cache.walkable(nx, ceo.z)) ceo.x = nx;
   else if (cache.walkable(ceo.x, nz)) ceo.z = nz;
   return null;
+}
+
+/**
+ * Auto-enter/leave: the CEO is "inside" the nearest owned Business while standing within its
+ * entrance range, and leaves automatically when walking away. No Enter/Leave command is needed;
+ * the renderer removes the roof while inside and the UI opens the Business panel on entry (14.3).
+ */
+export function ceoProximitySystem(ctx: TickContext): void {
+  const ceo = ctx.state.ceo;
+  if (ceo.drivingVehicleId) {
+    if (ceo.insideBusinessId) ceo.insideBusinessId = null;
+    return;
+  }
+  const enterRange = ctx.cfg.interactionRange;
+  const leaveRange = ctx.cfg.interactionRange * 1.5; // hysteresis so the edge does not flicker
+  let nearestId: string | null = null;
+  let nearestD = Infinity;
+  for (const b of Object.values(ctx.state.businesses)) {
+    if (b.owner !== PLAYER) continue;
+    if (!isBusinessInUnlockedDistrict(ctx.reg, ctx.state, b)) continue;
+    const door = entrance(ctx.reg, b.plotId);
+    const d = dist2d(ceo.x, ceo.z, door.x, door.z);
+    if (d < nearestD) {
+      nearestD = d;
+      nearestId = b.id;
+    }
+  }
+  if (ceo.insideBusinessId) {
+    // Stay inside until the CEO walks clearly away from that Business's door.
+    const cur = ctx.state.businesses[ceo.insideBusinessId];
+    if (!cur || cur.owner !== PLAYER) {
+      ceo.insideBusinessId = null;
+      return;
+    }
+    const door = entrance(ctx.reg, cur.plotId);
+    if (dist2d(ceo.x, ceo.z, door.x, door.z) > leaveRange) ceo.insideBusinessId = null;
+    return;
+  }
+  if (nearestId && nearestD <= enterRange) ceo.insideBusinessId = nearestId;
 }
 
 export function handleCeoEnter(ctx: TickContext, cmd: Extract<Command, { type: 'ceoEnter' }>): Rejection | null {
