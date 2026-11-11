@@ -13,7 +13,8 @@
       "key": "rivalPub", "plotId": "plot_rival", "defId": "pub_sports", "owner": "cmp_rival",
       "stockPct": { "beer": 60 },
       "autoReorder": { "beer": { "enabled": true, "thresholdPct": 50 } }
-    }
+    },
+    { "key": "marketDepot", "plotId": "plot_depot", "defId": "market_depot", "owner": "npc" }
   ],
   "competitors": [{ "id": "cmp_rival", "nameKey": "competitor.rival", "colorToken": "rival" }],
   "vehicles": [

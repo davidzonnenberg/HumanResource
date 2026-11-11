@@ -3,7 +3,7 @@
 import { z } from 'zod';
 
 /** Bump together with a migration in ./migrations whenever saved SimState data changes shape. */
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
 export const MIN_SUPPORTED_SCHEMA_VERSION = 1;
 export const MAX_SAVE_BYTES = 5 * 1024 * 1024;
 

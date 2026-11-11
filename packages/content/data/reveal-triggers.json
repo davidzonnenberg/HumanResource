@@ -2,7 +2,7 @@
   {
     "id": "storage_responses",
     "condition": { "kind": "event", "event": "storageFull", "where": { "owner": "player" } },
-    "reveals": ["storageResponses"],
+    "reveals": ["storageResponses", "warehouse", "market"],
     "phase": 1
   },
   {

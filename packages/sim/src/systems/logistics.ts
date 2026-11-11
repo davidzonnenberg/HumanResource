@@ -21,11 +21,12 @@ function vehicleCapacity(ctx: TickContext, v: Vehicle): number {
   return ctx.reg.vehicles[v.defId]?.capacity ?? 0;
 }
 
+/** Lot origin by Definition fields, not by type string (phase2-guide A7). */
 function originFor(ctx: TickContext, b: Business): LotOrigin {
-  const t = ctx.reg.businesses[b.defId]?.type;
-  if (ctx.reg.businesses[b.defId]?.supplier) return 'supplier';
-  if (t === 'brewery') return 'brewery';
-  if (t === 'market_depot') return 'market_depot';
+  const def = ctx.reg.businesses[b.defId];
+  if (def?.supplier) return 'supplier';
+  if (def?.marketDepot) return 'market_depot';
+  if (def && def.productionRules.length > 0) return 'brewery';
   return 'business';
 }
 

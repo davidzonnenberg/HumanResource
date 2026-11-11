@@ -20,6 +20,9 @@ export type DomainEvent =
   | { type: 'districtUnlocked'; districtId: string }
   | { type: 'uiManagementViewOpened' }
   | { type: 'news'; item: NewsItem }
-  | { type: 'achievementAwarded'; achievementId: string };
+  | { type: 'achievementAwarded'; achievementId: string }
+  // Phase 2 (reveal conditions and UI banners read these by name)
+  | { type: 'chainRegistered'; length: number; routeIds: Id[] }
+  | { type: 'reputationChanged'; delta: number; causeKey: string };
 
 export type DomainEventType = DomainEvent['type'];

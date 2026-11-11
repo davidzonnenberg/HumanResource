@@ -1,0 +1,5 @@
+[
+  { "id": "hops", "kind": "storable", "tradable": true, "modelKey": "crate_hops", "nameKey": "resource.hops", "crateUnits": 10 },
+  { "id": "malt", "kind": "storable", "tradable": true, "modelKey": "crate_malt", "nameKey": "resource.malt", "crateUnits": 10 },
+  { "id": "synergy", "kind": "corporate", "tradable": false, "modelKey": "crate_beer", "nameKey": "resource.synergy", "crateUnits": 1 }
+]

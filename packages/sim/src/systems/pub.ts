@@ -9,6 +9,7 @@ import type { PubParams } from '../defs/schemas';
 import { ringAdd } from '../metrics/ring';
 import { rngChance, rngNext } from '../rng/xoshiro128ss';
 import { takeFromStock } from '../storage/stock';
+import { barEntryFor, drinkLotFor } from './lots';
 import type { Business, Customer, Human, JobSlot, LostReason, PubRuntime, StaffTask } from '../state/types';
 import { PLAYER } from '../state/types';
 import { isBusinessInUnlockedDistrict } from '../world/geometry';
@@ -108,16 +109,17 @@ export function staffSystem(ctx: TickContext): void {
       const t = w.get();
       if (t?.kind === 'pour' && tick >= t.doneTick) {
         const order = p.pub.orderQueue.find((o) => o.customerId === t.customerId);
-        if (order) p.pub.bar.push({ customerId: t.customerId, recipeId: null, origin: 'business' });
+        if (order) p.pub.bar.push(barEntryFor(p.pub, t.customerId));
         w.set(null);
         ctx.events.push({ type: 'drinkPoured', pubId: p.b.id, owner: p.b.owner });
       }
       if (w.get() !== null || !stock || stock.amount < 1) continue;
       const order = p.pub.orderQueue.find((o) => !o.poured && ctx.state.customers[o.customerId]?.state === 'waiting');
       if (!order) continue;
-      takeFromStock(stock, 1); // Beer removed FIFO when pouring starts (4.6, 34.3)
+      const [taken] = takeFromStock(stock, 1); // Beer removed FIFO when pouring starts (4.6, 34.3)
       ledgerChange(ctx, p.def.drinkResource, -1, 'consumed');
       order.poured = true;
+      order.lot = { recipeId: taken?.recipeId ?? null, origin: taken?.origin ?? 'business' }; // lot threading (A7)
       w.set({ kind: 'pour', customerId: order.customerId, doneTick: tick + secondsToTicks(ctx, p.def.bartendingIntervalSeconds) });
     }
     // Servers
@@ -141,6 +143,7 @@ function deliverDrink(ctx: TickContext, p: PubCtx, customerId: string): void {
   const c = ctx.state.customers[customerId];
   const qi = p.pub.orderQueue.findIndex((o) => o.customerId === customerId);
   if (!c || c.state !== 'waiting' || qi < 0) return; // customer left: drink is wasted
+  const lot = drinkLotFor(p.pub, customerId);
   p.pub.orderQueue.splice(qi, 1);
   if (!c.servedAny) {
     const m = ctx.state.metrics.pubs[p.b.id];
@@ -152,7 +155,7 @@ function deliverDrink(ctx: TickContext, p: PubCtx, customerId: string): void {
   c.servedAny = true;
   c.state = 'drinking';
   c.stateUntil = ctx.state.tick + secondsToTicks(ctx, p.def.drinkSeconds);
-  c.currentLot = { recipeId: null, origin: 'business' };
+  c.currentLot = lot;
   ctx.events.push({ type: 'drinkServed', pubId: p.b.id, owner: p.b.owner, customerId });
 }
 

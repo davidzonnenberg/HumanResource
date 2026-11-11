@@ -1,0 +1,9 @@
+[
+  {
+    "id": "help_serve",
+    "nameKey": "minigame.helpServe.name",
+    "waitingThreshold": 3,
+    "passScore": 5,
+    "reward": { "kind": "boost", "stat": "serviceSpeed", "pct": 10, "seconds": 30 }
+  }
+]

@@ -124,6 +124,19 @@ export const businessDefSchema = z.object({
   layoutKey: id,
   pub: pubParamsSchema.optional(),
   supplier: supplierParamsSchema.optional(),
+  // ---- Phase 2 (all optional, so Phase 1 definitions stay valid) ----
+  /** Buildable on an empty Player Plot via `construct`. */
+  construction: z.object({ cost: gold, seconds: z.number().positive() }).optional(),
+  /** Acquirable via `acquireWarehouse` (buy once, or rent per Game_Minute). */
+  warehouse: z.object({ buyPrice: gold, rentPerMinute: gold }).optional(),
+  /** Load/unload rate while no Warehouse_Worker is working (28.2). Must be below loadRatePerSecond. */
+  unstaffedLoadRatePerSecond: z.number().positive().optional(),
+  /** Marker: Market pickup/sale point. Written as `{}` in JSON. */
+  marketDepot: z.record(z.string(), z.never()).optional(),
+  /** Recipes held by Businesses of this Definition (Secret_Recipes travel via Acquisition). */
+  recipes: z.array(id).optional(),
+  /** Makes Businesses of this Definition acquirable. */
+  acquisition: z.object({ askingPrice: gold }).optional(),
 });
 export type BusinessDef = z.infer<typeof businessDefSchema>;
 
@@ -170,7 +183,10 @@ export const humanDefSchema = z.object({
 export type HumanDef = z.infer<typeof humanDefSchema>;
 
 // ---------- Traits, Recipes, Brands (Phase 2 content, schema exists from Phase 1) ----------
-export const modifierSchema = z.object({ stat: id, addPct: z.number() });
+/** Wired stats only: a stat that no code reads must not be accepted in content (phase2-guide A2). */
+export const modifierStatSchema = z.enum(['repeatOrderChance', 'premiumPrice', 'demand']);
+export type ModifierStat = z.infer<typeof modifierStatSchema>;
+export const modifierSchema = z.object({ stat: modifierStatSchema, addPct: z.number() });
 export const traitDefSchema = z.object({
   id,
   nameKey: id,
@@ -267,6 +283,89 @@ export const simConfigSchema = z.object({
   newsLimit: z.number().int().positive(),
 });
 export type SimConfig = z.infer<typeof simConfigSchema>;
+
+// ---------- Phase 2 tables ----------
+/** Integer percent 0..100. Chances in data are integer percent and rolled with rngInt(0, 99). */
+const percent = z.number().int().min(0).max(100);
+const range2 = z.tuple([z.number().nonnegative(), z.number().nonnegative()]); // [min, max] seconds
+
+/**
+ * Market prices (30). `base` is the STARTING BUY price; the starting sell price is
+ * `base - minSpread`. Both walk inside [min, max] with buy = sell + spread, so the validation is
+ * min + minSpread <= base <= max.
+ */
+export const marketConfigSchema = z.object({
+  intervalSeconds: z.number().positive(),
+  resources: z.record(
+    z.string(),
+    z.object({ base: gold, min: gold, max: gold, minSpread: gold, step: gold }),
+  ),
+});
+export type MarketConfig = z.infer<typeof marketConfigSchema>;
+
+export const acquisitionConfigSchema = z.object({
+  intervalSeconds: range2,
+  expirySeconds: z.number().positive(),
+  maxOpenOffers: z.number().int().positive(),
+});
+export type AcquisitionConfig = z.infer<typeof acquisitionConfigSchema>;
+
+export const questionableDefSchema = z.object({
+  id,
+  nameKey: id,
+  legalKey: id, // legal-status text shown to the Player; the probabilities below never are (37.8)
+  humans: z.number().int().positive(),
+  durationSeconds: z.number().positive(),
+  cost: gold,
+  reward: z.object({ resourceId: id, qty: z.number().int().positive() }),
+  consequences: z.array(
+    z.object({ chancePct: percent, delaySeconds: range2, reputationDelta: z.number().int(), fine: gold, headlineKey: id }),
+  ),
+});
+export type QuestionableDef = z.infer<typeof questionableDefSchema>;
+
+export const questionableConfigSchema = z.object({
+  refreshSeconds: z.number().positive(),
+  maxOffers: z.number().int().positive(),
+});
+export type QuestionableConfig = z.infer<typeof questionableConfigSchema>;
+
+const weight = z.number().int().positive();
+export const competitorEventSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('openLocation'), weight, businessDefId: id }),
+  z.object({ kind: z.literal('changePrice'), weight, maxStep: gold }),
+  z.object({ kind: z.literal('changePopularity'), weight, stepBp: z.number().int().positive(), minBp: z.number().int().positive(), maxBp: z.number().int().positive() }),
+  z.object({ kind: z.literal('offerForSale'), weight }),
+]);
+export type CompetitorEventDef = z.infer<typeof competitorEventSchema>;
+export const competitorEventsSchema = z.object({
+  intervalSeconds: range2,
+  events: z.array(competitorEventSchema).min(1),
+});
+export type CompetitorEventsConfig = z.infer<typeof competitorEventsSchema>;
+
+/** Minigame boosts are bounded IN THE SCHEMA: at most 15% for at most 60 s (39.2). */
+export const minigameDefSchema = z.object({
+  id,
+  nameKey: id,
+  waitingThreshold: z.number().int().positive(),
+  passScore: z.number().int().nonnegative(),
+  reward: z.object({
+    kind: z.literal('boost'),
+    stat: z.literal('serviceSpeed'),
+    pct: z.number().int().min(1).max(15),
+    seconds: z.number().int().min(1).max(60),
+  }),
+});
+export type MinigameDef = z.infer<typeof minigameDefSchema>;
+
+/** Corporate chains (35). `synergyPerMinuteByLength` is a piecewise table: [chain length, Synergy/min]. */
+export const chainsConfigSchema = z.object({
+  windowSeconds: z.number().positive(),
+  minLength: z.literal(3),
+  synergyPerMinuteByLength: z.array(z.tuple([z.number().int().positive(), z.number().nonnegative()])).min(1),
+});
+export type ChainsConfig = z.infer<typeof chainsConfigSchema>;
 
 // ---------- Start state ----------
 const startJob = z.union([

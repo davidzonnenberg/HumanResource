@@ -1,6 +1,7 @@
 // Migration_Pipeline (24.5–24.8). Each step is a pure function over plain JSON. Older shapes are
 // typed locally inside each migration file; migrations never import current game types.
 import { CURRENT_SCHEMA_VERSION } from '../saveDocument';
+import { v1ToV2 } from './v1_to_v2';
 
 export interface Migration {
   from: number;
@@ -9,11 +10,8 @@ export interface Migration {
   up(doc: Record<string, unknown>): Record<string, unknown>;
 }
 
-/**
- * Ordered steps. Phase 2 adds e.g. `{ from: 1, to: 2, name: 'v1_to_v2_phase2_sections', up }`
- * in its own file and bumps CURRENT_SCHEMA_VERSION.
- */
-export const MIGRATIONS: readonly Migration[] = [];
+/** Ordered steps. Add a new file per version and bump CURRENT_SCHEMA_VERSION together with it. */
+export const MIGRATIONS: readonly Migration[] = [v1ToV2];
 
 export type MigrationResult =
   | { ok: true; doc: Record<string, unknown>; applied: string[] }

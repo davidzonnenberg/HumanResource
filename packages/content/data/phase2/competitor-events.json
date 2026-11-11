@@ -1,0 +1,9 @@
+{
+  "intervalSeconds": [90, 240],
+  "events": [
+    { "kind": "openLocation", "weight": 1, "businessDefId": "pub_student" },
+    { "kind": "changePrice", "weight": 4, "maxStep": 50 },
+    { "kind": "changePopularity", "weight": 3, "stepBp": 500, "minBp": 7000, "maxBp": 14000 },
+    { "kind": "offerForSale", "weight": 1 }
+  ]
+}

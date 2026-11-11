@@ -20,7 +20,7 @@ describe('content coverage', () => {
     for (const f of files(join(__dirname, '..', 'src'))) {
       const src = readFileSync(f, 'utf8');
       for (const m of src.matchAll(/\bt\(\s*'([\w.]+)'/g)) if (typeof table[m[1] as string] !== 'string') missing.push(`${f}: ${m[1]}`);
-      for (const m of src.matchAll(/'((?:hud|action|panel|alert|reason|pause|dialog|slots|profiles|sync|pwa|toast|app)\.[\w.]+)'/g))
+      for (const m of src.matchAll(/'((?:hud|action|panel|alert|reason|pause|dialog|slots|profiles|sync|pwa|toast|app|news|market|achievement)\.[\w.]+)'/g))
         if (!(m[1] as string).endsWith('.') && table[m[1] as string] === undefined) missing.push(`${f}: ${m[1]}`);
     }
     expect(missing).toEqual([]);

@@ -1,0 +1,8 @@
+[
+  {
+    "id": "synergy",
+    "nameKey": "achievement.synergy.name",
+    "descriptionKey": "achievement.synergy.description",
+    "condition": { "kind": "corporateResourceAtLeast", "resourceId": "synergy", "amount": 100 }
+  }
+]

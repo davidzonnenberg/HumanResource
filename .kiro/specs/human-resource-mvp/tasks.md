@@ -589,11 +589,13 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - Run `npm.cmd test`, `npm.cmd run typecheck`, `npm.cmd run lint` and `npm.cmd run build`. Ensure all tests pass, ask the user if questions arise.
   - Optional, user-triggered only: on the user's explicit request, stage specific files, commit on `main` and push to `origin`. Do not do this automatically.
 
+> Phase 2 (tasks 24–33): follow `.kiro/steering/phase2-guide.md` for build order, model assignment and the design decisions the spec leaves open.
+
 - [ ] 24. Add the Phase 2 definitions pack and save migration
-  - [ ] 24.1 Extend schemas and author `packages/content/data/phase2/`
+  - [x] 24.1 Extend schemas and author `packages/content/data/phase2/`
     - Resources Hops, Malt; Synergy as Corporate_Resource; Business Definitions brewery, warehouse (buy/rent, reduced unstaffed load rate), market_depot, extra Pub Venue_Types; Recipes incl. Secret_Recipe BADGER'S BITE; Traits and Liabilities with reveal delays; Brands per category with per-Venue modifiers; Market config (base, bounds min > 0, spread, interval); Plot prices, construction cost/time; Acquisition, Competitor event and Questionable_Opportunity tables; Achievements ("Synergy"); Phase 2 Reveal_Triggers and Help Serve threshold
     - _Requirements: 1.8, 19.1, 30.1, 33.1, 34.1, 34.6, 35.5, 37.1, 38.1, 40.1, 46.1_
-  - [ ] 24.2 Add Phase 2 state sections and the v1 → v2 migration
+  - [x] 24.2 Add Phase 2 state sections and the v1 → v2 migration
     - `CURRENT_SCHEMA_VERSION = 2`; `migrations/v1_to_v2.ts` inserts empty market, acquisitions, questionable, chains, boosts sections and default Sourcing_Policies; commit v1 fixtures under `packages/shared/test/fixtures/v1/`
     - _Requirements: 24.5, 24.10_
   - [ ] 24.3 Extend the required save property tests to Phase 2

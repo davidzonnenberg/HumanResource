@@ -4,22 +4,13 @@ import type { DefinitionRegistry } from '../defs/registry';
 import { nextId } from '../core/ids';
 import { newRing } from '../metrics/ring';
 import { drawHumanName } from '../names/names';
-import { rngPick, seedRng } from '../rng/xoshiro128ss';
-import { addToStock, emptyStock } from '../storage/stock';
+import { seedRng } from '../rng/xoshiro128ss';
+import { emptyStock } from '../storage/stock';
 import { entrance, parkingPoint, plotCenter } from '../world/geometry';
-import type { Business, Human, JobSlot, PubMetrics, SimState, Vehicle } from './types';
+import { createBusiness } from './createBusiness';
+import type { Business, Human, SimState, Vehicle } from './types';
 
-export function emptyPubMetrics(windowSeconds: number): PubMetrics {
-  return {
-    arrivals: newRing(windowSeconds),
-    lostNoSeat: newRing(windowSeconds),
-    lostOutOfBeer: newRing(windowSeconds),
-    lostPatience: newRing(windowSeconds),
-    waitSum: newRing(windowSeconds),
-    waitCount: newRing(windowSeconds),
-    staff: newRing(windowSeconds),
-  };
-}
+export { emptyPubMetrics } from './createBusiness';
 
 export function newGame(reg: DefinitionRegistry, seed: number): SimState {
   const start = reg.startState;
@@ -44,11 +35,24 @@ export function newGame(reg: DefinitionRegistry, seed: number): SimState {
     schedulerSeq: 0,
     metrics: { pubs: {}, vehicles: {}, routesBottleneck: {} },
     finance: { buckets: [] },
-    resourceTotals: Object.fromEntries(Object.keys(reg.resources).map((r) => [r, 0])),
+    // Only physical Resources are tracked; Corporate_Resources (Synergy) never enter the ledger.
+    resourceTotals: Object.fromEntries(Object.values(reg.resources).filter((r) => r.kind === 'storable').map((r) => [r.id, 0])),
     alerts: {},
     reveals: { fired: [] },
     achievements: [],
     news: [],
+    // Phase 2 sections: created empty/deterministic so a new game consumes no extra RNG (rule 3).
+    market: {
+      prices: Object.fromEntries(
+        Object.entries(reg.market.resources).map(([res, m]) => [res, { buy: m.base, sell: m.base - m.minSpread, history: [] }]),
+      ),
+      nextUpdateTick: Math.round(reg.market.intervalSeconds * cfg.ticksPerSecond),
+    },
+    acquisitions: { offers: {}, nextOfferTick: Math.round(reg.acquisitions.intervalSeconds[0] * cfg.ticksPerSecond) },
+    questionable: { offers: {}, running: {}, nextRefreshTick: Math.round(reg.questionableConfig.refreshSeconds * cfg.ticksPerSecond) },
+    chains: { edges: {}, registered: {}, synergyCarry: 0 },
+    boosts: [],
+    reputationPending: [],
   };
 
   // Plots
@@ -67,51 +71,10 @@ export function newGame(reg: DefinitionRegistry, seed: number): SimState {
   // Businesses
   const bizByKey: Record<string, Business> = {};
   for (const b of start.businesses) {
-    const def = reg.businesses[b.defId];
-    if (!def) throw new Error(`unknown business def ${b.defId}`);
-    const id = nextId(state, 'biz');
-    const names = reg.text[def.nameTable];
-    const name = Array.isArray(names) && names.length > 0 ? String(rngPick(state, names)) : def.id;
-    const storage: Business['storage'] = {};
-    for (const [res, cap] of Object.entries(def.storage)) {
-      const stock = emptyStock();
-      const qty = Math.floor((cap * (b.stockPct?.[res] ?? 0)) / 100);
-      if (qty > 0) addToStock(stock, { qty, recipeId: null, arrivedTick: 0, origin: 'start' }, cap);
-      storage[res] = stock;
-      state.resourceTotals[res] = (state.resourceTotals[res] ?? 0) + stock.amount;
-    }
-    const jobSlots: JobSlot[] = [];
-    for (const hr of def.humanRequirements)
-      for (let i = 0; i < hr.slots; i++) jobSlots.push({ slotId: `${hr.jobId}_${i + 1}`, jobId: hr.jobId, filledBy: null });
-    const autoReorder: Business['autoReorder'] = {};
-    for (const [res, ar] of Object.entries(b.autoReorder ?? {}))
-      autoReorder[res] = { enabled: ar.enabled, threshold: Math.floor(((def.storage[res] ?? 0) * ar.thresholdPct) / 100), failed: false };
-    const biz: Business = {
-      id,
-      defId: def.id,
-      owner: b.owner,
-      plotId: b.plotId,
-      name,
-      storage,
-      jobSlots,
-      brandId: def.brand,
-      traits: def.traits.map((t) => ({ traitId: t, hidden: false })),
-      sourcing: Object.fromEntries(def.inputs.map((r) => [r, def.automation.defaultSourcing])),
-      autoReorder,
-    };
-    if (def.pub) {
-      biz.pub = { drinkPrice: def.pub.defaultDrinkPrice, seats: new Array<string | null>(def.pub.seats).fill(null), orderQueue: [], bar: [], arrivalAcc: 0 };
-      state.metrics.pubs[id] = emptyPubMetrics(cfg.pubWindowSeconds);
-    }
-    state.businesses[id] = biz;
-    const plot = state.plots[b.plotId];
-    if (plot) {
-      plot.status = 'occupied';
-      plot.owner = b.owner;
-      plot.businessId = id;
-      plot.price = null;
-    }
-    bizByKey[b.key] = biz;
+    const opts: Parameters<typeof createBusiness>[5] = {};
+    if (b.stockPct) opts.stockPct = b.stockPct;
+    if (b.autoReorder) opts.autoReorder = b.autoReorder;
+    bizByKey[b.key] = createBusiness(state, reg, b.defId, b.plotId, b.owner, opts);
   }
 
   // Vehicles and Routes

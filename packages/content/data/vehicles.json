@@ -6,7 +6,7 @@
     "capacity": 40,
     "speed": 7,
     "driverRequirement": { "jobId": "driver" },
-    "allowedResources": ["beer"],
+    "allowedResources": ["beer", "hops", "malt"],
     "handling": {
       "acceleration": 22,
       "steeringLooseness": 0.55,

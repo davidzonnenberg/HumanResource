@@ -19,6 +19,8 @@
     "loadRatePerSecond": 10,
     "modelKey": "building_pub",
     "layoutKey": "pub_small",
+    "construction": { "cost": 500000, "seconds": 60 },
+    "acquisition": { "askingPrice": 450000 },
     "pub": {
       "venueType": "cosy_local",
       "seats": 10,
@@ -64,6 +66,9 @@
     "loadRatePerSecond": 10,
     "modelKey": "building_pub_rival",
     "layoutKey": "pub_small",
+    "construction": { "cost": 550000, "seconds": 60 },
+    "acquisition": { "askingPrice": 500000 },
+    "recipes": ["badgers_bite"],
     "pub": {
       "venueType": "sports_pub",
       "seats": 12,
@@ -106,6 +111,12 @@
     "loadRatePerSecond": 12,
     "modelKey": "building_supplier",
     "layoutKey": "warehouse_small",
-    "supplier": { "sells": [{ "resourceId": "beer", "unitPrice": 260 }] }
+    "supplier": {
+      "sells": [
+        { "resourceId": "beer", "unitPrice": 260 },
+        { "resourceId": "hops", "unitPrice": 120 },
+        { "resourceId": "malt", "unitPrice": 100 }
+      ]
+    }
   }
 ]

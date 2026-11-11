@@ -1,0 +1,8 @@
+{
+  "intervalSeconds": 30,
+  "resources": {
+    "beer": { "base": 250, "min": 100, "max": 270, "minSpread": 20, "step": 10 },
+    "hops": { "base": 115, "min": 50, "max": 130, "minSpread": 10, "step": 5 },
+    "malt": { "base": 95, "min": 40, "max": 110, "minSpread": 10, "step": 5 }
+  }
+}

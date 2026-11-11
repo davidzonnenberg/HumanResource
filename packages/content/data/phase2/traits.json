@@ -1,0 +1,7 @@
+[
+  { "id": "friendly_regulars", "nameKey": "trait.friendlyRegulars", "target": "business", "modifiers": [{ "stat": "repeatOrderChance", "addPct": 10 }] },
+  { "id": "hidden_gem", "nameKey": "trait.hiddenGem", "target": "business", "modifiers": [{ "stat": "demand", "addPct": 12 }], "revealDelaySeconds": [60, 180] },
+  { "id": "cellar_repairs", "nameKey": "trait.cellarRepairs", "target": "business", "modifiers": [], "liability": { "cost": 160000 }, "revealDelaySeconds": [120, 300] },
+  { "id": "badgers_charm", "nameKey": "trait.badgersCharm", "target": "recipe", "modifiers": [{ "stat": "repeatOrderChance", "addPct": 15 }] },
+  { "id": "smooth_finish", "nameKey": "trait.smoothFinish", "target": "recipe", "modifiers": [{ "stat": "premiumPrice", "addPct": 10 }] }
+]

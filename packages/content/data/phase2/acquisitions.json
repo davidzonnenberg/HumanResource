@@ -1,0 +1,5 @@
+{
+  "intervalSeconds": [180, 420],
+  "expirySeconds": 300,
+  "maxOpenOffers": 2
+}

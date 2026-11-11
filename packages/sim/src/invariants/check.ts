@@ -72,6 +72,18 @@ export function checkGoldLimit(state: SimState): InvariantViolation[] {
     for (const [k, g] of Object.entries(bk.byKey)) check(`finance.buckets.${i}.byKey.${k}`, g);
   });
   for (const p of Object.values(state.plots)) if (p.price !== null) check(`plots.${p.id}.price`, p.price);
+  // Phase 2 Gold fields: market prices, acquisition offers and rental fees
+  for (const [res, m] of Object.entries(state.market?.prices ?? {})) {
+    check(`market.prices.${res}.buy`, m.buy);
+    check(`market.prices.${res}.sell`, m.sell);
+    m.history.forEach((g, i) => check(`market.prices.${res}.history.${i}`, g));
+  }
+  for (const o of Object.values(state.acquisitions?.offers ?? {})) check(`acquisitions.offers.${o.id}.askingPrice`, o.askingPrice);
+  for (const b of Object.values(state.businesses)) {
+    if (!b.rental) continue;
+    check(`businesses.${b.id}.rental.feePerMinute`, b.rental.feePerMinute);
+    check(`businesses.${b.id}.rental.carry`, b.rental.carry);
+  }
   return out;
 }
 

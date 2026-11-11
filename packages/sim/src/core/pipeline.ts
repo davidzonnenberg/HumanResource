@@ -8,6 +8,7 @@ import { customerArrivalsSystem, customerVisitsSystem, staffSystem } from '../sy
 import { logisticsSystem, sourcingSystem } from '../systems/logistics';
 import { financeSystem } from '../systems/finance';
 import { alertsSystem, metricsSystem, revealsSystem } from '../systems/observe';
+import { schedulerSystem } from './scheduler';
 
 export interface SystemEntry {
   id: string;
@@ -16,13 +17,6 @@ export interface SystemEntry {
 }
 
 const noop = (): void => {};
-
-/** Scheduled events in (fireTick, seq) order. Phase 1 schedules nothing; Phase 2 adds kinds. */
-function schedulerSystem(ctx: TickContext): void {
-  const due = ctx.state.scheduler.filter((e) => e.fireTick <= ctx.state.tick);
-  if (due.length === 0) return;
-  ctx.state.scheduler = ctx.state.scheduler.filter((e) => e.fireTick > ctx.state.tick);
-}
 
 /** Generic production rules. No Phase 1 Business has production rules (Brewery arrives in Phase 2). */
 function productionSystem(): void {}

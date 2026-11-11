@@ -1,0 +1,26 @@
+[
+  {
+    "id": "gray_barrels",
+    "nameKey": "questionable.grayBarrels.name",
+    "legalKey": "questionable.grayBarrels.legal",
+    "humans": 2,
+    "durationSeconds": 60,
+    "cost": 20000,
+    "reward": { "resourceId": "beer", "qty": 60 },
+    "consequences": [
+      { "chancePct": 25, "delaySeconds": [60, 240], "reputationDelta": -6, "fine": 50000, "headlineKey": "news.questionable.grayBarrels" }
+    ]
+  },
+  {
+    "id": "midnight_hops",
+    "nameKey": "questionable.midnightHops.name",
+    "legalKey": "questionable.midnightHops.legal",
+    "humans": 1,
+    "durationSeconds": 45,
+    "cost": 10000,
+    "reward": { "resourceId": "hops", "qty": 40 },
+    "consequences": [
+      { "chancePct": 15, "delaySeconds": [45, 180], "reputationDelta": -3, "fine": 20000, "headlineKey": "news.questionable.midnightHops" }
+    ]
+  }
+]

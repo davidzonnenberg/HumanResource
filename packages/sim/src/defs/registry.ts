@@ -3,14 +3,21 @@
 import type { z } from 'zod';
 import { sq } from '../core/math';
 import {
+  acquisitionConfigSchema,
   achievementDefSchema,
   brandDefSchema,
   businessDefSchema,
+  chainsConfigSchema,
+  competitorEventsSchema,
   districtDefSchema,
   humanDefSchema,
   jobDefSchema,
+  marketConfigSchema,
+  minigameDefSchema,
   modelKeysSchema,
   namePoolSchema,
+  questionableConfigSchema,
+  questionableDefSchema,
   recipeDefSchema,
   resourceDefSchema,
   revealTriggerDefSchema,
@@ -19,14 +26,21 @@ import {
   traitDefSchema,
   vehicleDefSchema,
   worldDefSchema,
+  type AcquisitionConfig,
   type AchievementDef,
   type BrandDef,
   type BusinessDef,
+  type ChainsConfig,
+  type CompetitorEventsConfig,
   type Condition,
   type DistrictDef,
   type HumanDef,
   type JobDef,
+  type MarketConfig,
+  type MinigameDef,
   type PlotDef,
+  type QuestionableConfig,
+  type QuestionableDef,
   type RecipeDef,
   type ResourceDef,
   type RevealTriggerDef,
@@ -62,6 +76,14 @@ export interface RawContentInput {
   districtFiles: Record<string, unknown>;
   simConfig: unknown;
   text: Record<string, unknown>;
+  // Phase 2 tables (content/data/phase2)
+  market: unknown;
+  acquisitions: unknown;
+  questionables: unknown;
+  questionableConfig: unknown;
+  competitorEvents: unknown;
+  minigames: unknown;
+  chains: unknown;
 }
 
 export interface RoadNode {
@@ -111,6 +133,16 @@ export interface DefinitionRegistry {
   config: SimConfig;
   world: WorldInfo;
   startState: StartStateDef;
+  // Phase 2
+  market: MarketConfig;
+  acquisitions: AcquisitionConfig;
+  questionables: Record<string, QuestionableDef>;
+  questionableConfig: QuestionableConfig;
+  competitorEvents: CompetitorEventsConfig;
+  minigames: Record<string, MinigameDef>;
+  chains: ChainsConfig;
+  /** Brand modifiers as integer basis points (10000 = x1.0), converted once at load: brandId -> venueType -> bp. */
+  brandBp: Record<string, Record<string, { demandBp: number; priceBp: number }>>;
 }
 
 const nsNode = (district: string, node: string): string => `${district}:${node}`;
@@ -189,6 +221,13 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
   const config = parseOne('config/sim', raw.simConfig, simConfigSchema, errors);
   const startState = parseOne('start-state', raw.startState, startStateDefSchema, errors);
   const worldFile = parseOne('maps/world', raw.world, worldDefSchema, errors);
+  const market = parseOne('phase2/market', raw.market, marketConfigSchema, errors);
+  const acquisitions = parseOne('phase2/acquisitions', raw.acquisitions, acquisitionConfigSchema, errors);
+  const questionables = parseArray('phase2/questionables', raw.questionables, questionableDefSchema, errors);
+  const questionableConfig = parseOne('phase2/questionable-config', raw.questionableConfig, questionableConfigSchema, errors);
+  const competitorEvents = parseOne('phase2/competitor-events', raw.competitorEvents, competitorEventsSchema, errors);
+  const minigames = parseArray('phase2/minigames', raw.minigames, minigameDefSchema, errors);
+  const chains = parseOne('phase2/chains', raw.chains, chainsConfigSchema, errors);
   const text = raw.text;
   const modelKeys = new Set(models);
 
@@ -292,6 +331,21 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
       if (pts.some((pt) => pt[1] < 0)) errors.push({ definition: def, field: 'pub.demand.price.points', message: 'multipliers must be >= 0' });
     }
     if (b.supplier) for (const s of b.supplier.sells) ref(def, 'supplier.sells.resourceId', 'Resource', s.resourceId, resources);
+    // ---- Phase 2 fields ----
+    if (b.construction) {
+      if (b.construction.cost <= 0) errors.push({ definition: def, field: 'construction.cost', message: 'construction cost must be above 0' });
+      if (b.owner === 'npc' || b.owner === 'competitor')
+        errors.push({ definition: def, field: 'construction', message: 'only Player-buildable Definitions (owner any or player) can have a construction block' });
+    }
+    if (b.warehouse) {
+      if (b.warehouse.buyPrice <= 0) errors.push({ definition: def, field: 'warehouse.buyPrice', message: 'buy price must be above 0' });
+      if (b.warehouse.rentPerMinute <= 0) errors.push({ definition: def, field: 'warehouse.rentPerMinute', message: 'rent must be above 0' });
+    }
+    if (b.unstaffedLoadRatePerSecond !== undefined && b.unstaffedLoadRatePerSecond >= b.loadRatePerSecond)
+      errors.push({ definition: def, field: 'unstaffedLoadRatePerSecond', message: 'must be below loadRatePerSecond' });
+    for (const r of b.recipes ?? []) ref(def, 'recipes', 'Recipe', r, recipes);
+    if (b.acquisition && b.acquisition.askingPrice <= 0)
+      errors.push({ definition: def, field: 'acquisition.askingPrice', message: 'asking price must be above 0' });
   }
   for (const v of Object.values(vehicles)) {
     const def = `vehicles#${v.id}`;
@@ -300,22 +354,36 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
     ref(def, 'modelKey', 'model key', v.modelKey, modelKeys);
     textRef(def, 'nameKey', v.nameKey);
   }
-  for (const t of Object.values(traits)) textRef(`traits#${t.id}`, 'nameKey', t.nameKey);
+  for (const t of Object.values(traits)) {
+    textRef(`traits#${t.id}`, 'nameKey', t.nameKey);
+    if (t.revealDelaySeconds && t.revealDelaySeconds[0] > t.revealDelaySeconds[1])
+      errors.push({ definition: `traits#${t.id}`, field: 'revealDelaySeconds', message: 'minimum delay is above the maximum' });
+    if (t.liability && t.liability.cost <= 0) errors.push({ definition: `traits#${t.id}`, field: 'liability.cost', message: 'liability cost must be above 0' });
+  }
   for (const r of Object.values(recipes)) {
     ref(`recipes#${r.id}`, 'product', 'Resource', r.product, resources);
     for (const t of r.traits) ref(`recipes#${r.id}`, 'traits', 'Trait', t, traits);
     textRef(`recipes#${r.id}`, 'nameKey', r.nameKey);
   }
-  for (const b of Object.values(brands)) textRef(`brands#${b.id}`, 'nameKey', b.nameKey);
+  const brandBp: DefinitionRegistry['brandBp'] = {};
+  for (const b of Object.values(brands)) {
+    textRef(`brands#${b.id}`, 'nameKey', b.nameKey);
+    // Data multipliers become integer basis points once, here (phase2-guide rule 5).
+    brandBp[b.id] = Object.fromEntries(
+      Object.entries(b.perVenue).map(([venue, m]) => [venue, { demandBp: Math.round(m.demandMul * 10000), priceBp: Math.round(m.priceMul * 10000) }]),
+    );
+  }
   for (const a of Object.values(achievements)) {
     textRef(`achievements#${a.id}`, 'nameKey', a.nameKey);
     textRef(`achievements#${a.id}`, 'descriptionKey', a.descriptionKey);
   }
   for (const d of Object.values(world.districts)) textRef(`maps/districts/${d.def.id}`, 'nameKey', d.def.nameKey);
 
+  validatePhase2Tables({ market, acquisitions, questionables, questionableConfig, competitorEvents, minigames, chains }, { resources, businesses }, textRef, errors);
+
   if (startState) validateStartState(startState, { businesses, vehicles, jobs, humans, resources, world }, textRef, errors);
 
-  if (errors.length > 0 || !config || !startState) {
+  if (errors.length > 0 || !config || !startState || !market || !acquisitions || !questionableConfig || !competitorEvents || !chains) {
     if (errors.length === 0) errors.push({ definition: '(content)', field: '(root)', message: 'missing configuration' });
     return { ok: false, errors };
   }
@@ -337,8 +405,90 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
     config,
     world,
     startState,
+    market,
+    acquisitions,
+    questionables,
+    questionableConfig,
+    competitorEvents,
+    minigames,
+    chains,
+    brandBp,
   };
   return { ok: true, value: deepFreeze(registry) };
+}
+
+interface Phase2Tables {
+  market: MarketConfig | null;
+  acquisitions: AcquisitionConfig | null;
+  questionables: Record<string, QuestionableDef>;
+  questionableConfig: QuestionableConfig | null;
+  competitorEvents: CompetitorEventsConfig | null;
+  minigames: Record<string, MinigameDef>;
+  chains: ChainsConfig | null;
+}
+
+/** Referential and semantic checks for the Phase 2 tables (phase2-guide A2). */
+function validatePhase2Tables(
+  t: Phase2Tables,
+  defs: { resources: Record<string, ResourceDef>; businesses: Record<string, BusinessDef> },
+  textRef: (definition: string, field: string, key: string) => void,
+  errors: DefinitionError[],
+): void {
+  const err = (definition: string, field: string, message: string): void => void errors.push({ definition, field, message });
+  const rangeOk = (definition: string, field: string, r: readonly [number, number]): void => {
+    if (r[0] > r[1]) err(definition, field, 'minimum is above the maximum');
+  };
+
+  if (t.market) {
+    if (t.market.intervalSeconds <= 0) err('phase2/market', 'intervalSeconds', 'must be above 0');
+    for (const [resId, m] of Object.entries(t.market.resources)) {
+      const def = `phase2/market#${resId}`;
+      const res = defs.resources[resId];
+      if (!res) err(def, 'resources', `unknown Resource "${resId}"`);
+      else if (!res.tradable || res.kind !== 'storable') err(def, 'resources', `Resource "${resId}" is not tradable`);
+      if (m.min <= 0) err(def, 'min', 'minimum price must be above 0');
+      if (m.minSpread < 1) err(def, 'minSpread', 'minimum spread must be at least 1');
+      if (m.step < 1) err(def, 'step', 'step must be at least 1');
+      if (m.min + m.minSpread > m.base || m.base > m.max) err(def, 'base', 'must satisfy min + minSpread <= base <= max');
+    }
+  }
+  if (t.acquisitions) rangeOk('phase2/acquisitions', 'intervalSeconds', t.acquisitions.intervalSeconds);
+  for (const q of Object.values(t.questionables)) {
+    const def = `phase2/questionables#${q.id}`;
+    textRef(def, 'nameKey', q.nameKey);
+    textRef(def, 'legalKey', q.legalKey);
+    const res = defs.resources[q.reward.resourceId];
+    if (!res) err(def, 'reward.resourceId', `unknown Resource "${q.reward.resourceId}"`);
+    else if (res.kind !== 'storable') err(def, 'reward.resourceId', `Resource "${q.reward.resourceId}" is not storable`);
+    if (q.cost < 0) err(def, 'cost', 'cost must not be negative');
+    for (const c of q.consequences) {
+      textRef(def, 'consequences.headlineKey', c.headlineKey);
+      rangeOk(def, 'consequences.delaySeconds', c.delaySeconds);
+      if (c.fine < 0) err(def, 'consequences.fine', 'fine must not be negative');
+    }
+  }
+  if (t.competitorEvents) {
+    rangeOk('phase2/competitor-events', 'intervalSeconds', t.competitorEvents.intervalSeconds);
+    for (const e of t.competitorEvents.events) {
+      const def = `phase2/competitor-events#${e.kind}`;
+      if (e.kind === 'openLocation') {
+        const b = defs.businesses[e.businessDefId];
+        if (!b) err(def, 'businessDefId', `unknown Business "${e.businessDefId}"`);
+        else if (!b.pub) err(def, 'businessDefId', `Business "${e.businessDefId}" is not a Pub`);
+      }
+      if (e.kind === 'changePrice' && e.maxStep < 1) err(def, 'maxStep', 'must be at least 1');
+      if (e.kind === 'changePopularity' && e.minBp > e.maxBp) err(def, 'minBp', 'minimum is above the maximum');
+    }
+  }
+  for (const m of Object.values(t.minigames)) textRef(`phase2/minigames#${m.id}`, 'nameKey', m.nameKey);
+  if (t.chains) {
+    const pts = t.chains.synergyPerMinuteByLength;
+    for (let i = 1; i < pts.length; i++)
+      if ((pts[i] as [number, number])[0] <= (pts[i - 1] as [number, number])[0])
+        err('phase2/chains', 'synergyPerMinuteByLength', 'chain lengths must be strictly increasing');
+    if (pts.length > 0 && (pts[0] as [number, number])[0] > t.chains.minLength)
+      err('phase2/chains', 'synergyPerMinuteByLength', 'the table must start at or below the minimum chain length');
+  }
 }
 
 function validateStartState(

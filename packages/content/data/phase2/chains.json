@@ -1,0 +1,5 @@
+{
+  "windowSeconds": 120,
+  "minLength": 3,
+  "synergyPerMinuteByLength": [[3, 1], [4, 2], [5, 4]]
+}

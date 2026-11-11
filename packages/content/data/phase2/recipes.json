@@ -1,0 +1,5 @@
+[
+  { "id": "house_lager", "nameKey": "recipe.houseLager", "product": "beer", "traits": [], "secret": false },
+  { "id": "golden_ale", "nameKey": "recipe.goldenAle", "product": "beer", "traits": ["smooth_finish"], "secret": false },
+  { "id": "badgers_bite", "nameKey": "recipe.badgersBite", "product": "beer", "traits": ["badgers_charm"], "secret": true }
+]

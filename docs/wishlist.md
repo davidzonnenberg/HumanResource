@@ -25,6 +25,7 @@ Ideas that are nowhere near implementation. They are not part of the spec and mu
 - Stock market.
 - Vehicle manufacturing, autonomous delivery, electric power.
 - Alternative starts: wood chopping, small farm, delivery company, tiny shop, workshop.
+- More Trait / Recipe modifier stats (requirement 34.1 ideas that no system reads yet, so the schema rejects them): consumption speed, production cost, brand engagement. Add a stat to `modifierStatSchema` only together with the code that reads it.
 
 ## Logistics
 

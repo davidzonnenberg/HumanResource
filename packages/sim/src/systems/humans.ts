@@ -8,6 +8,7 @@ import { advancePath, buildPath, pathPosition, type Point } from '../logistics/p
 import { costOf, requireGold } from '../money/gold';
 import { drawHumanName } from '../names/names';
 import { findSlot } from '../staffing/capacity';
+import { barEntryFor } from './lots';
 import type { Business, Human, JobSlot, JobSlotRef, Vehicle } from '../state/types';
 import { PLAYER } from '../state/types';
 import { entrance, isBusinessInUnlockedDistrict, plotCenter, plotInfo } from '../world/geometry';
@@ -36,8 +37,8 @@ export function interruptTask(ctx: TickContext, h: Human): void {
   const pub = ctx.state.businesses[ref.id]?.pub;
   if (!pub) return;
   const order = pub.orderQueue.find((o) => o.customerId === task.customerId);
-  if (task.kind === 'pour' && order) pub.bar.push({ customerId: task.customerId, recipeId: null, origin: 'business' });
-  if (task.kind === 'carry') pub.bar.unshift({ customerId: task.customerId, recipeId: null, origin: 'business' });
+  if (task.kind === 'pour' && order) pub.bar.push(barEntryFor(pub, task.customerId));
+  if (task.kind === 'carry') pub.bar.unshift(barEntryFor(pub, task.customerId));
 }
 
 /** Clears the Human's current Job_Slot (both link directions) and stops a driven Vehicle (7.12). */

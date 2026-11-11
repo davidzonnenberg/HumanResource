@@ -49,6 +49,10 @@
       "accessNode": "sup", "unloadingZone": { "x": 46, "z": 2, "w": 12, "d": 6 }, "initial": { "kind": "reserved" }
     },
     {
+      "id": "plot_depot", "x": 46, "z": -12, "w": 14, "d": 12, "rotation": 0, "tags": ["market"],
+      "accessNode": "sup", "unloadingZone": { "x": 46, "z": -3, "w": 12, "d": 4 }, "initial": { "kind": "reserved" }
+    },
+    {
       "id": "plot_west", "x": -46, "z": -12, "w": 16, "d": 12, "rotation": 0, "tags": ["commercial"],
       "accessNode": "west_lot", "unloadingZone": { "x": -46, "z": -2, "w": 12, "d": 6 }, "initial": { "kind": "empty" }
     },

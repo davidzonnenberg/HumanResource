@@ -1,0 +1,42 @@
+[
+  {
+    "id": "brand_big_lager",
+    "nameKey": "brand.bigLager",
+    "category": "mainstream",
+    "perVenue": {
+      "cosy_local": { "demandMul": 1.05, "priceMul": 1.0 },
+      "sports_pub": { "demandMul": 1.15, "priceMul": 1.0 },
+      "student_bar": { "demandMul": 1.05, "priceMul": 0.98 }
+    }
+  },
+  {
+    "id": "brand_old_local",
+    "nameKey": "brand.oldLocal",
+    "category": "traditional_local",
+    "perVenue": {
+      "cosy_local": { "demandMul": 1.2, "priceMul": 1.05 },
+      "sports_pub": { "demandMul": 0.95, "priceMul": 1.0 },
+      "student_bar": { "demandMul": 0.9, "priceMul": 1.0 }
+    }
+  },
+  {
+    "id": "brand_penny_pint",
+    "nameKey": "brand.pennyPint",
+    "category": "budget",
+    "perVenue": {
+      "cosy_local": { "demandMul": 0.95, "priceMul": 0.9 },
+      "sports_pub": { "demandMul": 1.05, "priceMul": 0.92 },
+      "student_bar": { "demandMul": 1.25, "priceMul": 0.95 }
+    }
+  },
+  {
+    "id": "brand_gold_label",
+    "nameKey": "brand.goldLabel",
+    "category": "premium",
+    "perVenue": {
+      "cosy_local": { "demandMul": 1.0, "priceMul": 1.15 },
+      "sports_pub": { "demandMul": 0.9, "priceMul": 1.1 },
+      "student_bar": { "demandMul": 0.75, "priceMul": 1.05 }
+    }
+  }
+]

@@ -49,9 +49,27 @@ export const pathSchema = z.object({
 export const pubRuntimeSchema = z.object({
   drinkPrice: goldSchema,
   seats: z.array(id.nullable()),
-  orderQueue: z.array(z.object({ customerId: id, placedTick: nonNegInt, poured: z.boolean() })),
+  // `lot` is the recipe/origin of the unit being poured; set when pouring starts (lot threading).
+  orderQueue: z.array(
+    z.object({
+      customerId: id,
+      placedTick: nonNegInt,
+      poured: z.boolean(),
+      lot: z.object({ recipeId: id.nullable(), origin: lotOriginSchema }).optional(),
+    }),
+  ),
   bar: z.array(z.object({ customerId: id, recipeId: id.nullable(), origin: lotOriginSchema })),
   arrivalAcc: finite,
+});
+
+/** One production rule's runtime (Phase 2). `missing` holds `input:<res>` / `workers:<job>` / `output:<res>`. */
+export const productionEntrySchema = z.object({
+  ruleId: id,
+  recipeId: id.nullable(),
+  progressTicks: nonNegInt,
+  running: z.boolean(),
+  started: z.boolean(),
+  missing: z.array(z.string()),
 });
 
 export const businessSchema = z.object({
@@ -67,6 +85,11 @@ export const businessSchema = z.object({
   sourcing: z.record(z.string(), z.enum(['buy_external', 'internal', 'internal_first'])),
   autoReorder: z.record(z.string(), z.object({ enabled: z.boolean(), threshold: nonNegInt, failed: z.boolean() })),
   pub: pubRuntimeSchema.optional(),
+  // ---- Phase 2 (keys are omitted, never undefined, when not applicable) ----
+  production: z.array(productionEntrySchema).optional(),
+  /** Rented Warehouse: fee per Game_Minute with an exact carry (same pattern as salary). */
+  rental: z.object({ feePerMinute: goldSchema, carry: finite }).optional(),
+  recipes: z.array(id).optional(),
 });
 
 export const humanLocationSchema = z.discriminatedUnion('kind', [
@@ -146,6 +169,7 @@ export const plotSchema = z.object({
   owner: id.nullable(),
   businessId: id.nullable(),
   price: goldSchema.nullable(),
+  construction: z.object({ defId: id, doneTick: nonNegInt }).optional(),
 });
 
 export const ceoSchema = z.object({
@@ -186,12 +210,71 @@ export const alertSchema = z.object({
   variant: z.string().optional(),
 });
 
+/** Kinds the scheduler can dispatch (core/scheduler.ts). An unknown kind makes the save invalid. */
+export const scheduledKindSchema = z.enum(['constructionDone', 'revealAttribute', 'questionableDone', 'consequence']);
+
 export const scheduledEventSchema = z.object({
   seq: nonNegInt,
   fireTick: nonNegInt,
-  kind: z.string(),
+  kind: scheduledKindSchema,
   payload: z.record(z.string(), z.union([z.string(), z.number()])),
 });
+
+// ---------- Phase 2 sections (optional in the schema; newGame always creates them) ----------
+export const marketStateSchema = z.object({
+  prices: z.record(z.string(), z.object({ buy: goldSchema, sell: goldSchema, history: z.array(goldSchema) })), // history = last 10 sell prices
+  nextUpdateTick: nonNegInt,
+});
+
+export const acquisitionOfferSchema = z.object({
+  id,
+  businessId: id,
+  askingPrice: goldSchema,
+  expiresTick: nonNegInt,
+  knownTraits: z.array(id),
+  hidden: z.array(z.object({ kind: z.enum(['trait', 'recipe']), id })),
+});
+export const acquisitionsStateSchema = z.object({
+  offers: z.record(z.string(), acquisitionOfferSchema),
+  nextOfferTick: nonNegInt,
+});
+
+export const runningQuestionableSchema = z.object({
+  id,
+  defId: id,
+  humanIds: z.array(id),
+  destinationId: id,
+  doneTick: nonNegInt,
+});
+export const questionableStateSchema = z.object({
+  offers: z.record(z.string(), z.object({ id, defId: id, expiresTick: nonNegInt })),
+  running: z.record(z.string(), runningQuestionableSchema),
+  nextRefreshTick: nonNegInt,
+});
+
+export const corporateChainSchema = z.object({
+  key: id,
+  nodes: z.array(id).min(1),
+  length: int.positive(),
+  active: z.boolean(),
+  lastFlowSecond: nonNegInt,
+});
+export const chainsStateSchema = z.object({
+  /** "fromId>toId" -> last game second with a transfer on that edge. */
+  edges: z.record(z.string(), nonNegInt),
+  /** Nodes joined by ">" -> chain. */
+  registered: z.record(z.string(), corporateChainSchema),
+  synergyCarry: finite,
+});
+
+export const boostSchema = z.object({
+  businessId: id,
+  stat: z.literal('serviceSpeed'),
+  pct: int.positive(),
+  untilTick: nonNegInt,
+});
+
+export const reputationPendingSchema = z.object({ delta: int, causeKey: z.string() });
 
 export const newsItemSchema = z.object({
   tick: nonNegInt,
@@ -212,7 +295,17 @@ export const simStateSchema = z.object({
     availableBrands: z.array(id),
     recipes: z.array(id),
   }),
-  competitors: z.record(z.string(), z.object({ id, nameKey: id, colorToken: id })),
+  competitors: z.record(
+    z.string(),
+    z.object({
+      id,
+      nameKey: id,
+      colorToken: id,
+      // Phase 2: set lazily by the competitorEvents system (absent = unscheduled / 10000 bp).
+      nextEventTick: nonNegInt.optional(),
+      popularityBp: int.optional(),
+    }),
+  ),
   plots: z.record(z.string(), plotSchema),
   businesses: z.record(z.string(), businessSchema),
   humans: z.record(z.string(), humanSchema),
@@ -230,4 +323,11 @@ export const simStateSchema = z.object({
   reveals: z.object({ fired: z.array(id) }),
   achievements: z.array(id),
   news: z.array(newsItemSchema),
+  // Phase 2 sections. Systems return early when their section is absent.
+  market: marketStateSchema.optional(),
+  acquisitions: acquisitionsStateSchema.optional(),
+  questionable: questionableStateSchema.optional(),
+  chains: chainsStateSchema.optional(),
+  boosts: z.array(boostSchema).optional(),
+  reputationPending: z.array(reputationPendingSchema).optional(),
 });
