@@ -1,9 +1,12 @@
 // Required save property tests (Requirement 44.2): round-trip, continuation, migration validity.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { rawContent } from '@hr/content';
-import { loadRegistry, newGame, Simulation, cloneState, type DefinitionRegistry } from '@hr/sim';
+import { checkInvariants, loadRegistry, newGame, Simulation, cloneState, type DefinitionRegistry } from '@hr/sim';
 import { CURRENT_SCHEMA_VERSION, migrate, type Migration } from '@hr/shared';
+import { arbSimState } from '../../../packages/sim/test/arbitraries/simState';
 import { buildSaveDocument, deserialize, serialize } from '../src/persistence/serializer';
 
 const reg = ((): DefinitionRegistry => {
@@ -12,22 +15,13 @@ const reg = ((): DefinitionRegistry => {
   return r.value;
 })();
 
-/** A played state: new game advanced by some Ticks with a few Commands. */
-function playedState(seed: number, ticks: number, hires: number) {
-  const sim = new Simulation(reg, newGame(reg, seed));
-  for (let i = 0; i < hires; i++) sim.submit({ type: 'hire' });
-  for (let t = 0; t < ticks; t++) sim.tick();
-  return sim.state;
-}
-
 const meta = { profileId: 'p1', slotId: 's1', revision: 3, syncedRevision: 2 };
 
 describe('Save_Serializer', () => {
   // Feature: human-resource-mvp, Property 25: Save round-trip
-  it('Property 25: deserialize(serialize(state)) equals the state', () => {
+  it('Property 25: deserialize(serialize(state)) equals the state, Phase 2 sections included', () => {
     fc.assert(
-      fc.property(fc.integer(), fc.nat(1500), fc.nat(3), (seed, ticks, hires) => {
-        const state = playedState(seed, ticks, hires);
+      fc.property(arbSimState(reg), (state) => {
         const res = deserialize(serialize(buildSaveDocument(state, meta)), reg);
         expect(res.ok).toBe(true);
         if (res.ok) {
@@ -43,8 +37,7 @@ describe('Save_Serializer', () => {
   // Feature: human-resource-mvp, Property 26: Round-trip continuation equivalence
   it('Property 26: continuing from a loaded save equals continuing from memory', () => {
     fc.assert(
-      fc.property(fc.integer(), fc.nat(800), fc.integer({ min: 1, max: 600 }), (seed, before, after) => {
-        const state = playedState(seed, before, 1);
+      fc.property(arbSimState(reg), fc.integer({ min: 1, max: 600 }), (state, after) => {
         const res = deserialize(serialize(buildSaveDocument(state, meta)), reg);
         if (!res.ok) throw new Error('load failed');
         const a = new Simulation(reg, cloneState(state));
@@ -60,24 +53,50 @@ describe('Save_Serializer', () => {
   }, 300_000);
 
   // Feature: human-resource-mvp, Property 27: Migration validity
-  it('Property 27: every stored older document migrates to a valid current document', () => {
-    // No older schema exists yet (v1 is current). The harness migrates synthetic v0 documents
-    // through a test pipeline; Phase 2 adds real v1 fixtures in packages/shared/test/fixtures.
-    const v0ToV1: Migration = { from: 0, to: CURRENT_SCHEMA_VERSION, name: 'test_v0_to_v1', up: (d) => ({ ...d, state: (d as { legacy: unknown }).legacy, legacy: undefined }) };
-    fc.assert(
-      fc.property(fc.integer(), fc.nat(600), (seed, ticks) => {
-        const state = playedState(seed, ticks, 0);
-        const old = { schemaVersion: 0, revision: 1, syncedRevision: 0, timestamp: 'x', profileId: 'p', slotId: 's', legacy: state };
-        const m = migrate(old, [v0ToV1]);
-        expect(m.ok).toBe(true);
-        if (!m.ok) return;
-        const res = deserialize(JSON.parse(JSON.stringify(m.doc)), reg, []);
-        expect(res.ok).toBe(true);
-        expect(old.schemaVersion).toBe(0); // input untouched
-      }),
-      { numRuns: 100 },
+  describe('Property 27: migration validity', () => {
+    // Committed v1 documents (packages/shared/test/fixtures/v1), written by the v1 code before the migration.
+    const fixtureDir = join(__dirname, '..', '..', '..', 'packages', 'shared', 'test', 'fixtures', 'v1');
+    const fixtures = ['new-game', 'played', 'in-debt'].map(
+      (name) => JSON.parse(readFileSync(join(fixtureDir, `${name}.json`), 'utf8')) as Record<string, unknown>,
     );
-  }, 300_000);
+
+    // Generated v1 documents: a committed fixture with its Phase 1 fields varied (Gold, Reputation).
+    // A v1 document cannot be produced by the current code, so variation is applied to real v1 data.
+    const arbV1Document = fc
+      .record({
+        index: fc.integer({ min: 0, max: fixtures.length - 1 }),
+        goldDelta: fc.integer({ min: -5_000_000, max: 5_000_000 }),
+        reputation: fc.integer({ min: 0, max: 100 }),
+        ticks: fc.nat(200),
+      })
+      .map(({ index, goldDelta, reputation, ticks }) => {
+        const doc = JSON.parse(JSON.stringify(fixtures[index])) as { state: { player: { gold: number; reputation: number } } };
+        doc.state.player.gold += goldDelta;
+        doc.state.player.reputation = reputation;
+        return { doc, ticks };
+      });
+
+    it('every committed and generated v1 document migrates to a valid current document', () => {
+      fc.assert(
+        fc.property(arbV1Document, ({ doc, ticks }) => {
+          const before = JSON.stringify(doc);
+          const res = deserialize(JSON.parse(before) as Record<string, unknown>, reg);
+          expect(res.ok).toBe(true);
+          if (!res.ok) return;
+          expect(res.migrated).toBe(true);
+          expect(res.doc.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+          expect(JSON.stringify(doc)).toBe(before); // input untouched
+          expect(checkInvariants(res.doc.state, reg)).toEqual([]);
+
+          // The migrated game keeps simulating without violating invariants
+          const sim = new Simulation(reg, res.doc.state);
+          for (let t = 0; t < ticks; t++) sim.tick();
+          expect(checkInvariants(sim.state, reg)).toEqual([]);
+        }),
+        { numRuns: 100 },
+      );
+    }, 300_000);
+  });
 
   it('rejects newer versions and reports the first invalid field', () => {
     const state = newGame(reg, 1);

@@ -7,6 +7,7 @@ import type { Alert, Business } from '../state/types';
 import { PLAYER } from '../state/types';
 import { storageCapacity } from '../world/queries';
 import { pubMetricsView } from '../selectors/metrics';
+import { feedingSources } from './phase2/sourcing';
 
 /** Samples per-second metrics (staff on duty). Event counters are added where they happen. */
 export function metricsSystem(ctx: TickContext): void {
@@ -71,6 +72,13 @@ export function alertsSystem(ctx: TickContext): void {
     }
     for (const hr of def.humanRequirements) if (hr.slots > 0 && isJobUnstaffed(b, hr.jobId, ctx.state)) raise(next, prev, tick, `unstaffed:${hr.jobId}`, b.id); // 5.6
     for (const ar of Object.values(b.autoReorder)) if (ar.enabled && ar.failed) raise(next, prev, tick, 'reorder_failed', b.id);
+    // "internal supply" with no Player Route delivering that input (31.3)
+    for (const [res, policy] of Object.entries(b.sourcing)) {
+      if (policy === 'internal' && feedingSources(ctx.reg, ctx.state, b, res).length === 0) {
+        raise(next, prev, tick, 'no_internal_supply', b.id);
+        break;
+      }
+    }
   }
   for (const v of Object.values(ctx.state.vehicles)) {
     if (v.owner !== PLAYER) continue;

@@ -196,6 +196,10 @@ export const metricsSchema = z.object({
   pubs: z.record(z.string(), pubMetricsSchema),
   vehicles: z.record(z.string(), z.object({ deliveries: ringSchema, delivered: ringSchema })),
   routesBottleneck: z.record(z.string(), z.boolean()),
+  /** Phase 2: per production Business, consumed input quantities by Resource and produced units (29.4). */
+  production: z
+    .record(z.string(), z.object({ consumed: z.record(z.string(), ringSchema), produced: ringSchema }))
+    .optional(),
 });
 
 export const financeSchema = z.object({

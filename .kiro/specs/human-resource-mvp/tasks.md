@@ -598,15 +598,15 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [x] 24.2 Add Phase 2 state sections and the v1 → v2 migration
     - `CURRENT_SCHEMA_VERSION = 2`; `migrations/v1_to_v2.ts` inserts empty market, acquisitions, questionable, chains, boosts sections and default Sourcing_Policies; commit v1 fixtures under `packages/shared/test/fixtures/v1/`
     - _Requirements: 24.5, 24.10_
-  - [ ] 24.3 Extend the required save property tests to Phase 2
+  - [x] 24.3 Extend the required save property tests to Phase 2
     - Add v1 fixtures and generated v1 documents to Property 27; extend `arbSimState()` with Phase 2 sections for Properties 25 and 26
     - _Requirements: 24.3, 24.4, 24.10, 44.2_
 
 - [ ] 25. Implement the Market and Sourcing_Policies
-  - [ ] 25.1 Implement the `market` system and trades
+  - [x] 25.1 Implement the `market` system and trades
     - Bounded random walk at interval via RNG, clamp sell and buy with spread, history of last 10; `marketBuy` handler reserving at Market_Depot (Order with null destination); unload at Market_Depot credits sell price with `market_sale`
     - _Requirements: 30.1, 30.2, 30.3, 30.4, 30.5, 30.6_
-  - [ ] 25.2 Write property test for Market price bounds
+  - [x] 25.2 Write property test for Market price bounds
     - **Property 37: Market price bounds**
     - Required by Requirement 44.2
     - **Validates: Requirements 30.2, 30.3, 30.6**

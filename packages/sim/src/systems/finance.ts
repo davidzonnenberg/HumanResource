@@ -12,6 +12,14 @@ export function financeSystem(ctx: TickContext): void {
     h.salaryCarry -= charge * perMinute;
     if (charge > 0) gold(ctx, h.owner, -charge, 'salary', h.id);
   }
+  // Warehouse rent per Game_Minute with an exact carry, a Mandatory_Expense that applies in debt too (28.4)
+  for (const b of Object.values(ctx.state.businesses)) {
+    if (!b.rental) continue;
+    b.rental.carry += b.rental.feePerMinute;
+    const charge = Math.floor(b.rental.carry / perMinute);
+    b.rental.carry -= charge * perMinute;
+    if (charge > 0) gold(ctx, b.owner, -charge, 'rental', b.id);
+  }
   // Headcount_Fill salaries: count x Salary (49.5)
   const holders = [...Object.values(ctx.state.businesses), ...Object.values(ctx.state.vehicles)];
   for (const holder of holders) {

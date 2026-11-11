@@ -14,6 +14,8 @@ import { PLAYER } from '../state/types';
 import { inUnloadingZone, isBusinessInUnlockedDistrict, parkingPoint, plotInfo } from '../world/geometry';
 import { cargoTotal, nextDropoffIndex, pendingQuantity, storageCapacity, supplierFor } from '../world/queries';
 import { sendToJob } from './humans';
+import { jobCapacity } from '../staffing/capacity';
+import { internalAvailable } from './phase2/sourcing';
 
 const second = (ctx: TickContext): number => Math.floor(ctx.state.tick / ctx.tps);
 
@@ -39,24 +41,32 @@ function addCargo(ctx: TickContext, v: Vehicle, resourceId: string, lot: Lot): n
 /** Loads at `b` for drop-off at `destId` (null = any destination, manual pickup). Returns qty loaded. */
 function loadAt(ctx: TickContext, v: Vehicle, b: Business, destId: string | null, resources: readonly string[]): number {
   let loaded = 0;
-  const isSupplier = ctx.reg.businesses[b.defId]?.supplier !== undefined;
+  // Suppliers and the Market_Depot are order sources (reserved Orders, 10.2, 30.4)
+  const def = ctx.reg.businesses[b.defId];
+  const isOrderSource = def?.supplier !== undefined || def?.marketDepot !== undefined;
   const dest = destId ? ctx.state.businesses[destId] : null;
+  const destIsDepot = dest ? ctx.reg.businesses[dest.defId]?.marketDepot !== undefined : false;
   for (const res of resources) {
     const free = vehicleCapacity(ctx, v) - cargoTotal(v);
     if (free <= 0) break;
     let destFree = Infinity;
-    if (dest) destFree = freeCapacity(dest.storage[res] ?? emptyStock(), storageCapacity(ctx.reg, dest, res)) - (v.cargo[res]?.amount ?? 0);
+    // The Market_Depot takes any quantity of tradable cargo (30.5), so it has no capacity limit here
+    if (dest && !destIsDepot) destFree = freeCapacity(dest.storage[res] ?? emptyStock(), storageCapacity(ctx.reg, dest, res)) - (v.cargo[res]?.amount ?? 0);
     let want = Math.max(0, Math.min(free, destFree));
     if (want <= 0) continue;
-    if (isSupplier) {
-      // Reserved Orders of this owner, oldest first (10.2, 10.6)
+    if (isOrderSource) {
+      // Reserved Orders of this owner, oldest first (10.2, 10.6). Market Orders have no destination
+      // and may be taken for any drop-off (30.4).
       const orders = Object.values(ctx.state.orders)
-        .filter((o) => o.owner === v.owner && o.sourceId === b.id && o.resourceId === res && (destId === null || o.destinationId === destId))
+        .filter(
+          (o) =>
+            o.owner === v.owner && o.sourceId === b.id && o.resourceId === res && (destId === null || o.destinationId === null || o.destinationId === destId),
+        )
         .sort((a, c) => a.placedTick - c.placedTick || (a.id < c.id ? -1 : 1));
       for (const o of orders) {
         if (want <= 0) break;
         const n = Math.min(want, o.remaining);
-        addCargo(ctx, v, res, { qty: n, recipeId: null, arrivedTick: ctx.state.tick, origin: 'supplier' });
+        addCargo(ctx, v, res, { qty: n, recipeId: null, arrivedTick: ctx.state.tick, origin: originFor(ctx, b) });
         o.remaining -= n;
         want -= n;
         loaded += n;
@@ -89,6 +99,7 @@ interface UnloadedLot {
 }
 
 function unloadAt(ctx: TickContext, v: Vehicle, b: Business, resources: readonly string[]): UnloadedLot[] {
+  if (ctx.reg.businesses[b.defId]?.marketDepot !== undefined) return sellAtMarket(ctx, v, b, resources);
   const unloaded: UnloadedLot[] = [];
   if (b.owner !== v.owner) return unloaded;
   for (const res of resources) {
@@ -118,6 +129,38 @@ function unloadAt(ctx: TickContext, v: Vehicle, b: Business, resources: readonly
   return unloaded;
 }
 
+/**
+ * Market_Depot "unload": sells the Vehicle's tradable cargo at the sell price of this Tick, with no
+ * capacity limit (30.5). Credits the Vehicle owner with category market_sale and removes the quantity
+ * from the ledger, because the Resource leaves the economy. Returns the sold lots so that the stop
+ * still takes time to unload.
+ */
+function sellAtMarket(ctx: TickContext, v: Vehicle, depot: Business, resources: readonly string[]): UnloadedLot[] {
+  const sold: UnloadedLot[] = [];
+  const prices = ctx.state.market?.prices;
+  for (const res of resources) {
+    const cargo = v.cargo[res];
+    const price = prices?.[res];
+    if (!cargo || cargo.amount === 0 || !price || ctx.reg.resources[res]?.tradable !== true) continue;
+    const lots = takeFromStock(cargo, cargo.amount);
+    let qty = 0;
+    for (const lot of lots) {
+      sold.push({ resourceId: res, lot });
+      qty += lot.qty;
+    }
+    gold(ctx, v.owner, price.sell * qty, 'market_sale', depot.id);
+    ledgerChange(ctx, res, -qty, 'market_sale');
+    ctx.events.push({ type: 'vehicleUnloaded', vehicleId: v.id, owner: v.owner, businessId: depot.id, resourceId: res, qty });
+    const m = ctx.state.metrics.vehicles[v.id];
+    if (m) ringAdd(m.delivered, second(ctx), qty);
+  }
+  if (sold.length > 0) {
+    const m = ctx.state.metrics.vehicles[v.id];
+    if (m) ringAdd(m.deliveries, second(ctx), 1);
+  }
+  return sold;
+}
+
 function stopResources(ctx: TickContext, v: Vehicle, r: Route['stops'][number]): string[] {
   const allowed = ctx.reg.vehicles[v.defId]?.allowedResources ?? [];
   return r.resources === 'all' ? [...allowed] : r.resources.filter((x) => allowed.includes(x));
@@ -145,7 +188,9 @@ function doStopAction(ctx: TickContext, v: Vehicle, route: Route): void {
   const b = stop ? ctx.state.businesses[stop.businessId] : undefined;
   if (!stop || !b) return nextStop(ctx, v, route);
   const def = ctx.reg.businesses[b.defId];
-  const rate = def?.loadRatePerSecond ?? 10;
+  // Without a working Warehouse_Worker the stop runs at the reduced rate (28.2)
+  const staffed = (def?.humanRequirements ?? []).some((hr) => jobCapacity(b, hr.jobId, ctx.state) > 0);
+  const rate = !staffed && def?.unstaffedLoadRatePerSecond !== undefined ? def.unstaffedLoadRatePerSecond : (def?.loadRatePerSecond ?? 10);
   const resources = stopResources(ctx, v, stop);
   if (stop.action === 'pickup') {
     const di = nextDropoffIndex(route, (v.stopIndex + 1) % route.stops.length);
@@ -274,8 +319,16 @@ export function sourcingSystem(ctx: TickContext): void {
         ar.failed = false;
         continue;
       }
+      // Sourcing_Policy (31.1-31.2): "internal" never orders externally; "internal first" orders only the
+      // shortfall after stock available internally on Player Routes.
+      const policy = b.sourcing[res] ?? 'buy_external';
+      if (policy === 'internal') {
+        ar.failed = false;
+        continue;
+      }
       const offer = supplierFor(ctx.reg, ctx.state, res);
-      const want = cap - amount - pending;
+      let want = cap - amount - pending;
+      if (policy === 'internal_first') want -= internalAvailable(ctx.reg, ctx.state, b, res);
       if (!offer || want <= 0) continue;
       const affordable = b.owner === PLAYER ? Math.floor(Math.max(0, ctx.state.player.gold) / offer.unitPrice) : Infinity;
       const qty = Math.min(want, affordable);
@@ -398,9 +451,11 @@ export function handleManualUnload(ctx: TickContext, cmd: Extract<Command, { typ
   if (isRejection(v)) return v;
   const b = zoneBusiness(ctx, v, cmd.businessId);
   if ('reason' in b) return b;
-  if (b.owner !== PLAYER) return { reason: 'not_owner' };
+  const isDepot = ctx.reg.businesses[b.defId]?.marketDepot !== undefined;
+  if (b.owner !== PLAYER && !isDepot) return { reason: 'not_owner' };
   const lots = unloadAt(ctx, v, b, Object.keys(v.cargo));
   if (lots.length === 0) return { reason: 'nothing_to_unload' };
+  if (isDepot) return null; // market sales carry no Manual_Delivery_Tip (13.9)
   // Manual_Delivery_Tip: only cargo from a Supplier/Market_Depot/Brewery counts (13.9)
   let value = 0;
   for (const { resourceId, lot } of lots) {

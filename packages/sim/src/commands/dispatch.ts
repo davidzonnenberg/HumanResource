@@ -16,6 +16,11 @@ import {
   handleStartManualDriving,
 } from '../systems/logistics';
 import { handleCeoEnter, handleCeoExit, handleCeoMove } from '../systems/ceo';
+import { handleMarketBuy } from '../systems/phase2/market';
+import { handleBuyPlot, handleConstruct } from '../systems/phase2/construction';
+import { handleAcquireWarehouse, handleEndRental } from '../systems/phase2/warehouse';
+import { handleSetSourcingPolicy } from '../systems/phase2/sourcing';
+import { handleSetProductionRecipe } from '../systems/phase2/production';
 
 function handleUnlockDistrict(ctx: TickContext, env: CommandEnvelope, cmd: Extract<Command, { type: 'unlockDistrict' }>): Rejection | null {
   if (env.issuer !== 'system') return { reason: 'not_allowed' };
@@ -72,15 +77,22 @@ function dispatch(ctx: TickContext, env: CommandEnvelope): Rejection | null {
       return null;
     case 'unlockDistrict':
       return handleUnlockDistrict(ctx, env, cmd);
-    // Phase 2 Commands: handlers are added by the Phase 2 tasks.
-    case 'buyPlot':
-    case 'construct':
-    case 'acquireWarehouse':
-    case 'endRental':
-    case 'setSourcingPolicy':
     case 'marketBuy':
-    case 'acceptAcquisition':
+      return handleMarketBuy(ctx, cmd);
+    case 'buyPlot':
+      return handleBuyPlot(ctx, cmd);
+    case 'construct':
+      return handleConstruct(ctx, cmd);
+    case 'acquireWarehouse':
+      return handleAcquireWarehouse(ctx, cmd);
+    case 'endRental':
+      return handleEndRental(ctx, cmd);
+    case 'setSourcingPolicy':
+      return handleSetSourcingPolicy(ctx, cmd);
     case 'setProductionRecipe':
+      return handleSetProductionRecipe(ctx, cmd);
+    // Phase 2 Commands whose handlers arrive with later tasks (acquisitions 28, questionable 29, minigames 30)
+    case 'acceptAcquisition':
     case 'startQuestionable':
     case 'completeMinigame':
       return { reason: 'not_available' };

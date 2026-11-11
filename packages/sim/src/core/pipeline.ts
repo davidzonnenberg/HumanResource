@@ -8,6 +8,9 @@ import { customerArrivalsSystem, customerVisitsSystem, staffSystem } from '../sy
 import { logisticsSystem, sourcingSystem } from '../systems/logistics';
 import { financeSystem } from '../systems/finance';
 import { alertsSystem, metricsSystem, revealsSystem } from '../systems/observe';
+import { marketSystem } from '../systems/phase2/market';
+import { productionSystem } from '../systems/phase2/production';
+import { achievementsSystem } from '../systems/phase2/achievements';
 import { schedulerSystem } from './scheduler';
 
 export interface SystemEntry {
@@ -18,15 +21,12 @@ export interface SystemEntry {
 
 const noop = (): void => {};
 
-/** Generic production rules. No Phase 1 Business has production rules (Brewery arrives in Phase 2). */
-function productionSystem(): void {}
-
 export const PIPELINE: readonly SystemEntry[] = [
   { id: 'clock', phase: 1, run: (ctx) => void (ctx.state.tick += 1) },
   { id: 'commands', phase: 1, run: commandsSystem },
   { id: 'scheduler', phase: 1, run: schedulerSystem },
   { id: 'competitorEvents', phase: 2, run: noop },
-  { id: 'market', phase: 2, run: noop },
+  { id: 'market', phase: 2, run: marketSystem },
   { id: 'acquisitions', phase: 2, run: noop },
   { id: 'humans', phase: 1, run: humansSystem },
   { id: 'ceoProximity', phase: 1, run: ceoProximitySystem },
@@ -44,5 +44,5 @@ export const PIPELINE: readonly SystemEntry[] = [
   { id: 'metrics', phase: 1, run: metricsSystem },
   { id: 'alerts', phase: 1, run: alertsSystem },
   { id: 'reveals', phase: 1, run: revealsSystem },
-  { id: 'achievements', phase: 2, run: noop },
+  { id: 'achievements', phase: 2, run: achievementsSystem },
 ];
