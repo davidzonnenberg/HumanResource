@@ -10,10 +10,10 @@ cd HumanResource
 docker compose up -d --build
 ```
 
-The container now serves on `127.0.0.1:8787`. Check it:
+The container now serves on `127.0.0.1:3003`. Check it:
 
 ```bash
-curl http://127.0.0.1:8787/api/health      # {"ok":true}
+curl http://127.0.0.1:3003/api/health      # {"ok":true}
 ```
 
 Saves live in the named volume `hr-data` and survive rebuilds.
@@ -23,12 +23,12 @@ Saves live in the named volume `hr-data` and survive rebuilds.
 Enable MagicDNS and HTTPS certificates once in the Tailscale admin console, then on the host:
 
 ```bash
-sudo tailscale serve --bg --https=8443 http://127.0.0.1:8787
+sudo tailscale serve --bg --https=8443 http://127.0.0.1:3003
 ```
 
-Open `https://<host>.<your-tailnet>.ts.net:8443` on your phone or PC (both on the tailnet) and install it from the browser menu ("Add to Home Screen" / "Install app"). A separate HTTPS port (8443) avoids clashing with anything already on 443; if you already run a Tailscale-only reverse proxy, point it at `127.0.0.1:8787` instead.
+Open `https://<host>.<your-tailnet>.ts.net:8443` on your phone or PC (both on the tailnet) and install it from the browser menu ("Add to Home Screen" / "Install app"). A separate HTTPS port (8443) avoids clashing with anything already on 443; if you already run a Tailscale-only reverse proxy, point it at `127.0.0.1:3003` instead.
 
-HTTPS is required: service workers (offline play, install) only work on a secure context. Plain `http://<ip>:8787` works for quick testing but will not install as a PWA.
+HTTPS is required: service workers (offline play, install) only work on a secure context. Plain `http://<ip>:3003` works for quick testing but will not install as a PWA.
 
 ## Updating
 

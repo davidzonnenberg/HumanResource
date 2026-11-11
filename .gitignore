@@ -14,3 +14,7 @@ test-results/
 *.local
 .DS_Store
 Thumbs.db
+
+# Graphify knowledge graph: generated from the code, regenerate with `graphify update .`.
+# Large machine-written files that would cause constant merge conflicts.
+graphify-out/

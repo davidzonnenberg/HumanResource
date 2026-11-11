@@ -20,5 +20,6 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm test
+      # Build before test so the PWA build-output checks (apps/web/test/pwa.test.ts) run instead of skipping.
       - run: npm run build
+      - run: npm test

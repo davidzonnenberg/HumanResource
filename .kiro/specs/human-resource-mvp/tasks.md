@@ -196,7 +196,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [ ]* 5.9 Write property test for FIFO pouring
     - **Property 39: FIFO pouring**
     - **Validates: Requirements 34.3**
-  - [ ]* 5.10 Write unit tests for patience expiry reasons
+  - [x]* 5.10 Write unit tests for patience expiry reasons
     - Empty storage → `out_of_beer`; stock present → `patience_expired`; partial drinks paid
     - _Requirements: 4.8, 4.9_
 
@@ -211,7 +211,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - **Property 16: Auto-reorder never overfills**
     - Required by Requirement 44.2
     - **Validates: Requirements 10.8, 10.9, 10.10, 10.12**
-  - [ ]* 6.4 Write property test for insufficient Gold rejection
+  - [x]* 6.4 Write property test for insufficient Gold rejection
     - **Property 6: Insufficient Gold rejection reports the exact shortfall**
     - Cover hire and placeOrder now; extend generators when Phase 2 discretionary Commands land
     - **Validates: Requirements 7.1, 7.2, 8.4, 10.3, 10.5, 32.5**
@@ -281,10 +281,10 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - `ceoMove` (walking speed, walkable bounds), `ceoEnter`/`ceoExit`; CEO stays idle in Management_View
     - `interaction/contextAction.ts` (`contextActionFor`: Enter, Inspect, Drive, Load/Unload, Exit; Help Serve reserved for Phase 2) and `interaction/viewMode.ts` (`nextViewMode` with 5% hysteresis, manual-driving distance clamp)
     - _Requirements: 13.1, 13.2, 13.6, 14.1, 14.2, 14.3, 14.5, 14.7, 15.3, 15.4, 15.6, 15.7_
-  - [ ]* 7.11 Write property test for context action selection
+  - [x]* 7.11 Write property test for context action selection
     - **Property 22: Context action selection**
     - **Validates: Requirements 13.2, 13.6, 14.2, 14.3, 14.5, 39.1**
-  - [ ]* 7.12 Write property test for view mode hysteresis
+  - [x]* 7.12 Write property test for view mode hysteresis
     - **Property 23: View mode hysteresis and camera clamp**
     - **Validates: Requirements 15.3, 15.4, 15.7**
   - [x] 7.13 Wire the passive Competitor through the shared rules
@@ -318,7 +318,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - **Property 3: Resource conservation**
     - Required by Requirement 44.2; `arbRegistry()` includes generated extra Resources to cover 1.8
     - **Validates: Requirements 2.11, 1.8, 4.6, 10.6, 11.1, 13.5, 30.4, 46.1**
-  - [ ]* 8.4 Write determinism replay integration test
+  - [x]* 8.4 Write determinism replay integration test
     - Scripted Command log replays to an identical final state hash
     - _Requirements: 2.5_
 
@@ -581,7 +581,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - `docs/deployment.md`: build/run on Ubuntu, `sudo tailscale serve --bg --https=8443 http://127.0.0.1:8787`, existing Tailscale-only reverse proxy alternative, HTTPS requirement for service workers, PIN-removal command (`docker compose exec human-resource node dist/cli.js remove-pin "<name>"`), statement that Profile picker and PIN are convenience only and Tailscale membership is the only access control
     - `docs/content-authoring.md` (adding Definitions, names, text); README links
     - _Requirements: 26.8, 26.9, 43.2, 43.3_
-  - [ ]* 22.3 Write a Docker smoke test script
+  - [x]* 22.3 Write a Docker smoke test script
     - Build image, run compose with temp volume, hit `/api/health`, upload and fetch a save, restart, fetch again (runs on the Ubuntu host or where Docker is available)
     - _Requirements: 25.16, 43.1, 43.2, 43.4_
 
