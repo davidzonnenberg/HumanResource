@@ -60,6 +60,7 @@ Ideas that are nowhere near implementation. They are not part of the spec and mu
 - Shared city or competitive mode between players. Currently every device runs its own simulation and the server only stores saves.
 
 ## Platform
+- Sync CEO Phone settings (dark mode, text size, notifications…) across devices with the profile. Today they are stored per device in IndexedDB (decision D7, `.kiro/specs/ceo-phone`). This needs a ProfileDto/server field and the patchProfile API.
 
 - Other languages (Dutch first). All text already goes through `t()` keys, so this is a content task.
 - Proper accounts and hardened security when the game is shared beyond the tailnet.

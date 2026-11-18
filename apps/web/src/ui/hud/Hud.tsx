@@ -6,6 +6,7 @@ import { t, tDynamic } from '../../text/t';
 import { useHud, useSession, useSimVersion, useUi } from '../../store/stores';
 import { bridge, onDomainEvents } from '../../store/simBridge';
 import { inputState } from '../../input/inputState';
+import { togglePhone } from '../phone/phoneActions';
 import { Joystick } from '../../input/Joystick';
 import { runContextAction, setPauseMenu, setSpeed, speedsAvailable, toggleSpeedPause, toggleViewMode, zoomIn, zoomOut } from '../../input/actions';
 import { alertRows } from './alertText';
@@ -148,6 +149,10 @@ export function Hud() {
           −
         </button>
         <DriftButton />
+        {/* CEO Phone (ceo-phone 9.1, 9.2): right column, outside the left joystick zone; Q on PC. */}
+        <button type="button" className="icon-button phone-button" onClick={togglePhone} aria-label={t('phone.button')}>
+          📱
+        </button>
         {ca && (
           <button className="context-button" onClick={() => runContextAction(ca)}>
             {t(ACTION_KEYS[ca.kind])}

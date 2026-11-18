@@ -17,6 +17,8 @@ import oldTown from './data/maps/districts/old_town.json';
 import harbour from './data/maps/districts/harbour.json';
 // Render-only filler/landmark buildings (no sim Business yet): placed by the web app, hitbox from the model.
 import landmarks from './data/maps/landmarks.json';
+// CEO Phone app registry (validated in apps/web/src/ui/phone/appsSchema.ts; UI-only data).
+import phoneApps from './data/ui/apps.json';
 import simConfig from './data/config/sim.json';
 import cameraConfig from './data/config/camera.json';
 import themeConfig from './data/config/theme.json';
@@ -92,5 +94,5 @@ export const rawContent: RawContent = {
   chains,
 };
 
-export { cameraConfig, themeConfig, text, landmarks };
+export { cameraConfig, themeConfig, text, landmarks, phoneApps };
 export type TextTable = typeof text;

@@ -6,6 +6,7 @@ import { useHud, useSimVersion, useUi } from './stores';
 import { inputState } from '../input/inputState';
 import { shapeMove } from '../input/walkCollision';
 import { allFootprints, clearFootprints, exteriorDoorPoint } from '../render/footprints';
+import { usePhone } from '../ui/phone/phoneStore';
 
 interface Bridge {
   reg: DefinitionRegistry | null;
@@ -34,6 +35,7 @@ export function attachSimulation(sim: Simulation, extraHooks: LoopHooks = {}, de
   bridge.loop = loop;
   bridge.reg = sim.reg;
   clearFootprints();
+  usePhone.getState().reset(); // phone navigation is session state per Save_Slot (ceo-phone 4.11)
   publish(true);
   return loop;
 }

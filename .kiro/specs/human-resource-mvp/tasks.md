@@ -4,7 +4,18 @@
 
 The plan builds the TypeScript npm-workspaces monorepo in place at `C:\Users\David\OneDrive\Laptop Python\Human Resource` (existing git repo, branch `main`, remote `https://github.com/davidzonnenberg/HumanResource.git`). The project is not moved. Vite, Vitest and TypeScript caches go outside OneDrive. All PowerShell commands use `npm.cmd`.
 
-Order of work, chosen so Phase 1 becomes playable as early as possible:
+The work is split into six phases, matching `requirements.md` and the "Phase plan and dependencies" section of `design.md`. Each phase heading below starts with a short "How to do this phase" block (goal, what comes first, which model, verify commands). Task numbers of finished work never change, so the numbers are not in phase order: Phase 1 is tasks 1 to 23 and 34, Phase 2 is 35 to 40, Phase 3 is 41 to 53, Phase 4 is 54 to 61, Phase 5 is 62 to 67 and Phase 6 is the former "Phase 2" economy block, tasks 24 to 33.
+
+| Phase | Content | Depends on |
+|---|---|---|
+| 1 Playable core | Pub, van, CEO, saves, sync, PWA, deployment, driving polish | none |
+| 2 Foundations | Modifiers and `getStat`, conditions and effects, Services, replay and State_Hash, Frontage_Slots | Phase 1 |
+| 3 Grand Opening and bar redesign | `bar_worker`, Seats/Taps/Hands, tabs, kegs, offices, loans, fit-out, quests, save v3 | Phase 2 |
+| 4 Phone UI | Gold per hour, HUD, Phone and apps, Desk, Waypoint, Info_Layers | Phase 3 |
+| 5 Feel alive and satire | Bubbles, quirks, street life, summary card, satire services | Phases 2 to 4 |
+| 6 Economy expansion | Second pub, warehouse, brewery, market, acquisitions, chains, reputation | all earlier phases |
+
+Phase 1 order of work (built; chosen so Phase 1 became playable as early as possible):
 
 1. Repository scaffold and tooling
 2. Content schemas and Definition_Registry
@@ -15,7 +26,7 @@ Order of work, chosen so Phase 1 becomes playable as early as possible:
 7. Manual driving with Rapier
 8. **Phase 1 playable checkpoint** (test on phone and PC)
 9. Local persistence, then PWA shell, Save_API and sync, then Docker/Tailscale deployment docs
-10. Phase 2 as an additive block
+10. Phases 2 to 6, one block per phase (see the phase headings)
 
 Test sub-tasks use Vitest + fast-check. Each property test carries the tag comment `// Feature: human-resource-mvp, Property N: <title>`. Following the workflow convention, test sub-tasks are optional (`*`), with one exception: the property tests that Requirement 44.2 explicitly mandates (Properties 1, 2, 3, 9, 15, 16, 25, 26, 27, 37) are required tasks, because the project must contain them.
 
@@ -28,6 +39,14 @@ Model hand-off: tasks 1–11, 14, 16 and 20 are built first by the stronger mode
 No task commits or pushes. Commit/push appears only as a clearly labelled, user-triggered option inside checkpoints.
 
 ## Tasks
+
+## Phase 1 - Playable core (tasks 1 to 23 and 34)
+
+**How to do this phase**
+- Goal: a pub you can watch, zoom out of, staff and drive a van for, with saves, sync, PWA and deployment. Almost everything is built; what remains is the Panels (13.3 to 13.5), the playable checkpoint (15), furniture collision (34.6), the driving feel check (34.8), removing the TEMP driving logs (34.7) and the final checkpoint (23).
+- Order: 13.3 before 13.4 and 13.5; 34.8 (user feel check) before 34.7; 15 is a manual check on PC and phone; 23 closes the phase. The optional unchecked test sub-tasks in this block can be done at any time.
+- Model: all open Phase 1 tasks suit a cheaper model that follows the existing Panel and handler patterns.
+- Verify: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd test`, `npm.cmd run build`.
 
 - [x] 1. Set up repository scaffold and tooling (in place, OneDrive-aware)
   - [x] 1.1 Create the root npm workspace and hygiene files
@@ -114,7 +133,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - `state/types.ts` and `state/schema.ts` per the design data model (Phase 2 sections optional); prefixed string ids from `state.idCounters`
     - _Requirements: 2.5, 24.1_
   - [x] 3.5 Implement Commands, the Simulation class and the Tick pipeline
-    - `commands/types.ts` (all Phase 1 and Phase 2 Command shapes), `reasons.ts`, a handler table in `commands/registry.ts` with one file per handler under `commands/handlers/` (Phase 2 handlers stubbed)
+    - `commands/types.ts` (all Phase 1 and Phase 2 Command shapes), `reasons.ts`, a handler table (as built: `commands/dispatch.ts` dispatching to handlers in `systems/*.ts` and `systems/phase2/*.ts`, not a `commands/handlers/` folder)
     - `Simulation.submit`/`tick`, `stepPure`, command queue drained at Tick start in submission order; handlers validate fully before mutating and return a Reason_Code on rejection
     - `core/pipeline.ts` with all 22 system slots in design order (Phase 2 slots as no-ops that return when their state section is absent); `clock` system; `TickContext` with events and resource ledger
     - _Requirements: 2.1, 2.4, 2.7, 2.8_
@@ -433,7 +452,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
 
 - [x] 14. Implement manual driving with Rapier
   - [x] 14.1 Implement the lazy-loaded Physics_Layer
-    - `physics/ManualDriving.tsx` loaded via `import()` only during Manual_Driving; static colliders from map data, kinematic bodies for other Vehicles, dynamic van body with handling values; pure `clampManualVelocity` at `speed × (1 + manualSpeedBonus)`; `<Physics paused>` while Ticks are stopped
+    - `physics/ManualDriving.tsx` loaded via `import()` only during Manual_Driving; static colliders from map data, kinematic bodies for other Vehicles, dynamic van body with handling values; pure `clampManualVelocity` at `handling.manualTopSpeed` (originally `speed × (1 + manualSpeedBonus)`; replaced by the Nov 2026 driving overhaul, 34.5); `<Physics paused>` while Ticks are stopped
     - _Requirements: 13.3, 13.4, 21.8, 41.4_
   - [x]* 14.2 Write property test for the manual speed cap
     - **Property 20: Manual speed cap**
@@ -585,13 +604,557 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - Build image, run compose with temp volume, hit `/api/health`, upload and fetch a save, restart, fetch again (runs on the Ubuntu host or where Docker is available)
     - _Requirements: 25.16, 43.1, 43.2, 43.4_
 
+- [ ] 34. Playability polish (user requests, Nov 2026)
+  - [x] 34.1 Fix manual driving not moving
+    - Throttle was applied as an impulse and then erased by a `setLinvel` built from the stale velocity; it is now part of the written velocity (`physics/ManualDriving.tsx`). Remove the TEMP `driveDebug` logging once the user confirms in-game.
+  - [x] 34.2 Stardew-style building interiors
+    - E / "Enter" at the drawn model's front door teleports the CEO inside; only that interior is drawn (dark backdrop, camera clamped to the room, zoom unchanged); "Leave" only at the interior door mat. Interior walls (incl. the front wall) are solid. Staff, Customers, crates and labels inside a building are only drawn in its interior view; Customers walk up to the door outside and "teleport" in, and the other way round when leaving.
+  - [x] 34.3 Building hitboxes from the drawn models
+    - `render/footprints.ts` holds each building's world bounding box (fitted, scaled GLB; plot rectangle for placeholder boxes), so changing `scale` / `offset` in `modelMap.ts` moves the hitbox. Walking is shaped in `input/walkCollision.ts` before `ceoMove` is submitted; driving uses the same boxes as Rapier colliders. `ceoEnter` / `ceoExit` accept the model's door point (validated against the plot entrance).
+  - [x] 34.4 Raised sidewalks are physical
+    - Figures step up onto the curb (render only); curbs are Rapier colliders and the van has per-wheel ray-cast suspension, so one wheel on a curb lifts that corner.
+  - [x] 34.5 Driving overhaul (built Nov 2026; needs an in-game feel check)
+    - Design rule: everything is per Vehicle Definition in `packages/content/data/vehicles.json`, never hard-coded, because more vehicle types are coming (bigger capacity, faster, longer range on fuel). A new type feels different just by its JSON.
+    - User answers: about 2x as fast; fast driving is free fun for now (no penalties); no style tip yet; separate touch drift button is fine; S keeps brake-then-reverse.
+    - Handling fields (schema `vehicleDefSchema.handling`): `manualTopSpeed` (15.4, about 2x the route `speed` of 7; routes and delivery timing are unchanged), `reverseTopSpeed`, `brakeDecel`, `driftGrip`, `driftTurnBoost`, `driftDrag`, `donutTurnRate`; `acceleration` raised to 30. The global `config.manualSpeedBonus` was removed: Property 20 now caps manual velocity at `handling.manualTopSpeed`.
+    - Pure handling in `apps/web/src/physics/handling.ts` (`driveStep`), tested in `apps/web/test/handling.test.ts` (top speed, Property 20 cap, brake then reverse, drift grip/turn, donuts, coasting stop).
+    - Controls: Space = handbrake drift (only while driving, so Space keeps working for buttons otherwise); touch "Drift" button (hold) next to the context button, hidden on mouse/keyboard devices. Donuts: W + S together, or gas + handbrake, below 4 u/s; A/D (or the stick) picks the direction.
+    - Feedback: fading tyre marks from the rear wheels while drifting or spinning, stronger body roll while sliding.
+    - Not built yet: dust puffs, a looser camera while sliding.
+    - Rules that stay: physics is web-only; the sim only receives `manualVehicleUpdate` poses. Cargo is never lost. Upright/out-of-bounds resets still apply.
+    - Later (wishlist): fuel/range per vehicle type, crash damage that breaks load, style points for a perfect drift.
+  - [ ] 34.6 Furniture collision inside (bar, tables)
+    - CEO and Humans cannot walk through the bar, tables and taps in an Interior_View; read furniture boxes from the layout data (`layoutKey`) so Phase 3 layouts (task 42.1) reuse the same colliders
+    - _Requirements: 14.8_
+  - [ ] 34.7 Remove the TEMP `[drive]` debug logging
+    - Delete the `driveDebug` / `[drive]` console logging in `apps/web/src/physics/ManualDriving.tsx` and `apps/web/src/loop/simBridge.ts`, but only after the user confirms driving works in task 34.8
+    - _Requirements: 13.3_
+  - [ ] 34.8 In-game feel check of the driving overhaul (user)
+    - The user drives the van on PC and phone and checks top speed, brake then reverse, handbrake drift, donuts, curbs and tyre marks; tuning changes go into `vehicles.json` only
+    - _Requirements: 13.3, 13.4, 13.17, 13.18, 13.19, 13.21_
+
 - [ ] 23. **Checkpoint - Phase 1 complete**
   - Run `npm.cmd test`, `npm.cmd run typecheck`, `npm.cmd run lint` and `npm.cmd run build`. Ensure all tests pass, ask the user if questions arise.
   - Optional, user-triggered only: on the user's explicit request, stage specific files, commit on `main` and push to `origin`. Do not do this automatically.
 
-> Phase 2 (tasks 24–33): follow `.kiro/steering/phase2-guide.md` for build order, model assignment and the design decisions the spec leaves open.
+## Phase 2 - Foundations (Requirements 50 to 54; tasks 35 to 40)
 
-- [ ] 24. Add the Phase 2 definitions pack and save migration
+**How to do this phase**
+- Goal: engine upgrades so Phases 3 to 6 are mostly JSON. No new gameplay, and every Phase 1 number must stay identical (Property 49 and the golden playthrough prove it).
+- Order: record the old direct values (35.1) before touching any formula. Then 35 (modifiers) and 36 (conditions and effects), then 37 (Services, needs both). 38 (replay) and 39 (frontage) are independent and can run in parallel with them. No schema version bump here: new state sections are optional and empty when absent.
+- Strong model: 35.2, 35.3, 36.1, 36.2, 37.2, 38.1, 39.1 (contracts and refactors). Cheaper model: tests, content conversion, UI cards, docs, 38.2, 38.3, 39.2, 39.3. If a cheaper model fails the same test twice, escalate.
+- Verify: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd test`, `npm.cmd run build`.
+
+- [ ] 35. Implement the generic Modifier system and `getStat`
+  - [ ] 35.1 Record the baseline of the old direct stat computations
+    - Test fixture in `packages/sim/test/baseline/` that stores today's outputs of the brand multiplier, premium price, repeat-order chance, Recipe Trait modifiers, boosts and Reputation demand modifier for generated Traits, Brands and Recipes; it must pass before and after task 35.3
+    - _Requirements: 50.6_
+  - [ ] 35.2 Add StatId, Modifier types, `getStat` and the `modifiers` system
+    - `StatId` closed zod enum in `defs/schemas.ts` (only stats a system reads: `demand`, `premiumPrice`, `repeatOrderChance`); `Modifier`, `SourceRef`, `TargetSelector` types; optional `state.modifiers` (sorted by id) in `state/types.ts` and `state/schema.ts`
+    - `stats/getStat.ts`: base + sum of `addFlat` + `mulDivFloor(base, sum of addBp, 10000)` (ceil variant per StatDef); `explainStat` returns base and entries; `modifiers` system in pipeline slot 0.5 removes entries with `untilTick` reached
+    - _Requirements: 50.1, 50.2, 50.3, 50.5_
+  - [ ] 35.3 Port the existing stat reads to `getStat`
+    - Convert Trait `addPct` to `addBp` once at registry load; static Trait, Brand and Recipe Trait modifiers are derived from Definitions, not stored; `boosts` become `source.kind = 'boost'` Modifiers; Reputation demand modifier read through `getStat`; delete the duplicated direct computations in `defs/formulas.ts`
+    - _Requirements: 50.2, 50.6, 80.1_
+  - [ ] 35.4 Write property test for getStat equivalence
+    - **Property 49: getStat equivalence with the earlier direct computation**
+    - Required: compares against the baseline of task 35.1
+    - **Validates: Requirements 50.2, 50.6**
+  - [ ] 35.5 Add the "why this number" breakdown
+    - Selector over `explainStat` and a `Card` in the Panel framework listing base value and each Modifier with source and value (moves into the Pintly and Staffly apps in Phase 4)
+    - _Requirements: 50.7_
+  - [ ]* 35.6 Write property test for getStat confluence
+    - **Property 50: getStat confluence**
+    - **Validates: Requirements 50.1, 50.2, 50.9**
+  - [ ]* 35.7 Write property test for Modifier expiry
+    - **Property 51: Modifier expiry**
+    - **Validates: Requirements 50.5**
+  - [ ] 35.8 Cover `modifiers` in the save round-trip generators
+    - Extend `arbSimState()` and the serializer tests so Properties 25 and 26 include stored Modifiers; the version migration for old saves is part of task 52.1
+    - _Requirements: 50.8, 24.3_
+
+- [ ] 36. Implement the shared Condition and Effect engine
+  - [ ] 36.1 Extend the Condition DSL and the evaluator
+    - Add kinds `not`, `revealed`, `statAtLeast`, `statBelow`, `loanActive`, `licensed`, `pubOpen`, `humanCountAtLeast`, `serviceUsed`, `questStepDone` in `conditions/`; `evaluateCondition` reads state and the Tick's events only and never touches `state.rng`; `printCondition` and `parseCondition` use canonical key order
+    - _Requirements: 52.1, 52.5, 52.7_
+  - [ ] 36.2 Implement Effects and `applyEffects`
+    - Effect schema with `gold`, `addModifier`, `reveal`, `schedule`, `grantResource`, `news` and `domain`; `range` amounts draw from the RNG in effect order; `gold` always goes through `applyGold`
+    - `DomainOp` closed enum with one stub file per op under `conditions/domainOps/` (`setLicense`, `startLoan`, `payOffLoan`, `applyFitOut`, `setSupplyDeal`, `buyTap`, `hireCandidate`, `fireRibbon`, `occupyStaff`) so later tasks fill separate files
+    - _Requirements: 52.2, 52.4_
+  - [ ] 36.3 Validate vocabulary in the registry
+    - Reject unknown Condition kinds, Effect kinds, StatIds and unregistered DomainOps with an error naming the Definition and the entry
+    - _Requirements: 50.4, 52.3, 73.7_
+  - [ ] 36.4 Write property test for unknown entries
+    - **Property 52: Unknown stat, condition, effect or domain op is rejected**
+    - **Validates: Requirements 50.3, 50.4, 52.3, 73.7**
+  - [ ] 36.5 Move Reveal_Triggers and Achievements onto the shared evaluator
+    - `reveals` and `achievements` systems call `evaluateCondition`; no behaviour change (existing Property 36 stays green)
+    - _Requirements: 52.1_
+  - [ ] 36.6 Write property test for condition purity
+    - **Property 53: Condition evaluation is pure**
+    - Required: add `arbCondition` to the arbitraries
+    - **Validates: Requirements 52.1, 52.5**
+  - [ ]* 36.7 Write property test for the Condition round trip
+    - **Property 54: Condition print and parse round trip**
+    - **Validates: Requirements 52.7**
+  - [ ] 36.8 Write property test for Gold bounds of Effects
+    - **Property 55: Effects keep Gold within bounds**
+    - Required: add `arbEffects` to the arbitraries
+    - **Validates: Requirements 52.2, 52.4, 52.6, 79.2**
+
+- [ ] 37. Implement data-defined Services and `useService`
+  - [ ] 37.1 Define Service schemas and settings data
+    - `ServiceDef` (id, cost, `access`, `conditions` with optional `reason`, `effects`, `once`, `params`) and `BusinessDef.services` / `office` marker in `defs/schemas.ts`; `settings.json` listing `commandType` and `access` per setting; registry checks for Conditions, Effects and text keys
+    - _Requirements: 51.1, 51.2_
+  - [ ] 37.2 Implement the `useService` Command
+    - `commands/useService.ts` with the validation order unknown entity, locked District, `requireAccess` (`not_present`), Conditions in order, `once` (`already_done`), `requireGold`, then cost, `applyEffects` and `state.servicesUsed`; invalid `params` give `conditions_not_met`; add the new Reason_Codes and their `reason.*` text keys
+    - A `requireAccess` check for settings tagged `presence` is shared with the setting handlers
+    - _Requirements: 51.3, 51.4, 51.5, 51.6, 51.7, 51.8, 51.12_
+  - [ ] 37.3 Show Services in the Business Panel
+    - List each Service with cost, a location icon for `presence` and a "Drive there" action (a hint only until the Waypoint exists in task 57.1); text via `t()`
+    - _Requirements: 51.9_
+  - [ ]* 37.4 Write property test for `useService`
+    - **Property 56: useService validation and atomic rejection**
+    - **Validates: Requirements 51.3, 51.4, 51.5, 51.6, 51.7, 51.8**
+  - [ ]* 37.5 Write unit tests for Service edge cases
+    - Reject order, `once`, bad `params`, locked District, `presence` without the CEO
+    - _Requirements: 51.5, 51.7, 51.12_
+
+- [ ] 38. Implement the Command_Log, replay and State_Hash
+  - [ ] 38.1 Implement canonical JSON, `stateHash` and `runLog`
+    - `packages/sim/src/replay/`: `canonicalJson` (sorted keys), `stateHash` (FNV-1a 64 bit from two 32-bit halves, no BigInt), `CommandLog` with `repeat`, `runLog(reg, base, log, untilTick)`
+    - _Requirements: 53.1, 53.3, 53.7_
+  - [ ] 38.2 Record Commands in the web loop
+    - `apps/web/src/loop/commandRecorder.ts` wraps `simBridge.submit`; compresses runs of identical per-Tick Commands; keeps a rolling tail of `config.commandLogTailLimit`; optional `commandLog` in the Save_Document envelope
+    - _Requirements: 53.1, 53.2, 53.4_
+  - [ ] 38.3 Compute the State_Hash in the loop and send it with uploads
+    - Hash every `config.stateHashEveryTicks` Ticks; show Tick and hash in the debug overlay; optional `stateHash` and `tick` in the upload DTO (`packages/shared/src/api.ts`); the server stores and returns them in the save meta
+    - _Requirements: 53.7, 53.8_
+  - [ ] 38.4 Add the golden playthrough test
+    - Recorded ten-minute log of the dev start in `packages/sim/test/golden/`, a CI test that replays it and asserts the hash, and an `npm.cmd run golden:record` script that rewrites the hash on purpose
+    - Required: runs in the normal `npm.cmd test`
+    - _Requirements: 53.5, 53.6_
+  - [ ] 38.5 Write property test for replay
+    - **Property 57: Replay reproduces the recorded hash**
+    - Required; includes runs with `manualVehicleUpdate` poses
+    - **Validates: Requirements 53.1, 53.3, 53.4**
+  - [ ]* 38.6 Write property test for log compression
+    - **Property 58: Command_Log compression round trip**
+    - **Validates: Requirements 53.2**
+  - [ ]* 38.7 Write property test for State_Hash
+    - **Property 59: State_Hash is canonical**
+    - **Validates: Requirements 53.7, 53.8**
+  - [ ] 38.8 Add bug-report export
+    - Pause_Menu action that downloads the start snapshot, full Command_Log and latest hash as one JSON file
+    - _Requirements: 53.1, 53.7_
+
+- [ ] 39. Implement Frontage_Slots street layout
+  - [ ] 39.1 Define street schemas and derivation
+    - `StreetDef` and `FrontageSlot` schemas; `defs/frontage.ts` derives Plots (id = `plotId ?? slot.id`), access node, Unloading_Zone on the road next to the slot, hitbox and walkable cut-out, and `fillers`; keep explicit `plots` valid; registry rejects overlapping or out-of-bounds slots naming the District and the slot
+    - _Requirements: 54.1, 54.6, 54.11_
+  - [ ] 39.2 Convert Old Town to streets and migrate landmarks
+    - Rewrite `maps/districts/old_town.json` as streets with `filler`, `business` and `plot` slots keeping every existing Plot id; turn the city hall in `maps/landmarks.json` into a double-width slot; keep `landmarks.json` for off-street landmarks only
+    - _Requirements: 54.3, 54.4, 54.5, 54.7, 54.9, 16.7_
+  - [ ] 39.3 Render frontage slots
+    - Draw slots shoulder to shoulder, leave the curb strip free in front, fit each model to its slot width with `render/footprints.ts`, and feed hitboxes to the CEO collision and Rapier colliders
+    - _Requirements: 54.2, 54.8, 16.5, 16.6_
+  - [ ] 39.4 Check Plot ids against existing saves
+    - Test that every Plot id of the old layout still exists; if any id had to change, write the old to new mapping to a data file that the v3 migration (task 52.1) consumes
+    - _Requirements: 54.10_
+  - [ ]* 39.5 Write property test for frontage layout
+    - **Property 60: Frontage layout validity**
+    - **Validates: Requirements 54.1, 54.6, 54.9, 54.11**
+  - [ ] 39.6 Document street authoring
+    - Extend `docs/content-authoring.md` with how to add a filler, business or plot slot and turn a filler into a business
+    - _Requirements: 54.9_
+
+- [ ] 40. **Checkpoint - Phase 2 complete**
+  - [ ] 40.1 Update the steering files
+    - Update `.kiro/steering/architecture.md` and `phase2-guide.md` (which describes the Phase 6 economy) to name `getStat`, Services, the effect engine and Frontage_Slots as the only way to add stats, actions and buildings
+    - _Requirements: 46.6_
+  - Run `npm.cmd test`, `npm.cmd run typecheck`, `npm.cmd run lint` and `npm.cmd run build`. Confirm the golden playthrough and Property 49 pass. Ensure all tests pass, ask the user if questions arise.
+
+## Phase 3 - Grand Opening and bar redesign (Requirements 55 to 68; tasks 41 to 53)
+
+**How to do this phase**
+- Goal: a new game starts as the Grand Opening (offices, license, loan, fit-out, supplier deal, hiring, ribbon) with the single `bar_worker` job, Seats/Taps/Hands, tabs and kegs. `?dev=1` and the dev start option keep the running pub.
+- Order: task 41 first (generate v2 fixtures from the current code, then the contracts and the v3 skeleton). Then bar worker (42) before capacity (43) and tabs (44); quests (46) before offices (47) and services content (48); the v3 migration is completed in 52 once the content exists. Do not deploy a build to the server between 41.3 and 52.1, because the v3 migration is not complete until 52.1; playing locally is fine. After 52.1 the v2 to v3 step is frozen: later state changes (Gold buckets in 54.2) get their own version.
+- Strong model: 41, 42.3, 44.1, 44.2, 46.1, 48.1, 52.1. Cheaper model: content JSON, text keys, renderer and Panel work, tests, 50, 51.2 to 51.6.
+- Verify: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd test`, `npm.cmd run build`; then play the Grand Opening (task 53).
+
+- [ ] 41. Define the Phase 3 contracts and the v3 skeleton
+  - [ ] 41.1 Generate the v2 fixtures
+    - Commit v2 Save_Document fixtures under `packages/shared/test/fixtures/v2/` from the current code before any schema change, including a Customer mid-order and one mid-carry; keep the v1 fixtures
+    - _Requirements: 59.4_
+  - [ ] 41.2 Add Phase 3 content schemas and data files
+    - zod schemas and starter JSON in `packages/content/data/phase3/` for `licenseTiers`, `loanOffers`, `fitOutItems`, `supplyDeals`, `candidates`, `requests`, `customerTypes`, `quests`, `layouts` and extended `reveal-triggers` (teaser and description keys); extend `FinanceCategory` with `loan`; text keys in `en.json`
+    - _Requirements: 62.5, 63.1, 64.2, 65.1, 66.1, 67.1, 73.1_
+  - [ ] 41.3 Add the v3 state shape and migration skeleton
+    - `CURRENT_SCHEMA_VERSION = 3`; state fields `loans`, `servicesUsed`, `quests`, `requests`, `player.license`, `player.supplyDeal`, `player.fitOutBudget`, pub runtime (`seatsBuilt`, `tapsBuilt`, `vibeBase`, `open`, `pace`, `lostIncome`, order queue `taken`), Customer `tab`, `typeId`, `waitedLong`; `migrations/v2_to_v3.ts` skeleton that adds empty values; later tasks extend it
+    - _Requirements: 59.1, 59.3, 59.6_
+
+- [ ] 42. Implement the Bar_Worker job
+  - [ ] 42.1 Add layout anchors to data and the registry
+    - `packages/content/data/layouts/<key>.json` with door, mat, bar, till, clean spot, taps, seats, storage, exit; `reg.layouts` and `layout/anchors.ts` distance helpers (straight line, `Math.sqrt`); registry checks seat and tap anchor counts against the Pub Definition; the Renderer reads the same data
+    - _Requirements: 55.5, 14.8_
+  - [ ] 42.2 Replace `bartender` and `server` by `bar_worker` in content
+    - `jobs.json`, Pub Definitions (slot counts), `start-state.dev.json` (Jan and Julia as Bar_Workers) and text keys; no Job id special-casing in code
+    - _Requirements: 55.1, 55.7, 3.1a_
+  - [ ] 42.3 Implement the worker state machine
+    - In `systems/staff.ts` keep the pipeline slot, order queue and bar entries; one `WorkerTask` cursor per working Bar_Worker or headcount unit; steps take order, pour, hand over or deliver, take payment, clean; priority from `config.barWorkerPriority`; Tap reservation per Tick; step duration from anchor distance, pour time and `getStat(worker, 'workSpeed')`
+    - _Requirements: 55.2, 55.3, 55.4, 5.1, 5.2, 5.3, 5.4_
+  - [ ] 42.4 Animate workers from anchors
+    - Renderer drives worker and Customer movement from `reg.layouts` anchors and `WorkerTask`; indoor-only visibility rule stays
+    - _Requirements: 5.7, 14.10_
+  - [ ]* 42.5 Write property test for layout distance
+    - **Property 61: Layout distance drives throughput**
+    - **Validates: Requirements 55.4, 55.6**
+  - [ ]* 42.6 Write unit tests for the worker loop
+    - Idle worker cleans, no worker means no pours, two workers share Taps, payment step ends the Tab
+    - _Requirements: 55.2, 56.3_
+
+- [ ] 43. Implement Seats, Taps, Hands and pub settings
+  - [ ] 43.1 Compute Seats, Taps and Hands
+    - `systems/pubCapacity.ts`: `seats = license ? min(getStat seats, license maxSeats) : 0`; Hands base from pour time + default walk until a cycle is measured; bottleneck ratio 0 when demandLoad = 0 (56.8, 56.9), `taps = min(getStat taps, def.maxTaps)`, `hands` from the measured worker cycle; add `seats`, `taps`, `vibe`, `drinkPrice`, `workSpeed` to `StatId`; metrics expose three ratios and the bottleneck
+    - _Requirements: 56.1, 56.4, 56.7_
+  - [ ] 43.2 Add `setWorkerPace` and `setPubOpen`
+    - Commands with `remote` access in `settings.json`; Pace maps to `workSpeed` Modifiers from data; `open = false` stops arrivals but lets seated Customers finish
+    - _Requirements: 56.1, 71.6, 71.10_
+  - [ ] 43.3 Show the three capacity bars
+    - Pub Panel shows Seats, Taps and Hands as bars with the lowest ratio coloured as bottleneck, plus pace and open toggle
+    - _Requirements: 56.2_
+  - [ ] 43.4 Add tap purchase at the Supplier
+    - Service `buy_tap` using the `buyTap` domain op; `limit_reached` at the Pub maximum
+    - _Requirements: 56.5, 56.6_
+  - [ ]* 43.5 Write property test for capacity limits
+    - **Property 62: Capacity limits hold**
+    - **Validates: Requirements 56.1, 56.3, 56.4, 56.5, 56.6, 64.5**
+
+- [ ] 44. Implement tabs, Walkouts and Vibe
+  - [ ] 44.1 Add Tabs and Customer types
+    - Customer `tab` grows at each serve; Customers in `paying` wait for a `takePayment` step; `customerTypes.json` weights drawn only when more than one type is allowed; payment through `applyGold('sales')`
+    - _Requirements: 57.1, 57.2, 4.7_
+  - [ ] 44.2 Implement Walkouts, long waits and Vibe
+    - Vibe via `getStat`; `longWait` Modifier on waits above the limit; Walkout roll only when Vibe is below the threshold or `waitedLong` (no RNG otherwise); unpaid Tab goes to `lostIncome`; a pay timeout (`payWaitSeconds`) without low Vibe or `waitedLong` pays the Tab automatically (57.9)
+    - _Requirements: 57.3, 57.4, 57.5, 57.6_
+  - [ ] 44.3 Show Vibe, Walkouts and open Tabs
+    - Pub Panel cards for Vibe, Walkouts per Game_Minute and open Tabs
+    - _Requirements: 57.7_
+  - [ ] 44.4 Write property test for Tab conservation
+    - **Property 63: Tab conservation**
+    - Required
+    - **Validates: Requirements 57.1, 57.2, 57.5, 57.8, 4.7**
+  - [ ]* 44.5 Write property test for Walkouts
+    - **Property 64: Walkouts need a reason**
+    - **Validates: Requirements 57.3, 57.4, 57.6**
+
+- [ ] 45. Implement Kegs
+  - [ ] 45.1 Add container sizes to Resources
+    - `ResourceDef.container`; `storage/containers.ts` (`toContainers`, `fromContainers`); Kegs are visual and pricing units only: Orders, loads, unloads, capacity and limits stay in drinks (not rounded to whole kegs); unit price per drink = `pricePerKeg / kegDrinks`, cost rounded up; `supplyDeal.kegDrinks` overrides the display size
+    - _Requirements: 58.1, 58.2, 58.4_
+  - [ ] 45.2 Render Kegs
+    - Model swap in `modelMap.ts`; keg count = `ceil(amount / drinksPerContainer)` on Vehicles and in Storage
+    - _Requirements: 58.3_
+  - [ ]* 45.3 Write property test for containers
+    - **Property 65: Container helpers preserve drinks**
+    - **Validates: Requirements 58.2, 58.4, 58.5**
+
+- [ ] 46. Implement the quest engine
+  - [ ] 46.1 Implement `quests.json` and the `quests` system
+    - `QuestDef` schema, `state.quests`, system in slot 20.5 advancing steps once and applying rewards once, `requires` ordering, `targetBusinessRole` role tags
+    - _Requirements: 73.1, 73.2, 73.7, 61.2_
+  - [ ] 46.2 Author the quest chain
+    - `grand_opening` (Municipality, Bank, Pub fit-out, Supplier, Job centre, Back at the pub), "First 100 pints" and "Second location"
+    - _Requirements: 61.1, 61.4, 73.3_
+  - [ ]* 46.3 Write property test for quest steps
+    - **Property 72: Quest steps advance once**
+    - **Validates: Requirements 73.1, 73.2, 61.4**
+
+- [ ] 47. Add the offices to the town
+  - [ ] 47.1 Define the office Businesses
+    - Municipality, Bank and Job_Centre as Business Definitions (`owner: 'npc'`, no Storage, `role` tag, `office`, `services`) with placeholder models in `models.json` and `modelMap.ts`
+    - _Requirements: 60.1, 60.2_
+  - [ ] 47.2 Place the offices as frontage slots
+    - Business slots in the Old Town streets; the Grand Opening start creates them; the dev start keeps them too
+    - _Requirements: 60.4, 54.4_
+  - [ ] 47.3 Show a simple counter screen
+    - `contextActionFor` offers Enter at Businesses with an `office` marker (and at the Player Pub for presence Services); entering an office opens a plain Panel with service cards (full Desk in task 60); municipality ticket queue on the first visit that repeated presses do not shorten
+    - _Requirements: 60.3, 60.5_
+
+- [ ] 48. Implement the Grand Opening services
+  - [ ] 48.1 Loans
+    - `startLoan` and `payOffLoan` domain ops, Loan record (Gold += principal − fitOutBudget; the fit-out budget is part of the principal), repayment with exact carry in `finance`, category `loan`, Bank services; Gold may go negative; load-time validation of `loanOffers` (`fitOutBudget ≤ principal`, `repaymentPerMinute × termMinutes ≥ principal + interest`)
+    - _Requirements: 63.1, 63.2, 63.3, 63.4, 63.5, 63.6, 63.7, 63.9_
+  - [ ] 48.2 License tiers
+    - `setLicense` domain op, Municipality services, seat cap, `minSeats`/`minTaps` per tier (no opening time), seats = 0 while `player.license` is null, `already_licensed`, `license_granted` reveal
+    - _Requirements: 62.1, 62.2, 62.3, 62.4_
+  - [ ] 48.3 Pub fit-out
+    - `applyFitOut` domain op and the "Fit-out" Service at the Player Pub; budget, seat and tap limits; Interior_View shows the chosen items
+    - _Requirements: 64.1, 64.3, 64.4, 64.5, 64.6_
+  - [ ] 48.4 Supplier keg deal
+    - `setSupplyDeal` domain op, `deal_missing` for Orders and auto-reorder, contract fee with exact carry, `supplier_deal` reveal
+    - _Requirements: 65.1, 65.2, 65.5, 65.6_
+  - [ ] 48.5 First load and `first_kegs`
+    - After the deal the CEO loads the first Kegs with the Context_Action "Load"; `first_kegs` fires on the first unload at the Player Pub
+    - _Requirements: 65.3, 65.4_
+  - [ ] 48.6 Job centre hiring
+    - `candidates.json`, `hireCandidate` domain op with Quirk (`Human.quirkId`, optional), Hiring_Cost, `first_hire`, a second Bar_Worker gated by `hiring_option` (a Driver can always be hired); Jan and Julia as Bar_Worker candidates and Thomas as Driver
+    - _Requirements: 66.1, 66.2, 66.3, 66.4, 66.5, 66.6, 55.8_
+  - [ ] 48.7 Cut the ribbon and gate arrivals
+    - `fireRibbon` Service firing `pub_open`; `customerArrivals` returns early until `pub_open` has fired; closed sign and empty interior before opening
+    - _Requirements: 61.5, 61.6, 61.7_
+  - [ ] 48.8 Add Reveal_Triggers and text keys
+    - `license_granted`, `loan_taken`, `fit_out_done`, `supplier_deal`, `first_hire`, `first_kegs`, `pub_open`, `first_news`, `first_permit_offer` with teaser, description and gave keys; all `reason.*` and Service text keys
+    - _Requirements: 67.1, 62.3, 65.2_
+  - [ ] 48.9 Write property test for loan conservation
+    - **Property 67: Loan repayment conservation**
+    - Required
+    - **Validates: Requirements 63.3, 63.4, 63.5, 63.10**
+  - [ ]* 48.10 Write property test for loan rules
+    - **Property 68: Loan rules**
+    - **Validates: Requirements 63.2, 63.6, 63.7**
+  - [ ]* 48.11 Write property test for fit-out budget
+    - **Property 70: Fit-out budget**
+    - **Validates: Requirements 64.2, 64.3, 64.4, 64.5**
+
+- [ ] 49. Implement the start states and the checklist HUD
+  - [ ] 49.1 Add both start states
+    - `newGame(reg, seed, { start: 'grand_opening' | 'dev' })`; `start-state.json` is the Grand Opening, `start-state.dev.json` the running pub with `pub_open` fired and the quest completed; dev start chosen by `?dev=1` or an option when creating a slot
+    - _Requirements: 3.1, 3.1a, 3.1b, 61.8_
+  - [ ] 49.2 Show a minimal Grand Opening checklist
+    - HUD list of the six entries with ticks and the next recommended entry highlighted (replaced by the quest tracker and Waypoint in Phase 4); CEO starts next to the Pub
+    - _Requirements: 3.8, 61.1, 61.3_
+  - [ ]* 49.3 Write property test for Grand Opening gating
+    - **Property 69: Grand Opening gating**
+    - **Validates: Requirements 61.4, 61.5, 61.6**
+
+- [ ] 50. Implement the unlock menu
+  - [ ] 50.1 Require teaser and description keys
+    - Registry rejects a Reveal_Trigger without both keys
+    - _Requirements: 67.1, 67.5_
+  - [ ] 50.2 Build the unlock menu Panel
+    - Pause_Menu entry listing every trigger; teaser while locked, description and what it gave once fired; text via `t()`
+    - _Requirements: 67.2, 67.3, 67.4, 67.6_
+  - [ ]* 50.3 Write unit tests for the unlock menu
+    - Teaser versus description, missing key rejection
+    - _Requirements: 67.3, 67.4, 67.5_
+
+- [ ] 51. Implement the CEO's outside jobs
+  - [ ] 51.1 Add requests and scheduler kinds
+    - `spawnRequest`, `requestDeadline` and `applyEffects` (payload = index into a data Effect list, for delayed Effects such as team-building and consultant follow-ups) in `scheduledKindSchema`, `requests.json`, `state.requests`
+    - _Requirements: 68.3, 68.4_
+  - [ ] 51.2 Municipality requests and bank meetings
+    - Presence Services that answer a request before its deadline; ignored requests apply the data Consequence; bank meetings for repayment and refinancing
+    - _Requirements: 68.3, 68.4, 68.5_
+  - [ ] 51.3 Scouting
+    - Presence Services on the Competitor Pub and Plots for sale that reveal their details
+    - _Requirements: 68.6_
+  - [ ] 51.4 Side deliveries
+    - Quest steps with a deliver Condition on the `vehicleUnloaded` event, reward and deadline
+    - _Requirements: 68.7, 68.9_
+  - [ ] 51.5 Head of Errands
+    - Job with headcount capacity and the `errands` system in slot 2.5 that applies due `delegable` presence Services without the CEO
+    - _Requirements: 68.8, 49.3_
+  - [ ] 51.6 Emergency supply runs
+    - Test and quest text that an Order without a Driver is carried out by the CEO and that hiring Thomas hands it to Automatic_Delivery
+    - _Requirements: 68.1, 68.2_
+
+- [ ] 52. Complete the v3 migration
+  - [ ] 52.1 Implement `v2_to_v3`
+    - Map `bartender` and `server` slots and Humans to `bar_worker`; map Customers mid-order and mid-carry to open bar orders with the drink on the Tab; add pub fields, `license`, default `supplyDeal`, `fitOutBudget: 0`, `modifiers: []`, `loans: []`, quests, requests; fire `pub_open`, `license_granted`, `supplier_deal`, `first_hire`, `first_kegs` for existing saves; insert the office Businesses and Plots as literal JSON; apply the Plot id mapping of task 39.4; never import current types; keep the pre-migration backup
+    - _Requirements: 59.1, 59.2, 59.3, 59.5, 59.6, 50.8, 54.10, 58.5_
+  - [ ] 52.2 Add fixtures for the migration
+    - A v2 save with a Customer mid-order and one mid-carry, and a v1 save, both as committed fixtures
+    - _Requirements: 59.2, 59.4_
+  - [ ] 52.3 Write property test for the v3 migration
+    - **Property 66: Migration to v3 is valid and removes old jobs**
+    - Required; extends the Property 27 harness
+    - **Validates: Requirements 59.1, 59.2, 59.3, 59.4, 59.5**
+  - [ ]* 52.4 Run migrated saves for 300 Ticks
+    - Migrate every fixture, validate, run 300 Ticks and check the invariants
+    - _Requirements: 59.4_
+
+- [ ] 53. **Checkpoint - Phase 3 complete (play the Grand Opening)**
+  - Run `npm.cmd test`, `npm.cmd run typecheck`, `npm.cmd run lint` and `npm.cmd run build`. Re-record the golden hash on purpose only if the dev-start balance changed.
+  - The user plays a Grand Opening start on PC and phone (start the dev server manually: `npm.cmd run dev -- --host`) and a `?dev=1` start, and loads an old v2 save to check the migration.
+  - Ensure all tests pass, ask the user if questions arise.
+
+## Phase 4 - Phone UI (Requirements 69 to 74; tasks 54 to 61)
+
+> **Tasks 56 and 59 moved to `.kiro/specs/ceo-phone`** (it follows `.kiro/steering/phone-ui.md`). They are not built twice.
+> - **Priority:** only the phone **shell** (ceo-phone tasks 1 and 2) is top priority.
+> - **Stay here:** 54, 55, 57, 58 and 60 stay in this spec. ceo-phone lists their Simulation parts as S1 to S4.
+
+**How to do this phase**
+- Goal: the HUD, Phone, apps and Desk as views over the services, quests, loans and finance data of Phase 3, plus the Waypoint and Info_Layers. Panels become apps one by one.
+- Order: 54 (Gold buckets, schema v4 with its own migration step) first, because the HUD and Ledgr read it. Never edit the v2 to v3 step. Then 55 and 56, then Waypoint (57) and Info_Layers (58), then the apps (59) and the Desk (60).
+- Model: mostly a cheaper model following `PubPanel`, Card/Row/Bar/PanelButton, at most 8 rows per section, `t()` keys and `panelActions.ts`; use the strong model for 54.1 and 57.1.
+- Verify: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd test`, `npm.cmd run build`; touch targets stay at least 44 px and panels at most 40% of the screen.
+
+- [ ] 54. Implement Gold per hour buckets
+  - [ ] 54.1 Replace the second buckets by minute buckets
+    - `money/buckets.ts`: ring of 60 one-minute buckets keyed by `category|businessId` in `state.finance` (per-Business sums for 8.2, 27.5 and the Money Info_Layer); `applyGold` writes to the current minute; the 5 minute finance summary reads the last 5 buckets
+    - _Requirements: 70.1, 70.2, 70.4_
+  - [ ] 54.2 Add the v4 migration and fixtures
+    - Add schema version 4 with its own `v3_to_v4` step. It folds the 300-second buckets into minute buckets keyed by `category|businessId`; older entries become zero buckets.
+    - Never edit `v2_to_v3`.
+    - Add a v3 fixture and migrate it.
+    - _Requirements: 70.3, 70.6_
+  - [ ] 54.3 Add the selectors
+    - `goldPerHour`, previous hour, sparkline and runway (only when `goldPerHour` is negative)
+    - _Requirements: 70.2, 70.5_
+  - [ ]* 54.4 Write property test for bucket consistency
+    - **Property 71: Gold bucket consistency**
+    - **Validates: Requirements 70.1, 70.2, 70.4, 70.5, 70.7, 8.3**
+
+- [ ] 55. Build the HUD layer
+  - [ ] 55.1 Money pill and loan chip
+    - Pill with Gold, arrow and Gold per hour, red when negative, tap opens Ledgr; loan chip while a Loan exists
+    - _Requirements: 69.1, 69.2, 69.3_
+  - [ ] 55.2 Quest tracker
+    - Shows the quest name, progress and next step; a tap sets a Waypoint (task 57.1)
+    - _Requirements: 69.4, 69.5_
+  - [ ] 55.3 Alert bell with Fix
+    - Bell with the Alert count and a list; Alerts carry an optional fix target (app and screen, or Business role) and show a "Fix" button
+    - _Requirements: 69.6, 69.7_
+  - [ ] 55.4 Apply the HUD rule
+    - HUD shows only these elements, the joystick, the Context_Action button, the Phone button and the speed control; remove the minimal checklist of task 49.2
+    - _Requirements: 69.8, 69.9_
+  - [ ]* 55.5 Write unit tests for the HUD
+    - Pill colour, chip visibility, one Alert per type per object, touch target size
+    - _Requirements: 69.1, 69.3, 69.9_
+
+- [ ] 56. Build the Phone shell: **moved to `.kiro/specs/ceo-phone`** (tasks 1 and 2 there; do not build it here)
+  - Covers the apps registry, the Phone component, install toasts, layout and the access rule, and Property 73 (as ceo-phone Property 3).
+  - _Requirements: 71.1, 71.2, 71.3, 71.4, 71.10, 71.11, 71.12_
+
+- [ ] 57. Implement the Waypoint
+  - [ ] 57.1 Implement the web-only Waypoint
+    - `store/waypointStore.ts`; road arrows drawn from `pathCacheFor` between the CEO's nearest road point and the target access node; cleared near the target or on dismiss; never in `SimState`
+    - _Requirements: 73.4, 73.5, 73.6_
+  - [ ] 57.2 Wire "Drive there"
+    - Services, quest steps and Alert Fix buttons set the Waypoint
+    - _Requirements: 51.9, 69.7, 71.8_
+
+- [ ] 58. Implement Info_Layers
+  - [ ] 58.1 Implement the layer selectors
+    - `interaction/infoLayers.ts` returns 0 to 1 per Business for Demand, Stock, Staff, Routes and Money
+    - _Requirements: 74.1_
+  - [ ] 58.2 Tint the world and the map
+    - Management_View tints buildings by the selected layer (web state); owner colours when off; Wayfindr reads the same values
+    - _Requirements: 74.2, 74.3, 74.4, 74.5_
+
+- [ ] 59. Build the Phone apps: **moved to `.kiro/specs/ceo-phone`** (tasks 3 to 6 there; do not build them here)
+  - Pintly, Staffly and Vanly may wrap the existing Phase 1 panels and Commands.
+  - To-Do™, Ledgr and MijnGemeente stay blocked until their sim tasks exist: quests (46), Gold buckets (54) and Services/permits (37, 47, 68).
+  - _Requirements: 71.5 to 71.9, 71.13, 50.7, 63.7, 68.3, 79.8_
+
+- [ ] 60. Build the Desk counter screens
+  - [ ] 60.1 Implement the Desk component
+    - `ui/desk/Desk.tsx`: clerk portrait and line, two to four service cards built from `BusinessDef.services` and `office`, hold-to-confirm stamp (keyboard: hold Enter) that sends `useService`; releasing early sends nothing
+    - _Requirements: 72.1, 72.2, 72.3, 72.5, 72.6, 72.7_
+  - [ ] 60.2 Replace the simple counter screen
+    - Entering an office or the Player Pub for a presence Service shows the Desk instead of the plain Panel of task 47.3
+    - _Requirements: 72.1_
+  - [ ]* 60.3 Add stamp feedback and tests
+    - Stamp sound and screen shake on completion; unit test that an early release sends no Command
+    - _Requirements: 72.4, 72.5_
+
+- [ ] 61. **Checkpoint - Phase 4 complete**
+  - Run `npm.cmd test`, `npm.cmd run typecheck`, `npm.cmd run lint` and `npm.cmd run build`.
+  - The user plays on PC and phone: money pill, quest tracker, Phone apps, Desk stamp, Waypoint arrows and Info_Layers.
+  - Ensure all tests pass, ask the user if questions arise.
+
+## Phase 5 - Feel alive and satire content (Requirements 75 to 79; tasks 62 to 67)
+
+**How to do this phase**
+- Goal: make the pub readable and funny with effects derived from existing state, and add the satire events as data on top of the Phase 2 foundations.
+- Order: Renderer effects (62 to 64) and the summary card (65) are independent; satire hooks (66) need Services, Modifiers and the scheduler kinds from Phase 3. Put each hook in its own JSON file to avoid merge conflicts.
+- Model: a cheaper model for the whole phase; escalate only if a test fails twice. Nothing here changes saved state except optional fields (`Human.quirkId`, `summary`).
+- Verify: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd test`, `npm.cmd run build`.
+
+- [ ] 62. Make Customers readable
+  - [ ] 62.1 Thought bubbles
+    - Beer icon while waiting, angry icon after half the patience limit; icons from `theme.json`; indoors only, dropped above 20 visible figures
+    - _Requirements: 75.1, 75.2, 75.4, 75.5_
+  - [ ] 62.2 Coin pop and sound
+    - Coin pop and sound on the `customerPaid` event; a web mute setting disables the sound
+    - _Requirements: 75.3_
+  - [ ]* 62.3 Write unit tests for visibility rules
+    - Bubble thresholds, aggregation above 20 figures, mute
+    - _Requirements: 75.2, 75.3, 75.5_
+
+- [ ] 63. Implement Quirks
+  - [ ] 63.1 Add Quirk data
+    - `phase5/quirks.json` (`id`, `textKey`, `trigger`, optional modifiers); optional `Human.quirkId` set from start state, candidates or the Human Definition
+    - _Requirements: 76.1, 76.2_
+  - [ ] 63.2 Show speech bubbles
+    - Bubble with the Quirk text when the Human performs the named task; none for Headcount_Fills
+    - _Requirements: 76.3, 76.4_
+  - [ ] 63.3 Apply Quirk behaviour Modifiers
+    - Static source in `getStat` for that Human
+    - _Requirements: 76.5_
+  - [ ]* 63.4 Write property test for Quirks and Headcount_Fills
+    - **Property 75: Quirks respect Headcount_Fills**
+    - **Validates: Requirements 76.4, 76.5**
+
+- [ ] 64. Add street life
+  - [ ] 64.1 Door queue and window glow
+    - Queue at the door when waiting Customers exceed free Seats; glow while the Pub is open and busy; derived from state, never saved
+    - _Requirements: 77.1, 77.2, 77.5_
+  - [ ] 64.2 Rival effects
+    - Cheering at the Competitor Pub in the High popularity band; rival owner in the doorway
+    - _Requirements: 77.3, 77.4_
+  - [ ]* 64.3 Write unit tests for street life
+    - Effects depend only on state
+    - _Requirements: 77.5_
+
+- [ ] 65. Add the Summary_Card
+  - [ ] 65.1 Implement the `summaryCard` system
+    - Optional `state.summary`; system in slot 18.5 emitting `summaryDue` every configured number of game minutes with served, lost and profit deltas; Employee of the Month by `rngPick` over named working Humans
+    - _Requirements: 78.1, 78.2, 78.3_
+  - [ ] 65.2 Show the card
+    - `summaryCard` pause reason; dismissing restores the previous Game_Speed
+    - _Requirements: 78.4, 78.5_
+  - [ ]* 65.3 Write property test for the summary interval
+    - **Property 74: Summary card interval and winner**
+    - **Validates: Requirements 78.1, 78.2, 78.3**
+
+- [ ] 66. Add satire content
+  - [ ] 66.1 Consultant visit
+    - Service with `range` Effects that may be negative
+    - _Requirements: 79.1, 79.2_
+  - [ ] 66.2 Team-building day
+    - `occupyStaff` domain op plus a scheduled `addModifier` on `workSpeed`
+    - _Requirements: 79.3_
+  - [ ] 66.3 Rival poaching
+    - Competitor event that opens a counter-offer request and applies the outcome through Effects
+    - _Requirements: 79.4_
+  - [ ] 66.4 Health inspector
+    - Scheduled Consequence with a `gold` fine and a `news` Effect after a shortcut
+    - _Requirements: 79.5_
+  - [ ] 66.5 Loyalty card and happy hour
+    - Modifiers on `repeatOrderChance` (within the 90% clamp), and on `demand` and `drinkPrice` for a limited time
+    - _Requirements: 79.6, 79.7_
+  - [ ] 66.6 LinkedIn-style news
+    - `news` Effects with text keys; first one fires `first_news`
+    - _Requirements: 79.8_
+  - [ ]* 66.7 Write content tests
+    - Every hook uses only Services, Questionable_Opportunities, Competitor events, Modifiers or Consequences; all text keys exist
+    - _Requirements: 79.1_
+
+- [ ] 67. **Checkpoint - Phase 5 complete**
+  - Run `npm.cmd test`, `npm.cmd run typecheck`, `npm.cmd run lint` and `npm.cmd run build`. Ensure all tests pass, ask the user if questions arise.
+
+## Phase 6 - Economy expansion (Requirements 27 to 40 and 80; tasks 24 to 33)
+
+**How to do this phase**
+- Goal: the second Pub, Warehouse, Brewery, Market, acquisitions, chains, Reputation, questionable opportunities, Competitor events, minigames and Achievements, built on the foundations instead of special cases. Follow `.kiro/steering/phase2-guide.md` (it describes this phase under its old name "Phase 2").
+- Order: tasks 24.1 to 24.3 and 25.1 to 25.2 are already built and stay valid; start with 24.4, then 25, 26, 27, 28, 29, 30, 31, 32. Read stats through `getStat`, use `applyEffects`, put new buildings on Frontage_Slots, and build panels as Phone apps (31.4).
+- Strong model: 28.1 (acquisition transfer) and 29.1 (chains). Cheaper model: everything else.
+- Verify: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd test`, `npm.cmd run build`; the Tick benchmark of 32.1 stays under its limit.
+
+- [ ] 24. Add the Phase 6 definitions pack and save migration
   - [x] 24.1 Extend schemas and author `packages/content/data/phase2/`
     - Resources Hops, Malt; Synergy as Corporate_Resource; Business Definitions brewery, warehouse (buy/rent, reduced unstaffed load rate), market_depot, extra Pub Venue_Types; Recipes incl. Secret_Recipe BADGER'S BITE; Traits and Liabilities with reveal delays; Brands per category with per-Venue modifiers; Market config (base, bounds min > 0, spread, interval); Plot prices, construction cost/time; Acquisition, Competitor event and Questionable_Opportunity tables; Achievements ("Synergy"); Phase 2 Reveal_Triggers and Help Serve threshold
     - _Requirements: 1.8, 19.1, 30.1, 33.1, 34.1, 34.6, 35.5, 37.1, 38.1, 40.1, 46.1_
@@ -601,6 +1164,10 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [x] 24.3 Extend the required save property tests to Phase 2
     - Add v1 fixtures and generated v1 documents to Property 27; extend `arbSimState()` with Phase 2 sections for Properties 25 and 26
     - _Requirements: 24.3, 24.4, 24.10, 44.2_
+
+  - [ ] 24.4 Align the Phase 6 pack with the foundations
+    - Author Trait, Brand and Recipe modifiers as `addBp` / `addFlat` entries read through `getStat` (task 35.3 converts the loader); give Business Definitions a `role` tag and, where fitting, a `services` list; validate the pack in the registry
+    - _Requirements: 50.2, 80.1, 80.4_
 
 - [ ] 25. Implement the Market and Sourcing_Policies
   - [x] 25.1 Implement the `market` system and trades
@@ -617,6 +1184,10 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - **Property 41: Sourcing shortfall sizing**
     - **Validates: Requirements 31.2**
 
+  - [ ] 25.5 Place the Market_Depot as a Frontage_Slot
+    - Put the Market_Depot (and any Phase 6 Plots for sale) in the street data of task 39.1 with an Unloading_Zone derived from the slot
+    - _Requirements: 54.4, 54.5, 80.4_
+
 - [ ] 26. Implement Plots, the second Pub and the Warehouse
   - [ ] 26.1 Implement Plot purchase and construction
     - `buyPlot`, `construct` handlers with `requireGold`; `constructionDone` scheduler event creates a Player-owned Pub with own Storage, Job_Slots, price, metrics and Sourcing_Policy
@@ -627,6 +1198,14 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [ ]* 26.3 Write unit tests for construction and Warehouse rules
     - Construction completion after defined time; end-rental rejection; reduced unstaffed rate
     - _Requirements: 27.3, 28.2, 28.5_
+
+  - [ ] 26.4 Place the Warehouse far from every Pub
+    - Add `minWarehouseDistance` to `config/sim.json`; registry check rejects a map whose Warehouse Plot is closer by road than that distance to any Pub Plot, naming the Plot and the Pub; place the Warehouse Plot at the far end of the ring road or in the locked neighbour District once unlocked
+    - Unit test the rejection and the accepted base map
+    - _Requirements: 28.6, 28.7, 48.2_
+  - [ ] 26.5 Run the second Pub on the Phase 3 pub rules
+    - New Pubs use `bar_worker`, a `layoutKey` with anchors, Seats/Taps/Hands, License_Tier limits, fit-out defaults and the `open` flag; the Management_View summary cards read the same metrics
+    - _Requirements: 27.4, 27.5, 80.5_
 
 - [ ] 27. Implement Brewery production
   - [ ] 27.1 Implement the generic `production` system
@@ -650,6 +1229,10 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - Liability cost on reveal, Secret_Recipe unobtainable otherwise, name suffixing on acquired staff
     - _Requirements: 32.8, 34.6, 7.21_
 
+  - [ ] 28.5 Port reveals and Liabilities onto the effect engine
+    - Hidden attribute reveals and Liability costs run through `applyEffects` (`gold` with category `liability`, `reveal`, `news`) and scheduler events; conditions use the shared evaluator
+    - _Requirements: 32.6, 32.7, 32.8, 80.3_
+
 - [ ] 29. Implement chains, Reputation, questionable opportunities and Competitor events
   - [ ] 29.1 Implement the `chains` system
     - Flow graph from 300 s transfer ledger; register chains of length ≥ 3, mark inactive without flow; Synergy per chain length into `player.corporateResources`; `chainRegistered` event
@@ -669,9 +1252,15 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [ ]* 29.6 Write property test for bounded scores and chances
     - **Property 38: Bounded scores and chances**
     - **Validates: Requirements 34.5, 36.1, 36.2, 38.3**
-  - [ ]* 29.7 Write unit tests for Phase 2 edge cases
+  - [ ]* 29.7 Write unit tests for Phase 6 edge cases
     - Questionable_Opportunity with too few Humans; "open location" skipped without free Plot; firing an occupied Human rejected
     - _Requirements: 7.13, 37.3, 38.2_
+  - [ ] 29.8 Run Questionable_Opportunity costs and consequences through the effect engine
+    - `startQuestionable` keeps its own Command but uses `requireGold`, the `occupyStaff` domain op and `schedule` Effects; Consequences are Effect lists in data (Reputation as Modifiers, fines as `gold`); offers that fit the Service model are Service definitions
+    - _Requirements: 37.2, 37.5, 37.6, 51.10, 80.2, 80.3_
+  - [ ] 29.9 Run Competitor events and Reputation through the foundations
+    - Competitor event effects are data Effect lists; Reputation demand effect is a `demand` Modifier read via `getStat`; News_Feed items via `news` Effects
+    - _Requirements: 36.3, 38.1, 80.1, 80.3_
 
 - [ ] 30. Implement minigames and Achievements
   - [ ] 30.1 Implement the Help Serve minigame logic
@@ -683,58 +1272,46 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - [ ]* 30.3 Extend the one-time firing property test to Achievements
     - **Property 36: Reveal_Triggers and Achievements fire once**
     - **Validates: Requirements 19.1, 19.4, 19.5, 40.2**
-  - [ ] 30.4 Extend the required invariant property tests to Phase 2 Commands
+  - [ ] 30.4 Extend the required invariant property tests to Phase 6 Commands
     - Add all Phase 2 Commands to `arbCommand` so Properties 1, 2 and 3 cover Market trades, production, Acquisitions and Questionable_Opportunity rewards; extend Property 6 generators to Phase 2 discretionary Commands
     - _Requirements: 2.5, 2.10, 2.11, 44.2_
 
-- [ ] 31. Build the Phase 2 UI and renderer additions
-  - [ ] 31.1 Implement Phase 2 Panels
+  - [ ] 30.5 Evaluate Achievements through the shared engine
+    - Achievement conditions use `evaluateCondition`; the award toast is a `news` Effect with the Achievement text keys
+    - _Requirements: 40.1, 40.2, 80.3_
+
+- [ ] 31. Build the Phase 6 UI and renderer additions
+  - [ ] 31.1 Implement Phase 6 Panels
     - Market (prices + trend), Brewery (missing requirements, unit cost), Acquisition offer (known Traits, "?" markers), Questionable_Opportunity (reward, cost, duration, legal-status text, no probabilities), multi-Pub summary cards, input sourcing comparison, Plot buy/construct, Warehouse buy/rent/end rental
     - _Requirements: 27.1, 27.2, 27.5, 28.1, 29.2, 29.5, 30.6, 31.5, 32.3, 37.8_
-  - [ ] 31.2 Implement News_Feed, toasts, banners and Phase 2 visuals
-    - News_Feed ticker, revealed HUD counters, Achievement toast, "CORPORATE CHAIN x<n> + Synergy" banner and Route highlight, Brewer animation and accumulating crates, Phase 2 Business primitives
+  - [ ] 31.2 Implement News_Feed, toasts, banners and Phase 6 visuals
+    - News_Feed ticker, revealed HUD counters, Achievement toast, "CORPORATE CHAIN x<n> + Synergy" banner and Route highlight, Brewer animation and accumulating crates, Phase 6 Business primitives
     - _Requirements: 3.5, 29.3, 32.7, 35.4, 36.4, 37.7, 38.4, 40.2_
   - [ ] 31.3 Implement the Help Serve minigame UI
     - Touch and keyboard operable minigame inside the Pub submitting `completeMinigame`
     - _Requirements: 18.4, 18.5, 39.1, 39.2_
 
+  - [ ] 31.4 Host the Phase 6 screens in the Phone apps
+    - Market, Brewery stats and sourcing comparison go into Vanly; Plot and Acquisition offers into the Wayfindr building card; Questionable_Opportunities into To-Do™ side jobs; multi-Pub summary cards into Pintly; remove the stand-alone Phase 6 Panels once the apps cover them
+    - _Requirements: 27.5, 29.5, 30.6, 31.5, 32.3, 37.8, 71.5, 71.13_
+
 - [ ] 32. Add performance tooling
-  - [ ]* 32.1 Write the Tick benchmark for the Phase 2 reference scenario
+  - [ ]* 32.1 Write the Tick benchmark for the Phase 6 reference scenario
     - `vitest bench` with 3 Pubs, 1 Brewery, 1 Warehouse, 4 Vehicles, 60 Customers; fail above 1 ms average per Tick on desktop
     - _Requirements: 41.3_
   - [ ] 32.2 Add the in-game debug overlay
     - Average and p95 Tick time, FPS and current DPR, toggled in dev or via a hidden setting
     - _Requirements: 41.1, 41.2, 41.3_
 
-- [ ] 33. **Final checkpoint - Phase 2 complete**
+- [ ] 33. **Final checkpoint - Phase 6 complete**
   - Run `npm.cmd test`, `npm.cmd run typecheck`, `npm.cmd run lint` and `npm.cmd run build`. Ensure all tests pass, ask the user if questions arise.
   - Optional, user-triggered only: on the user's explicit request, commit and push. Do not do this automatically.
 
-- [ ] 34. Playability polish (user requests, Nov 2026)
-  - [x] 34.1 Fix manual driving not moving
-    - Throttle was applied as an impulse and then erased by a `setLinvel` built from the stale velocity; it is now part of the written velocity (`physics/ManualDriving.tsx`). Remove the TEMP `driveDebug` logging once the user confirms in-game.
-  - [x] 34.2 Stardew-style building interiors
-    - E / "Enter" at the drawn model's front door teleports the CEO inside; only that interior is drawn (dark backdrop, camera clamped to the room, zoom unchanged); "Leave" only at the interior door mat. Interior walls (incl. the front wall) are solid. Staff, Customers, crates and labels inside a building are only drawn in its interior view; Customers walk up to the door outside and "teleport" in, and the other way round when leaving.
-  - [x] 34.3 Building hitboxes from the drawn models
-    - `render/footprints.ts` holds each building's world bounding box (fitted, scaled GLB; plot rectangle for placeholder boxes), so changing `scale` / `offset` in `modelMap.ts` moves the hitbox. Walking is shaped in `input/walkCollision.ts` before `ceoMove` is submitted; driving uses the same boxes as Rapier colliders. `ceoEnter` / `ceoExit` accept the model's door point (validated against the plot entrance).
-  - [x] 34.4 Raised sidewalks are physical
-    - Figures step up onto the curb (render only); curbs are Rapier colliders and the van has per-wheel ray-cast suspension, so one wheel on a curb lifts that corner.
-  - [x] 34.5 Driving overhaul (built Nov 2026; needs an in-game feel check)
-    - Design rule: everything is per Vehicle Definition in `packages/content/data/vehicles.json`, never hard-coded, because more vehicle types are coming (bigger capacity, faster, longer range on fuel). A new type feels different just by its JSON.
-    - User answers: about 2x as fast; fast driving is free fun for now (no penalties); no style tip yet; separate touch drift button is fine; S keeps brake-then-reverse.
-    - Handling fields (schema `vehicleDefSchema.handling`): `manualTopSpeed` (15.4, about 2x the route `speed` of 7; routes and delivery timing are unchanged), `reverseTopSpeed`, `brakeDecel`, `driftGrip`, `driftTurnBoost`, `driftDrag`, `donutTurnRate`; `acceleration` raised to 30. The global `config.manualSpeedBonus` was removed: Property 20 now caps manual velocity at `handling.manualTopSpeed`.
-    - Pure handling in `apps/web/src/physics/handling.ts` (`driveStep`), tested in `apps/web/test/handling.test.ts` (top speed, Property 20 cap, brake then reverse, drift grip/turn, donuts, coasting stop).
-    - Controls: Space = handbrake drift (only while driving, so Space keeps working for buttons otherwise); touch "Drift" button (hold) next to the context button, hidden on mouse/keyboard devices. Donuts: W + S together, or gas + handbrake, below 4 u/s; A/D (or the stick) picks the direction.
-    - Feedback: fading tyre marks from the rear wheels while drifting or spinning, stronger body roll while sliding.
-    - Not built yet: dust puffs, a looser camera while sliding.
-    - Rules that stay: physics is web-only; the sim only receives `manualVehicleUpdate` poses. Cargo is never lost. Upright/out-of-bounds resets still apply.
-    - Later (wishlist): fuel/range per vehicle type, crash damage that breaks load, style points for a perfect drift.
-  - [ ] 34.6 Furniture collision inside (bar, tables) — open, not requested yet
-
 ## Notes
 
-- Tasks marked with `*` are optional and can be skipped for a faster MVP. The property tests mandated by Requirement 44.2 (tasks 4.2, 5.2, 6.3, 8.1, 8.2, 8.3, 16.3, 16.4, 16.7, 24.3, 25.2, 30.4) are deliberately not optional, and neither are the Gold-limit test (3.14) and the Text_Key coverage test (10.8).
-- Model hand-off: tasks 1–11, 14, 16 and 20 are the foundation built first by the stronger model. Later tasks reuse the patterns found there (handler-per-Command, systems via `TickContext`, `slotCapacity`, `pathCacheFor`, `t()`), follow `.kiro/steering/architecture.md`, and keep CI green.
+- Tasks marked with `*` are optional and can be skipped for a faster MVP. The property tests mandated by Requirement 44.2 (tasks 4.2, 5.2, 6.3, 8.1, 8.2, 8.3, 16.3, 16.4, 16.7, 24.3, 25.2, 30.4) are deliberately not optional, and neither are the Gold-limit test (3.14) and the Text_Key coverage test (10.8). The replanned phases add these mandatory tests: getStat equivalence (35.4, Property 49), condition purity (36.6, Property 53), Gold bounds of Effects (36.8, Property 55), replay determinism (38.5, Property 57) and the golden playthrough (38.4), Tab conservation (44.4, Property 63), loan conservation (48.9, Property 67) and the v3 migration (52.3, Property 66).
+- Phase order: Phase 1 (1 to 23, 34), Phase 2 (35 to 40), Phase 3 (41 to 53), Phase 4 (54 to 61), Phase 5 (62 to 67), Phase 6 (24 to 33). Each phase ends with a checkpoint. The v3 save migration is started in 41.3 and completed (then frozen) in 52.1; deploy only after 52.1. The Gold buckets are schema v4 with their own step in 54.2.
+- Model hand-off: tasks 1–11, 14, 16 and 20 are the foundation built first by the stronger model; each phase heading says which of its tasks need the stronger model. Later tasks reuse the patterns found there (handler-per-Command, systems via `TickContext`, `slotCapacity`, `pathCacheFor`, `t()`), follow `.kiro/steering/architecture.md`, and keep CI green.
 - Not built and not planned here: time of day, multiplayer/shared cities, other languages, District unlock gameplay, Headcount_Fill UI. These live in `docs/wishlist.md` (written separately) or in later phases.
 - The project stays in the OneDrive folder. Pause OneDrive sync while running `npm.cmd ci` or `npm.cmd install`; caches live under `HR_CACHE_DIR` or the system temp dir.
 - Dev servers and watchers (`npm.cmd run dev`) are started manually by the user, never by the agent. Tests run with `vitest run` (non-watch).
@@ -747,61 +1324,43 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
 ```json
 {
   "waves": [
-    { "id": 0, "tasks": ["1.1"] },
-    { "id": 1, "tasks": ["1.2", "1.5"] },
-    { "id": 2, "tasks": ["1.3", "1.4"] },
-    { "id": 3, "tasks": ["1.6", "1.7", "1.8", "2.1", "3.1"] },
-    { "id": 4, "tasks": ["2.2", "2.6", "3.2", "3.3"] },
-    { "id": 5, "tasks": ["2.3", "3.4", "3.9"] },
-    { "id": 6, "tasks": ["2.4", "2.5", "2.7", "3.5", "3.11", "3.12"] },
-    { "id": 7, "tasks": ["3.6", "3.7", "4.1"] },
-    { "id": 8, "tasks": ["3.8", "3.10", "3.13", "4.2"] },
-    { "id": 9, "tasks": ["3.14", "4.3", "5.1", "6.5"] },
-    { "id": 10, "tasks": ["4.4", "5.2", "5.3", "6.1", "6.12"] },
-    { "id": 11, "tasks": ["5.4", "6.2", "6.13"] },
-    { "id": 12, "tasks": ["5.5", "6.6"] },
-    { "id": 13, "tasks": ["5.6", "5.7", "5.8", "5.9", "5.10", "6.3", "6.4", "6.7"] },
-    { "id": 14, "tasks": ["6.8", "6.9", "6.10", "6.11", "7.1"] },
-    { "id": 15, "tasks": ["7.2", "7.3", "7.4", "7.16"] },
-    { "id": 16, "tasks": ["7.5", "7.6", "7.17"] },
-    { "id": 17, "tasks": ["7.7", "7.8"] },
-    { "id": 18, "tasks": ["7.9", "7.10"] },
-    { "id": 19, "tasks": ["7.11", "7.12", "7.13"] },
-    { "id": 20, "tasks": ["7.14", "7.15", "8.1", "8.2", "8.3"] },
-    { "id": 21, "tasks": ["8.4", "10.1"] },
-    { "id": 22, "tasks": ["10.2", "10.6", "10.7", "11.1"] },
-    { "id": 23, "tasks": ["10.4", "10.5", "10.8", "11.2"] },
-    { "id": 24, "tasks": ["10.3", "11.3", "12.1"] },
-    { "id": 25, "tasks": ["11.4", "11.5", "12.2", "12.4"] },
-    { "id": 26, "tasks": ["11.6", "11.7", "11.9", "12.3", "13.3"] },
-    { "id": 27, "tasks": ["11.8", "13.1", "13.4"] },
-    { "id": 28, "tasks": ["13.2", "13.5"] },
-    { "id": 29, "tasks": ["13.6", "14.1"] },
-    { "id": 30, "tasks": ["13.7", "13.8", "14.2", "14.3"] },
-    { "id": 31, "tasks": ["13.9", "14.4"] },
-    { "id": 32, "tasks": ["14.5", "16.1"] },
-    { "id": 33, "tasks": ["16.2", "16.8", "16.9"] },
-    { "id": 34, "tasks": ["16.3", "16.4", "16.5", "16.6", "16.10"] },
-    { "id": 35, "tasks": ["16.7", "16.11", "16.12", "17.1"] },
-    { "id": 36, "tasks": ["16.13", "17.2", "19.1", "19.2"] },
-    { "id": 37, "tasks": ["17.3", "19.3", "19.4", "19.5"] },
-    { "id": 38, "tasks": ["17.4", "19.6", "19.8", "20.1"] },
-    { "id": 39, "tasks": ["19.7", "19.9", "20.2", "20.3"] },
-    { "id": 40, "tasks": ["20.4", "20.5", "22.1"] },
-    { "id": 41, "tasks": ["20.6", "22.2"] },
-    { "id": 42, "tasks": ["22.3", "24.1"] },
-    { "id": 43, "tasks": ["24.2"] },
-    { "id": 44, "tasks": ["24.3", "25.1", "26.1"] },
-    { "id": 45, "tasks": ["25.2", "25.3", "27.1"] },
-    { "id": 46, "tasks": ["25.4", "26.2", "27.2", "28.1"] },
-    { "id": 47, "tasks": ["26.3", "28.2", "29.1"] },
-    { "id": 48, "tasks": ["28.3", "29.2", "29.3"] },
-    { "id": 49, "tasks": ["28.4", "29.4"] },
-    { "id": 50, "tasks": ["29.5", "30.1"] },
-    { "id": 51, "tasks": ["29.6", "29.7", "30.2"] },
-    { "id": 52, "tasks": ["30.3", "30.4", "31.1"] },
-    { "id": 53, "tasks": ["31.2", "32.1"] },
-    { "id": 54, "tasks": ["31.3", "32.2"] }
+    { "id": 0, "tasks": ["2.4", "4.4", "5.6", "5.7", "5.8", "5.9", "13.3", "34.6", "34.8", "35.1", "36.1", "38.1", "39.1"] },
+    { "id": 1, "tasks": ["6.8", "6.9", "6.10", "6.11", "6.13", "13.4", "13.5", "34.7", "35.2", "36.2", "38.2", "39.2"] },
+    { "id": 2, "tasks": ["7.2", "7.3", "7.5", "7.7", "7.9", "13.7", "35.3", "36.3", "36.5", "38.3", "39.3"] },
+    { "id": 3, "tasks": ["7.14", "7.15", "7.17", "16.5", "16.11", "16.13", "19.7", "20.4", "20.6", "35.4", "35.5", "35.8", "36.4", "36.6", "36.8", "37.1", "38.4", "39.4", "39.6"] },
+    { "id": 4, "tasks": ["35.6", "35.7", "36.7", "37.2", "38.5", "38.6", "38.7", "38.8", "39.5"] },
+    { "id": 5, "tasks": ["37.3", "37.4", "37.5", "40.1"] },
+    { "id": 6, "tasks": ["41.1"] },
+    { "id": 7, "tasks": ["41.2"] },
+    { "id": 8, "tasks": ["41.3", "42.1"] },
+    { "id": 9, "tasks": ["42.2", "43.1"] },
+    { "id": 10, "tasks": ["42.3", "43.2", "44.1", "45.1", "46.1"] },
+    { "id": 11, "tasks": ["42.4", "42.5", "43.3", "43.4", "44.2", "45.2", "46.2", "47.1"] },
+    { "id": 12, "tasks": ["42.6", "43.5", "44.3", "44.4", "44.5", "45.3", "46.3", "47.2", "48.1", "48.2", "48.3"] },
+    { "id": 13, "tasks": ["47.3", "48.4", "48.6", "48.8", "48.9", "48.10", "48.11", "50.1"] },
+    { "id": 14, "tasks": ["48.5", "48.7", "49.1", "50.2", "51.1"] },
+    { "id": 15, "tasks": ["49.2", "49.3", "50.3", "51.2", "51.3", "51.4", "51.5", "51.6"] },
+    { "id": 16, "tasks": ["52.1"] },
+    { "id": 17, "tasks": ["52.2", "52.4"] },
+    { "id": 18, "tasks": ["52.3"] },
+    { "id": 19, "tasks": ["54.1", "56.1", "57.1", "58.1"] },
+    { "id": 20, "tasks": ["54.2", "54.3", "56.2", "56.3", "56.4", "57.2", "58.2", "60.1"] },
+    { "id": 21, "tasks": ["54.4", "55.1", "55.2", "56.5", "59.1", "60.2"] },
+    { "id": 22, "tasks": ["55.3", "59.2", "59.3", "59.4", "59.5"] },
+    { "id": 23, "tasks": ["55.4", "59.6", "59.7", "59.8", "60.3"] },
+    { "id": 24, "tasks": ["55.5", "59.9"] },
+    { "id": 25, "tasks": ["62.1", "63.1", "64.1", "65.1", "66.1"] },
+    { "id": 26, "tasks": ["62.2", "63.2", "63.3", "64.2", "65.2", "66.2", "66.3", "66.4", "66.5", "66.6"] },
+    { "id": 27, "tasks": ["62.3", "63.4", "64.3", "65.3", "66.7"] },
+    { "id": 28, "tasks": ["24.4", "25.3"] },
+    { "id": 29, "tasks": ["25.4", "25.5", "26.1", "27.1"] },
+    { "id": 30, "tasks": ["26.2", "26.4", "26.5", "27.2", "28.1", "29.3"] },
+    { "id": 31, "tasks": ["26.3", "28.2", "28.3", "29.1", "29.5"] },
+    { "id": 32, "tasks": ["28.4", "28.5", "29.2", "29.4", "29.6", "30.1"] },
+    { "id": 33, "tasks": ["29.7", "29.8", "29.9", "30.2"] },
+    { "id": 34, "tasks": ["30.3", "30.4", "30.5", "31.1"] },
+    { "id": 35, "tasks": ["31.2", "31.3", "31.4", "32.1"] },
+    { "id": 36, "tasks": ["32.2"] }
   ]
 }
 ```
@@ -811,7 +1370,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
 Built and verified (typecheck, lint, all tests, `vite build`): tasks 1–11, 14, 16 and 20, plus parts of 12, 13 and 19 that the foundation needed to be testable.
 
 - **Also done early:** 12 (keyboard, joystick, gestures, speed keys, fixed axes); 13.1 HUD, 13.6 Pause_Menu and "Resume Route?", 13.8 speed control and Testing toggle; 19 Save_API routes, PIN hashing/lockout, remove-pin CLI and route tests (so Sync_Service can be exercised).
-- **Still open for the next model:** 13.3–13.5 Panels (Pub with Job_Slot picker, Human, Vehicle with Route editor, Supplier, Competitor, Plot, Customer, Finance). The selection state exists in `uiStore.selection`; derived numbers come from `pubMetricsView`, `vehicleDeliveriesPerMinute`, `financeSummary` and `slotCapacity` in `@hr/sim`. Then 15 (checkpoint), 17 (PWA shell), 18, 21, 22 (Docker/Tailscale) and Phase 2.
+- **Still open for the next model:** 13.3–13.5 Panels (Pub with Job_Slot picker, Human, Vehicle with Route editor, Supplier, Competitor, Plot, Customer, Finance). The selection state exists in `uiStore.selection`; derived numbers come from `pubMetricsView`, `vehicleDeliveriesPerMinute`, `financeSummary` and `slotCapacity` in `@hr/sim`. Then 15 (checkpoint), 17 (PWA shell), 18, 21 and 22 (Docker/Tailscale) are done; Phases 2 to 6 follow the phase headings.
 - **Where to plug in:** UI subscribes with `useSimVersion` / `useSimSelector` (5 Hz); Commands go through `bridge.loop.sim.submit(...)`; rejected Commands already show a `reason.*` toast. All text via `t()`; the lint rule rejects letters in JSX text.
 - **Small deviations from the design, on purpose:**
   - Paths are stored as point polylines (`Path.pts`) instead of node lists, so walking from a mid-path position needs no special case.

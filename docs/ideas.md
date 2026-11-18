@@ -6,6 +6,8 @@ Added by the user, Nov 2026.
 
 ## 1. The opening: "Grand Opening" pre-launch checklist (new game start)
 
+> Moved to spec: Phase 3, tasks 41, 46 to 49 and 52 (refined by section 7.4).
+
 The game no longer starts with a running pub. At the start you have no employees and the bar is not open yet. The pub is about to open, but first you have to arrange a few things.
 
 The HUD shows a short "Grand Opening" checklist. Every item sends you to a building:
@@ -25,12 +27,16 @@ Notes:
 
 ## 2. Unlock menu with vague hints
 
+> Moved to spec: Phase 3, tasks 48.8 and 50.
+
 - Every unlock (reveal) is listed in a menu.
 - An entry does not say exactly what to do. It shows a vague introduction or explanation, so you can sometimes guess what triggers it and sometimes not really.
 - Already unlocked entries show what they gave you. Locked ones show only the teaser.
 - Data: add a teaser text key and a description text key to each reveal definition (`reveal-triggers.json`). All text goes through `t()`.
 
 ## 3. After opening: the CEO keeps working outside
+
+> Moved to spec: Phase 3, tasks 47, 48.6 and 51 (offices and requests as Services and scheduler events).
 
 Staff run the pub, and you keep handling the jobs nobody else can do:
 
@@ -57,6 +63,8 @@ The core tension is that you're the only one who can visit the municipality and 
 
 ## 4. Make it feel alive (cheap, big impact)
 
+> Moved to spec: Phase 5, tasks 62 to 65.
+
 - **Make customers readable.**
   - Thought-bubble icons: 🍺 waiting, 😤 angry, 💰 paid.
   - A coin pop with a sound when someone pays. Players need to see money arriving.
@@ -76,6 +84,8 @@ The core tension is that you're the only one who can visit the municipality and 
 
 ## 5. Satire hooks that reuse existing systems
 
+> Moved to spec: Phase 5, task 66.
+
 | Idea | Reuses | Hook |
 |---|---|---|
 | Consultant visit | Questionable opportunity | Pay Gold for a "report" whose effect is random and sometimes negative |
@@ -87,6 +97,8 @@ The core tension is that you're the only one who can visit the municipality and 
 | LinkedIn-style news feed | `news_feed` | "Local pub CEO 'humbled' to announce second crate of beer" |
 
 ## 6. Foundation upgrades (for soon, before much more content)
+
+> Moved to spec: Phase 2, tasks 35 to 38 (6.1 Modifiers: 35; 6.3 conditions and effects: 36; 6.2 Services: 37; 6.4 replay: 38).
 
 These are engine changes, not features. Doing them before the Grand Opening, offices, permits and council features means those become mostly JSON.
 
@@ -134,6 +146,8 @@ These are engine changes, not features. Doing them before the Grand Opening, off
 
 ## 7. Bar system redesign (user, Nov 2026; to become new tasks or redesigns)
 
+> Moved to spec: Phase 3, tasks 41 to 45 and 52 (bar worker 42, Seats/Taps/Hands 43, tabs and vibe 44, kegs 45, v3 migration 52).
+
 This replaces the current bartender + server split. It also refines the checklist table in section 1: where they differ, this section wins.
 
 ### 7.1 The Bar Worker job
@@ -179,6 +193,8 @@ The fit-out stop turns the Bank decision into something you can see straight awa
 
 ## 8. Street layout rework: rows of buildings instead of loose plots (user, Nov 2026)
 
+> Moved to spec: Phase 2, task 39 (and 47.2 for the offices, 26.4 and 25.5 for Phase 6 placements).
+
 - **Layout.** The map becomes road spaces with buildings standing shoulder to shoulder along them, like a real canal street. No big loose plots with grass between them.
 - **Every slot along a street is one of three kinds.**
   - **Filler building:** decoration only. Varied canal houses with a hitbox, no interaction. These make the street feel full.
@@ -196,6 +212,8 @@ The fit-out stop turns the Bank decision into something you can see straight awa
   - save data (plot ids), which needs a migration if existing plot ids change
 
 ## 9. UI revamp: the CEO's phone (user, Nov 2026)
+
+> Moved to spec: Phase 4, tasks 54 to 60 (buckets 54, HUD 55, Phone 56, Waypoint 57, Info_Layers 58, apps 59, Desk 60).
 
 Cities: Skylines gives you a toolbar of god-powers. The CEO isn't a god, so the phone shows everything and lets you change some things remotely. Everything else needs a "wet signature", so the phone gives you a **Drive there** button. The phone is how you manage the business, and driving is how you actually do things.
 
@@ -311,8 +329,16 @@ This is the generic `useService {businessId, serviceId}` Command from 6.2, so ne
 
 ## Open points for the replan
 
-- How much of the current start (hired staff, open pub) is kept as a dev/test shortcut once the Grand Opening exists? `?dev=1` could skip the checklist.
-- What does the pub look like before opening: closed sign, empty interior, no customers? (With 7.4 the interior is literally empty until the fit-out.)
-- Which new buildings need generated models: municipality, bank, job centre or café?
-- Loan balancing: repayment schedule, interest, and what happens when you can't pay. Today, mandatory costs already go into debt.
-- How the "end-of-day" interval relates to game speed (game minutes, not real time).
+Resolved in the six-phase plan (`.kiro/specs/human-resource-mvp/`):
+
+- Dev shortcut: `?dev=1` (or a dev start option when creating a slot) keeps the running-pub start and skips the checklist (task 49.1).
+- Pub before opening: closed sign, empty interior, no customers until `pub_open` fires (task 48.7).
+- New buildings: the municipality, bank and job centre use placeholder models until real ones exist; they are placed as business slots in the street data (tasks 47.1 and 47.2).
+- Loan balancing: data-driven offers with interest, a repayment per game minute, one loan at a time, and repayments are Mandatory_Expenses so Gold may go negative (task 48.1).
+- End-of-day card: measured in game minutes, so it follows game speed (task 65.1).
+- HUD "time": not shown; there is no time of day (stays in the wishlist).
+
+Still open:
+
+- Which real models replace the office placeholders (user task, no code dependency).
+- Exact loan and license numbers, to be tuned in data while playing the Grand Opening (checkpoint 53).

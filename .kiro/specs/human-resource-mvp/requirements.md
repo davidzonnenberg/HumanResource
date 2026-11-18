@@ -10,10 +10,14 @@ Architectural decision – no multiplayer: each device runs its own Simulation, 
 
 Foundation decisions built into Phase 1 so later growth needs no rework: Game_Speed multipliers (Requirement 47), a map divided into Districts (Requirement 48), a Job_Slot model that also accepts an anonymous Headcount_Fill (Requirement 49), a fixed-angle camera (criterion 15.12) and English-only user-facing text looked up by key (criterion 46.8).
 
-Requirements are grouped into three blocks and each requirement is tagged with its phase:
+Requirements are delivered in six phases in the order below, plus a Non-Functional block. Each requirement header names its phase. Later phases build on earlier ones; a phase starts only when the previous phase's foundations exist, so that content in later phases is mostly data.
 
-- **Phase 1 – Playable Prototype**: one pub, customer loop, bartender and server, Gold, finite beer storage, external beer supply, one delivery van, CEO Mode, Management View, automatic versus manual delivery, one passive visible competitor pub, basic Human allocation (named Humans, hire, salary, assign, reassign, fire with severance), plus saves and platform foundations. Phase 1 answers one question: *Is it fun to physically watch a tiny pub operate, zoom out into the city, allocate Humans, and personally drive a silly delivery van between two businesses while those businesses keep operating?*
-- **Phase 2 – First Business Expansion Layer**: second pub, warehouse, brewery (Hops + Malt → Beer), acquisitions with hidden traits, secret recipes and liabilities, own versus outsource, fluctuating buy/sell market, basic brands, synergy chains, reputation, questionable opportunities with delayed probabilistic consequences, and competitors that occasionally act.
+- **Phase 1 – Playable core** (built, including the Nov 2026 polish of explicit building entry, model-exact hitboxes, raised curbs, Stardew-style interiors and the driving overhaul): one pub, customer loop, bartender and server, Gold, finite beer storage, external beer supply, one delivery van, CEO Mode, Management View, automatic versus manual delivery, one passive visible competitor pub, basic Human allocation (named Humans, hire, salary, assign, reassign, fire with severance), plus saves and platform foundations. Phase 1 answers one question: *Is it fun to physically watch a tiny pub operate, zoom out into the city, allocate Humans, and personally drive a silly delivery van between two businesses while those businesses keep operating?*
+- **Phase 2 – Foundations**: engine upgrades that make later features mostly JSON: a generic Modifier system with a "why this number" breakdown (Requirement 50), data-defined building Services with one `useService` Command (Requirement 51), a shared Condition and Effect mini-DSL (Requirement 52), a Command_Log with replay, a golden-playthrough test and State_Hash desync detection (Requirement 53), and the street layout of Frontage_Slots (Requirement 54).
+- **Phase 3 – Grand Opening and bar redesign**: the single Bar_Worker job with Seats, Taps and Hands, tabs, walkouts and Vibe, kegs, the save schema v3 migration (Requirements 55 to 59), office buildings, the Grand Opening checklist with license tiers, loans, pub fit-out, supplier keg deal and job centre hiring (Requirements 60 to 66), the unlock menu (Requirement 67) and the CEO's outside jobs (Requirement 68). The start state of Requirement 3 changes accordingly, and a dev start keeps the old running pub.
+- **Phase 4 – Phone UI**: the three UI layers HUD, Phone and Desk, Gold per hour from one-minute buckets, reveal-gated Phone_Apps, Desk counter screens, the quest UI (To-Do™ app, HUD tracker) with a waypoint on top of the Phase 3 quest engine, and shared info layers (Requirements 69 to 74).
+- **Phase 5 – Feel alive and satire content**: readable customers, Human quirks and speech bubbles, street life, the periodic summary card and satire hooks expressed as content on top of Phase 2 foundations (Requirements 75 to 79).
+- **Phase 6 – Economy expansion** (the former "Phase 2 – First Business Expansion Layer"): second pub, warehouse, brewery (Hops + Malt → Beer), acquisitions with hidden traits, secret recipes and liabilities, own versus outsource, fluctuating buy/sell market, basic brands, synergy chains, reputation, questionable opportunities with delayed probabilistic consequences, and competitors that occasionally act.
 - **Non-Functional (all phases)**: performance, PWA/offline behaviour, deployment, testability, repository hygiene and extensibility.
 
 Explicitly out of scope (the architecture must not block them, but no speculative functionality is built): educated Humans and R&D; additional industries, HQ, product creation, larger supply networks, alternative starts; commuting staff, traffic and routing simulation, competitor economics, supplier evolution, contracts, satirical logistics or hacking R&D, vehicle manufacturing; deep HR simulation, personalities, sickness, farming or forestry gameplay, stock market, multiple cities, international play, complex construction, legal system, detailed crime and late-game industries; a display-name mode that depersonalises Humans into numbers for later automation or AI phases (only the extension point of criterion 46.7 and the Headcount_Fill data model of Requirement 49 are built); a time-of-day or day/night cycle; District unlocking gameplay beyond the data model of Requirement 48; a shared city or multiplayer mode; languages other than English. Ideas that are nowhere near implementation are collected in the far-future wishlist `docs/wishlist.md`, which is not part of this specification.
@@ -52,7 +56,8 @@ Conventions used in all requirements:
 - **Human_Name**: The personal first name of a Human (for example "Jan"), stored in the Simulation state and shown in the Game to make Humans feel personal.
 - **Name_Pool**: The Definition_Registry text table of first names from which Human_Names for hired Humans are drawn; editable as data without code changes.
 - **Workforce**: The set of Humans employed by the Player.
-- **Job**: A role at a Business or Vehicle that one assigned Human or one Headcount_Fill fills (Bartender, Server, Driver, Brewer, Warehouse_Worker).
+- **Job**: A role at a Business or Vehicle that one assigned Human or one Headcount_Fill fills (Bar_Worker, Driver, Brewer, Warehouse_Worker; Bartender and Server exist only until the Phase 3 migration of Requirement 59).
+- **Bar_Worker**: The single pub Job that replaces Bartender and Server: one worker runs the whole loop of taking an order, pouring, handing over or delivering, taking payment and cleaning when idle (Requirement 55).
 - **Job_Slot**: One fillable position for a Job at a specific Business or Vehicle; the number of Job_Slots per Job is defined in the Business or Vehicle Definition.
 - **Headcount_Fill**: A Job_Slot fill by an anonymous count of Humans (a Staff_Pool entry) with a Human Definition for Salary and capacity, but no Human_Name, no position and no walking; exists in the data model from Phase 1 and is created by no Phase 1 content or UI (Requirement 49).
 - **Salary**: The Gold cost per Game_Minute of one employed Human, defined in the Human Definition.
@@ -61,13 +66,13 @@ Conventions used in all requirements:
 - **Gold**: The primary currency and the only Resource counter visible to the Player at game start.
 - **Discretionary_Expense**: A Gold cost the Player chooses to incur: hiring, Orders (manual and automatic), Market purchases, Plot purchases, construction, Warehouse purchase or rental start, Acquisitions and Questionable_Opportunity costs.
 - **Mandatory_Expense**: A Gold cost the Simulation applies regardless of balance: Salary, Severance, rental fees, revealed Liability costs and Consequence fines.
-- **Resource**: Any tradable or storable good defined in the Definition_Registry (Phase 1: Beer; Phase 2 adds Hops and Malt).
-- **Corporate_Resource**: A Player-level Resource that is not held in any Storage and has no capacity limit (Phase 2: Synergy).
+- **Resource**: Any tradable or storable good defined in the Definition_Registry (Phase 1: Beer; Phase 6 adds Hops and Malt).
+- **Corporate_Resource**: A Player-level Resource that is not held in any Storage and has no capacity limit (Phase 6: Synergy).
 - **Business**: An instance of a Business Definition placed on a Plot, with type, inputs, outputs, storage, human_requirements, production_rules, brand, traits, location, owner and automation fields.
 - **Pub**: A Business that converts Beer and Customer visits into Gold.
-- **Venue_Type**: A Pub Definition category (for example sports pub, cosy local) used by Brand demand modifiers (Phase 2).
-- **Brewery**: A Business that converts Hops and Malt into Beer (Phase 2).
-- **Warehouse**: A Business whose primary function is storing Resources (Phase 2).
+- **Venue_Type**: A Pub Definition category (for example sports pub, cosy local) used by Brand demand modifiers (Phase 6).
+- **Brewery**: A Business that converts Hops and Malt into Beer (Phase 6).
+- **Warehouse**: A Business whose primary function is storing Resources (Phase 6).
 - **Supplier**: A non-player Business that sells Resources to the Player at a defined unit price and holds ordered Resources for physical pickup.
 - **Order**: A paid Player purchase of a Resource quantity from the Supplier, reserved at the Supplier for a named Player-owned destination Business.
 - **Pending_Quantity**: For a destination Business and Resource, the quantity reserved in open Orders plus the quantity loaded on Player-owned Vehicles whose next drop-off stop is that Business.
@@ -80,9 +85,13 @@ Conventions used in all requirements:
 - **Route**: An ordered list of at least two pickup and drop-off stops at distinct Businesses, assigned to one Vehicle.
 - **Automatic_Delivery**: Delivery performed by a Vehicle driven by an assigned Human along the Vehicle's Route without Player control.
 - **Manual_Driving**: The Player personally driving a Player-owned Vehicle with arcade physics.
-- **Manual_Speed_Bonus**: The top-speed multiplier applied to a Vehicle under Manual_Driving relative to the Vehicle's Automatic_Delivery speed; default +10%.
+- **Manual_Top_Speed**: The top speed of a Vehicle under Manual_Driving, defined per Vehicle Definition as `handling.manualTopSpeed` (about twice the Automatic_Delivery route speed for the Delivery_Van), independent of the route speed.
+- **Handbrake_Drift**: A slide the Player starts with the handbrake (Space on PC, a held Drift button on touch) while Manual_Driving.
+- **Donut**: A spin in place performed under Manual_Driving by pressing gas together with brake or gas together with handbrake at low speed.
 - **Manual_Delivery_Tip**: The Gold bonus for a completed manual delivery; default 5% of the delivered cargo value at the Supplier unit price.
 - **Unloading_Zone**: The marked area next to a Business in which a stopped Vehicle can load and unload.
+- **Interior_View**: The view of exactly one owned Business interior that the Renderer draws after the CEO enters it; nothing else on the map is drawn.
+- **Landmark**: A render-only building placed from `packages/content/data/maps/landmarks.json` with a model, a box and a facing direction, with no Business in the Simulation (for example the city hall).
 - **Interaction_Range**: The maximum distance between the CEO and an object for a Context_Action to be offered; default 2 World_Units.
 - **CEO_Mode**: The close physical view in which the Player controls the CEO, walks, enters Businesses and drives Vehicles.
 - **Management_View**: The zoomed-out view (Street, Block, Neighbourhood, City Zoom_Levels) for selecting Businesses, inspecting properties, viewing Routes and assigning Humans.
@@ -101,8 +110,8 @@ Conventions used in all requirements:
 - **District_Connector**: A data-defined link between a boundary road node of one District and a boundary road node of an adjacent District, through which the road graphs of the two Districts join.
 - **Text_Key**: The identifier of one user-facing string in `packages/content/data/text/en.json`, resolved through the single lookup function t().
 - **Plot**: A map location that is empty, for sale, under construction, or occupied by a Business.
-- **Market**: The Phase 2 system offering fluctuating buy and sell prices per Resource.
-- **Market_Depot**: The map location where Market purchases are picked up and Market sales are delivered (Phase 2).
+- **Market**: The Phase 6 system offering fluctuating buy and sell prices per Resource.
+- **Market_Depot**: The map location where Market purchases are picked up and Market sales are delivered (Phase 6).
 - **Sourcing_Policy**: The per-Business, per-input rule that decides how an input Resource is obtained (buy externally, internal supply, or internal first with external shortfall).
 - **Acquisition_Offer**: A Business offered for sale with an asking price, known attributes, hidden attributes and an expiry time.
 - **Acquisition**: The completed purchase of a Business through an Acquisition_Offer.
@@ -117,7 +126,7 @@ Conventions used in all requirements:
 - **Questionable_Opportunity**: A short Human-assignment job with an immediate reward and a delayed, probabilistic Consequence.
 - **Consequence**: A delayed event (for example News_Feed item, Reputation change, fine) scheduled by a Questionable_Opportunity.
 - **News_Feed**: The in-game ticker that announces events such as Consequences, reveals and Competitor actions.
-- **Minigame**: An optional hands-on activity the CEO performs inside a Business for a data-defined reward (Phase 2: Help Serve).
+- **Minigame**: An optional hands-on activity the CEO performs inside a Business for a data-defined reward (Phase 6: Help Serve).
 - **Achievement**: A satirical milestone award (for example "Synergy").
 - **Reveal_Trigger**: A data-defined game-state condition that, on first becoming true in a Save_Slot, reveals a UI element or mechanic.
 - **Profile**: A named player identity on the shared server (for example the user and his girlfriend), optionally protected by a PIN.
@@ -133,6 +142,39 @@ Conventions used in all requirements:
 - **Sync_Service**: The client component that uploads and downloads Save_Documents between Local_Store and Save_API.
 - **PWA_Shell**: The service worker, manifest and cached application assets that make the Game installable and playable offline.
 - **Deployment_Container**: The Docker image serving the static frontend and the Save_API.
+- **Modifier**: A Simulation-state record `{source, target, stat, op, value, untilTick?}` that changes one StatId of one target by a basis-point or flat integer amount (Requirement 50).
+- **StatId**: A member of the closed enumeration of stats that at least one Simulation system reads through getStat.
+- **getStat**: The single Simulation function that returns the base value of a StatId from a Definition plus the sum of active Modifiers, using integer math.
+- **Service**: A data-defined action offered by a Business (for example a loan or a permit) with cost, conditions, effects and an Access_Tag (Requirement 51).
+- **Access_Tag**: The value `remote` or `presence` on a Service or setting; `presence` requires the CEO at the Business door or inside.
+- **Condition**: A data expression evaluated by the shared evaluator over Simulation state (Requirement 52).
+- **Effect**: An entry of the closed Effect vocabulary (gold, addModifier, reveal, schedule, grantResource, news, domain) applied by the shared applyEffects function.
+- **Command_Log**: The ordered record of Commands with their Ticks that, together with the Seed and a start snapshot, reproduces a session (Requirement 53).
+- **State_Hash**: A deterministic hash of the canonical JSON of the Simulation state.
+- **Frontage_Slot**: One position along a street road edge with a kind (filler, business or plot) and a width (Requirement 54).
+- **Filler_Building**: A Frontage_Slot building with a model and a hitbox but no Business and no interaction.
+- **Seats**, **Taps** and **Hands**: The three pub capacity numbers: customers that can stay, drinks that can pour at the same time, and Bar_Worker throughput (Requirement 56).
+- **Tab**: The running amount a Customer owes at a Pub, paid when the Customer leaves.
+- **Walkout**: A Customer leaving without paying the Tab.
+- **Vibe**: A per-Pub StatId that reflects atmosphere and wait experience and drives Walkouts.
+- **Keg**: The Beer container size used for transport, storage and visuals after Requirement 58, replacing crates in data; Beer amounts stay counted in drinks in the Simulation.
+- **Office**: An npc-owned Business with no Storage whose services the CEO uses in person (Municipality, Bank, Job_Centre).
+- **Grand_Opening_Checklist**: The chain of Reveal_Triggers and HUD entries that must complete before the pub opens (Requirement 61).
+- **License_Tier**: A Municipality choice (Café, Pub or Late licence) that sets maximum Seats, allowed customer types and a fee.
+- **Loan**: A Simulation-state debt record with a principal, a repayment schedule and a Fit_Out_Budget (Requirement 63).
+- **Fit_Out_Budget**: The Gold amount a Loan provides for spending at the pub fit-out stop.
+- **Phone**: The CEO's in-game phone overlay that hosts Phone_Apps (Requirement 71).
+- **Phone_App**: One reveal-gated app of the Phone defined in the app registry.
+- **Desk**: The in-person counter screen shown inside an Office (Requirement 72).
+- **Quest**: A data-defined chain of steps with Conditions and Effects shown in the To-Do™ app and the HUD tracker.
+- **Waypoint**: A web-only road-arrow path from the CEO to a target Business; never part of the Simulation state.
+- **Gold_Per_Hour**: The rolling net Gold change over the last 60 game minutes, computed from one-minute buckets.
+- **Info_Layer**: A map tint (Demand, Stock, Staff, Routes or Money) shared by the Wayfindr app and the Management_View.
+- **Unlock_Menu**: The list of all Reveal_Triggers with a Teaser or a description (Requirement 67).
+- **Teaser**: The vague text of a locked Reveal_Trigger entry.
+- **Outside_Job**: A task the CEO performs away from the pub after opening (Requirement 68).
+- **Quirk**: A data-defined personality trait of a named Human that adds a visible behaviour or a speech bubble.
+- **Summary_Card**: The periodic report card of served and lost Customers and profit (Requirement 78).
 - **Mid_Range_Phone**: Reference devices: a Samsung Galaxy A5x-series Android phone (2022 or newer) and an iPhone 12 or newer.
 
 ## Requirements
@@ -145,7 +187,7 @@ Conventions used in all requirements:
 
 1. WHEN the Game starts, THE Definition_Registry SHALL load all Definitions before the Simulation creates any Business.
 2. THE Definition_Registry SHALL represent each Business Definition with the fields type, inputs, outputs, storage, human_requirements, production_rules, brand, traits, location constraints, owner and automation.
-3. THE Definition_Registry SHALL represent each Pub Definition additionally with seat count, base demand, patience limit, bartending interval, minimum drink price, maximum drink price, default drink price, repeat-order chance, maximum drinks per visit and Job_Slot counts per Job.
+3. THE Definition_Registry SHALL represent each Pub Definition additionally with seat count, base demand, patience limit, bartending interval (the pour time of a Bar_Worker), Tap count, minimum drink price, maximum drink price, default drink price, repeat-order chance, maximum drinks per visit and Job_Slot counts per Job.
 4. THE Definition_Registry SHALL represent each Vehicle Definition with type, capacity, speed, driver requirement, allowed Resources and arcade-handling tuning values.
 5. IF a Definition references an unknown Resource, Trait, Brand, Recipe, Job or model key identifier, THEN THE Definition_Registry SHALL reject the Definition with an error naming the Definition and the unknown identifier.
 6. IF a Pub Definition has a seat count below 1, a minimum drink price of 0 or less, or a minimum drink price above its maximum drink price, THEN THE Definition_Registry SHALL reject the Definition with an error naming the Definition and the invalid field.
@@ -177,13 +219,16 @@ Conventions used in all requirements:
 
 #### Acceptance Criteria
 
-1. WHEN the Player starts a new Save_Slot, THE Simulation SHALL create the start state defined in start-state data: one Player-owned Pub; three Humans in the Workforce, namely "Jan" working as Bartender and "Julia" working as Server at that Pub and "Thomas" assigned as Driver of the Delivery_Van and on board; a Beer Storage stock of 50% of capacity (default); a starting Gold balance; one Delivery_Van at the Pub with a default Route of a pickup stop at the Supplier followed by a drop-off stop at the Player's Pub; a reserved Order of Beer at the Supplier for the Player's Pub of 25% of the Pub's Beer capacity (default); one Supplier; and one Competitor Pub with one Competitor Vehicle.
+1. WHEN the Player starts a new Save_Slot in the Grand Opening start (Phase 3 target), THE Simulation SHALL create the start state defined in start-state data: one Player-owned Pub that is not open (empty interior, no Customers, no Bar_Worker, no Taps beyond the License_Tier minimum), an empty Workforce, an empty Beer Storage, a small starting Gold balance, no Loan, the Delivery_Van parked at the Pub without a Driver, the Supplier, the Offices (Municipality, Bank, Job_Centre), one Competitor Pub with one Competitor Vehicle, and all Grand_Opening_Checklist Reveal_Triggers unfired.
+1a. WHERE Dev_Mode is on or the dev start option is chosen, WHEN the Player starts a new Save_Slot, THE Simulation SHALL create the Phase 1 running-pub start state from start-state data instead: one open Player-owned Pub; three Humans in the Workforce, namely "Jan" working as Bar_Worker at that Pub, "Julia" working as Bar_Worker at that Pub and "Thomas" assigned as Driver of the Delivery_Van and on board; a Beer Storage stock of 50% of capacity (default); a starting Gold balance; one Delivery_Van at the Pub with a default Route of a pickup stop at the Supplier followed by a drop-off stop at the Player's Pub; a reserved Order of Beer at the Supplier for the Player's Pub of 25% of the Pub's Beer capacity (default); one Supplier; one Competitor Pub with one Competitor Vehicle; and the pub_open Reveal_Trigger fired.
+1b. WHILE the Phase 3 content is not yet delivered, THE Simulation SHALL use the Phase 1 running-pub start state of criterion 1a for every new Save_Slot, with the Bartender and Server Jobs "Jan" and "Julia" respectively.
 2. WHEN the Player starts a new Save_Slot, THE Simulation SHALL generate a new Seed and store the Seed in the Simulation state.
 3. WHEN the Player starts a new Save_Slot, THE Simulation SHALL set Reputation to 50 (default).
 4. WHEN a new Save_Slot starts, THE Camera_Controller SHALL place the camera in CEO_Mode at the Person Zoom_Level next to the Player's Pub.
 5. WHILE no Reveal_Trigger for an additional counter has fired in the Save_Slot, THE HUD SHALL show Gold as the only Resource counter.
 6. THE Renderer SHALL present the starting Pub as an animated miniature diorama in which Customers and Humans are visible.
-7. WHEN the first Tick of a new Save_Slot is applied, THE Simulation SHALL start Automatic_Delivery of the start-state Delivery_Van along the default Route with the Driver "Thomas".
+7. WHERE a start state contains a Delivery_Van with the Driver "Thomas" and a default Route, WHEN the first Tick of a new Save_Slot is applied, THE Simulation SHALL start Automatic_Delivery of that Delivery_Van along the default Route.
+8. WHEN the Player starts a new Save_Slot in the Grand Opening start, THE Camera_Controller SHALL place the CEO at the Person Zoom_Level next to the Pub and THE HUD SHALL show the Grand_Opening_Checklist (Requirement 61).
 
 ### Requirement 4: Pub Customer Loop (Phase 1)
 
@@ -196,8 +241,8 @@ Conventions used in all requirements:
 3. WHEN a Customer arrives and a seat is free, THE Simulation SHALL move the Customer through the states enter, seat, wait, served, drink, optional reorder, pay and leave.
 4. WHEN a Customer takes a seat, THE Simulation SHALL register one drink order for the Customer.
 5. WHEN a Customer finishes a drink and has consumed fewer drinks than the Pub Definition's maximum drinks per visit (default 3), THE Simulation SHALL register a reorder with the probability given by the effective repeat-order chance, using the seeded random number generator.
-6. WHEN a Bartender pours a drink, THE Simulation SHALL remove one Beer from the Pub's Storage.
-7. WHEN a Customer pays, THE Simulation SHALL add the Pub's drink price at the payment Tick multiplied by the number of drinks the Customer consumed to the Owner's Gold.
+6. WHEN a Bartender (Phase 1) or a Bar_Worker (from Phase 3) pours a drink, THE Simulation SHALL remove one Beer from the Pub's Storage.
+7. WHEN a Customer pays the Tab, THE Simulation SHALL add the sum of the drink prices recorded on the Tab to the Owner's Gold; in Phase 1 the Tab is paid per drink and from Phase 3 the Tab is paid when the Customer leaves (Requirement 57).
 8. IF a Customer's wait time for an open drink order exceeds the Pub Definition's patience limit in game seconds, THEN THE Simulation SHALL cancel the order and make the Customer pay for drinks already consumed and leave.
 9. IF a Customer leaves after a patience expiry without having been served any drink, THEN THE Simulation SHALL count the Customer as a Lost_Customer with reason patience_expired, or with reason out_of_beer when the Pub's Beer Storage was empty at the moment of expiry.
 10. IF a Customer arrives while all seats are occupied, THEN THE Simulation SHALL make the Customer leave immediately and count the Customer as a Lost_Customer with reason no_seat.
@@ -207,17 +252,19 @@ Conventions used in all requirements:
 
 ### Requirement 5: Visible Staff Work (Phase 1)
 
-**User Story:** As a player, I want to see my bartender and server physically work, so that staffing decisions have visible results.
+**User Story:** As a player, I want to see my bar workers physically work inside my pub, so that staffing decisions have visible results.
+
+*Phase note: the criteria below describe the Phase 3 target with the Bar_Worker Job (Requirement 55). Until Phase 3 is delivered, the built Phase 1 behaviour is the same loop split over the Bartender (pour) and Server (carry) Jobs.*
 
 #### Acceptance Criteria
 
-1. WHILE a Human is working as Bartender at a Pub and the Pub has an open drink order and at least 1 Beer in Storage, THE Simulation SHALL let the Bartender pour one drink per bartending interval defined in the Pub Definition.
-2. WHILE a Pub has more than one working Bartender, THE Simulation SHALL let each Bartender pour independently.
-3. WHILE a Human is working as Server at a Pub, THE Simulation SHALL let the Server carry poured drinks to waiting Customers at the movement speed defined in the Job Definition.
-4. WHILE a Pub has no working Bartender, THE Simulation SHALL pour zero drinks at that Pub.
-5. WHILE a Pub has no working Server, THE Simulation SHALL keep poured drinks at the bar undelivered.
-6. WHILE a Player-owned Pub has an empty Bartender or Server Job_Slot and no working Human in that Job, THE HUD SHALL show an "Unstaffed: <Job>" Alert on that Pub.
-7. THE Renderer SHALL animate each working Human at the location of the Human's current task (bar, table, storage).
+1. WHILE a Human is working as Bar_Worker at a Pub and the Pub has an open drink order, at least 1 Beer in Storage and a free Tap, THE Simulation SHALL let the Bar_Worker pour one drink per bartending interval defined in the Pub Definition.
+2. WHILE a Pub has more than one working Bar_Worker, THE Simulation SHALL let each Bar_Worker run the service loop independently.
+3. WHILE a Human is working as Bar_Worker at a Pub, THE Simulation SHALL let the Bar_Worker carry poured drinks to waiting Customers at the movement speed defined in the Job Definition.
+4. WHILE a Pub has no working Bar_Worker, THE Simulation SHALL pour zero drinks at that Pub.
+5. WHILE a Bar_Worker has a poured drink waiting and no Customer-side hand-over is possible, THE Simulation SHALL keep the poured drink at the bar undelivered.
+6. WHILE a Player-owned Pub is open and has an empty Bar_Worker Job_Slot and no working Human in that Job, THE HUD SHALL show an "Unstaffed: <Job>" Alert on that Pub.
+7. THE Renderer SHALL animate each working Human at the location of the Human's current task (bar, tap, table, storage) in the Interior_View only.
 
 ### Requirement 6: Demand and Staffing Metrics (Phase 1)
 
@@ -225,7 +272,7 @@ Conventions used in all requirements:
 
 #### Acceptance Criteria
 
-1. THE Simulation SHALL compute per Pub, over a 60-second game-time Rolling_Window, arriving Customers per Game_Minute, working service Humans (Bartenders plus Servers), average wait time from seating to first drink served, and Lost_Customer percentage.
+1. THE Simulation SHALL compute per Pub, over a 60-second game-time Rolling_Window, arriving Customers per Game_Minute, working service Humans (Bar_Workers; in Phase 1 Bartenders plus Servers), average wait time from seating to first drink served, and Lost_Customer percentage.
 2. THE Simulation SHALL compute the Lost_Customer percentage as Lost_Customers divided by arriving Customers in the Rolling_Window, and as 0% when no Customer arrived in the Rolling_Window.
 3. THE Simulation SHALL compute recommended service Humans per Pub from arriving Customers per Game_Minute and the bartending interval using the staffing formula defined in data.
 4. WHEN the Player selects a Pub, THE Panel SHALL display the metrics of criteria 6.1 and 6.3.
@@ -250,7 +297,7 @@ Conventions used in all requirements:
 7. WHEN the Player assigns a Human to a Job_Slot that another Human occupies, THE Simulation SHALL make the occupying Human unassigned at the Job location and assign the selected Human to the Job_Slot.
 8. WHEN the Player reassigns an assigned Human to another Job_Slot, THE Simulation SHALL remove the Human from the first Job_Slot at the next Tick boundary and start the Human's travel from the Human's current position.
 9. WHEN the Player reassigns a Human who is travelling to a Job location, THE Simulation SHALL redirect the Human from the Human's current position to the new Job location.
-10. THE Simulation SHALL allow any Human with the "regular" qualification to fill any Job defined in Phase 1 and Phase 2 (Bartender, Server, Driver, Brewer, Warehouse_Worker).
+10. THE Simulation SHALL allow any Human with the "regular" qualification to fill any Job defined in Phase 1 and Phase 6 (Bar_Worker, Driver, Brewer, Warehouse_Worker; in Phase 1 also Bartender and Server).
 11. WHEN the Player fires a Human, THE Simulation SHALL remove the Human from the Workforce and deduct the Severance defined in the Human Definition from the Player's Gold as a Mandatory_Expense.
 12. WHEN a Human who is driving a Vehicle under Automatic_Delivery is fired or reassigned, THE Simulation SHALL stop the Vehicle at its current road position with its cargo and Route unchanged.
 13. IF the Player fires or reassigns a Human who is occupied by a running Questionable_Opportunity, THEN THE Simulation SHALL reject the Command with Reason_Code human_occupied.
@@ -258,7 +305,7 @@ Conventions used in all requirements:
 15. WHILE a Human is unassigned, THE Simulation SHALL keep the Human idle at the Human's last position.
 16. WHEN the Player selects a Job_Slot in Management_View, THE Panel SHALL list every Human in the Workforce with the Human's current state (unassigned, en route, working, occupied) and assign the Human the Player taps.
 17. THE Simulation SHALL store a Human_Name for every Human in the Simulation state.
-18. WHEN the Player starts a new Save_Slot, THE Simulation SHALL give the start-state Humans the Human_Names defined in start-state data (default "Jan" for the Bartender, "Julia" for the Server and "Thomas" for the Driver).
+18. WHEN the Player starts a new Save_Slot, THE Simulation SHALL give the start-state Humans the Human_Names defined in start-state data (default "Jan" for the Bartender, "Julia" for the Server and "Thomas" for the Driver; after the Phase 3 migration "Jan" and "Julia" are Bar_Worker candidates of Requirement 66.4, and in the dev start of criterion 3.1a both work as Bar_Workers).
 19. WHEN the Simulation creates a Human other than the named start-state Humans of criterion 7.18 (a hired Human, a Competitor Human or an employee of a non-player Business), THE Simulation SHALL give the Human a Human_Name drawn from the Name_Pool using the seeded random number generator.
 20. WHEN the Simulation draws a Human_Name for a Human joining the Workforce and at least one Name_Pool entry is not used by a Human in the Workforce, THE Simulation SHALL draw only from the unused Name_Pool entries.
 21. IF a Human joining the Workforce by hire or Acquisition would receive a Human_Name already used by a Human in the Workforce, THEN THE Simulation SHALL append the lowest numeric suffix, starting at 2, that makes the Human_Name unique in the Workforce (for example "Jan 2").
@@ -359,8 +406,8 @@ Conventions used in all requirements:
 
 1. WHEN the CEO is within Interaction_Range of a Player-owned Vehicle and the Player triggers the "Drive" Context_Action, THE Game SHALL place the CEO in the Vehicle and switch the Vehicle to Manual_Driving.
 2. WHILE the CEO is within Interaction_Range of a Competitor-owned Vehicle, THE HUD SHALL offer "Inspect" as the Context_Action for that Vehicle.
-3. WHILE Manual_Driving is active, THE Physics_Layer SHALL simulate the Vehicle with the acceleration, steering looseness, body roll and collision bounciness values defined in the Vehicle Definition.
-4. WHILE Manual_Driving is active, THE Physics_Layer SHALL cap the Vehicle's top speed at the Vehicle Definition's speed multiplied by 1 plus the Manual_Speed_Bonus (default +10%).
+3. WHILE Manual_Driving is active, THE Physics_Layer SHALL simulate the Vehicle with the acceleration, steering looseness, body roll, collision bounciness, drift grip and suspension values defined in the Vehicle Definition `handling` block, so that each Vehicle type carries its own tuning in `vehicles.json`.
+4. WHILE Manual_Driving is active, THE Physics_Layer SHALL cap the Vehicle's top speed at the Vehicle Definition's `handling.manualTopSpeed`, which is separate from the Automatic_Delivery route speed (about twice the route speed for the Delivery_Van).
 5. WHEN a manually driven Vehicle collides with any object, THE Simulation SHALL keep the full cargo quantity on the Vehicle.
 6. WHEN a manually driven Vehicle's speed falls below 0.5 World_Units per second inside the Unloading_Zone of a Player-owned Business, the Supplier or the Market_Depot, THE HUD SHALL offer "Unload" as the Context_Action if that Business accepts part of the cargo, and "Load" otherwise.
 7. WHEN the Player triggers "Load", THE Simulation SHALL load the smaller of the Business's available Player-owned or Player-reserved stock and the Vehicle's free capacity.
@@ -372,7 +419,13 @@ Conventions used in all requirements:
 13. IF the Player declines resuming a suspended Route, THEN THE Simulation SHALL keep the Route suspended and the Vehicle stationary, and THE Panel SHALL show a "Resume Route" action for the Vehicle.
 14. IF a manually driven Vehicle stays tilted more than 90° from upright for 2 seconds of real time, THEN THE Game SHALL reset the Vehicle upright onto the nearest road point with its cargo intact.
 15. IF a manually driven Vehicle leaves the drivable map area, THEN THE Game SHALL reset the Vehicle upright onto the nearest road point within 2 seconds of real time with its cargo intact.
-16. THE Simulation SHALL keep every Phase 1 and Phase 2 delivery achievable through Automatic_Delivery without Manual_Driving.
+16. THE Simulation SHALL keep every Phase 1 and Phase 6 delivery achievable through Automatic_Delivery without Manual_Driving.
+17. WHEN the Player presses the S key (or the brake input) while Manual_Driving and the Vehicle is moving forward, THE Physics_Layer SHALL brake, and WHEN the Vehicle has stopped and the input is still held, THE Physics_Layer SHALL reverse.
+18. WHEN the Player holds the handbrake input (Space on PC, the held Drift button on touch) while Manual_Driving, THE Physics_Layer SHALL reduce rear-wheel grip so that the Vehicle performs a Handbrake_Drift.
+19. WHEN the Player presses gas together with brake, or gas together with handbrake, while the Vehicle speed is below the low-speed threshold defined in the Vehicle Definition, THE Physics_Layer SHALL spin the Vehicle in place as a Donut.
+20. WHILE Manual_Driving is active and a Vehicle wheel slides, THE Renderer SHALL draw fading tyre marks on the ground.
+21. WHILE Manual_Driving is active, THE Physics_Layer SHALL support each wheel with its own ray-cast suspension, so that the Vehicle rides over raised curbs (criterion 16.6).
+22. IF a manual driving error or a Physics_Layer exception occurs, THEN THE Game SHALL exit Manual_Driving safely, keep the cargo and the Vehicle in the Simulation state, and show a recoverable message.
 
 ### Requirement 14: CEO Mode (Phase 1)
 
@@ -383,10 +436,13 @@ Conventions used in all requirements:
 1. WHILE CEO_Mode is active, THE Input_System SHALL move the CEO using the left-thumb virtual joystick on touch devices and WASD or arrow keys on PC.
 2. WHILE CEO_Mode is active and at least one interactable object is within Interaction_Range, THE HUD SHALL show one Context_Action button on the right side for the nearest such object.
 3. WHILE CEO_Mode is active and no interactable object is within Interaction_Range, THE HUD SHALL hide the Context_Action button.
-4. WHEN the Player triggers the "Enter" Context_Action at a Player-owned Business, THE Renderer SHALL show the Business interior with Customers and Humans visible.
-5. WHILE the CEO is within Interaction_Range of the Competitor Pub, the Supplier or a Plot for sale, THE HUD SHALL offer "Inspect" as the Context_Action and THE Panel SHALL show the object's details when the Player triggers "Inspect".
+4. WHEN the Player triggers the "Enter" Context_Action (E on PC, the Context_Action button on touch) at the door of a Player-owned Business or of a Business whose Definition has an `office` marker (from Phase 3), THE Game SHALL move the CEO into the Business interior in the manner of a Stardew-style teleport, THE Renderer SHALL show only that Business's Interior_View with its Customers, Humans and Storage crates visible, and THE Camera_Controller SHALL leave the Zoom_Level unchanged.
+5. WHILE the CEO is within Interaction_Range of a Competitor-owned Business, an Office that offers no presence Service to the CEO, the Supplier or a Plot for sale, THE HUD SHALL offer "Inspect" as the Context_Action and THE Panel SHALL show the object's details when the Player triggers "Inspect"; rival Businesses SHALL offer no Enter action.
 6. WHEN the Player taps or clicks a Business, Vehicle, Human or Customer outside the joystick area, THE Panel SHALL show that object's details.
 7. THE Simulation SHALL keep all Businesses, Vehicles and Humans operating while the Player is in CEO_Mode.
+8. WHILE the CEO is in an Interior_View, THE Simulation SHALL keep the CEO inside the interior walls, and THE Renderer SHALL treat the interior walls as solid.
+9. WHILE the CEO is in an Interior_View, THE HUD SHALL offer "Leave" as the Context_Action only when the CEO is on the interior door mat, and WHEN the Player triggers "Leave", THE Game SHALL place the CEO at the Business's outside door and show the full map again.
+10. WHILE the CEO is outside, THE Renderer SHALL draw no staff, Customer, Storage crate or Human_Name label that is inside a Business; WHEN a Customer reaches the Business door, THE Renderer SHALL make the Customer disappear into the Business, and WHEN a Customer leaves, THE Renderer SHALL make the Customer appear at the door.
 
 ### Requirement 15: Management View and Continuous Zoom (Phase 1)
 
@@ -417,6 +473,10 @@ Conventions used in all requirements:
 2. THE Game SHALL give every Business on the map a funny name drawn from data text tables.
 3. THE Renderer SHALL draw Humans and Customers as capsules, Businesses as boxes and Vehicles as boxes with wheels as placeholder primitives.
 4. THE Renderer SHALL load each model through the model key in the Definition, so that replacing a placeholder with a CC0 low-poly model (for example Kenney or KayKit) requires changing only the asset mapping.
+5. THE Game SHALL derive the walking and driving hitbox of each building from the bounds of the drawn model after scaling, so that the hitbox follows the model's scale; THE Simulation SHALL keep only the interior walls and the CEO's interior position, and the web input layer and Physics_Layer SHALL block movement into buildings.
+6. THE Renderer and Physics_Layer SHALL treat sidewalks as raised curbs: THE Renderer SHALL lift the CEO and other figures onto the curb height while on a sidewalk, and THE Physics_Layer SHALL make the curb a physical step for Vehicles.
+7. THE Game SHALL place each Landmark from `packages/content/data/maps/landmarks.json` with its model, box and facing direction as a render-only building with a model-derived hitbox, such as the city hall north of the north ring road.
+8. IF a Landmark lies outside its District's bounds, THEN THE Definition_Registry SHALL reject the map with an error naming the District and the Landmark.
 
 ### Requirement 17: Passive Competitor (Phase 1)
 
@@ -425,7 +485,7 @@ Conventions used in all requirements:
 #### Acceptance Criteria
 
 1. THE Simulation SHALL operate the Competitor Pub using the same Pub Definition rules and customer loop as the Player's Pub, with the Competitor as Owner and Competitor Humans assigned per start-state data.
-2. THE Renderer SHALL show the Competitor Pub with rival branding colours and visible Customer activity.
+2. THE Renderer SHALL show the Competitor Pub with rival branding colours and, outside the Interior_View, Customers walking to and from its door.
 3. THE Simulation SHALL operate one Competitor Vehicle delivering Beer from the Supplier to the Competitor Pub along a fixed Route.
 4. WHEN the Player selects the Competitor Pub, THE Panel SHALL show its name, its popularity band (Low, Medium or High, from arriving Customers per Game_Minute thresholds defined in data) and its drink price.
 
@@ -440,13 +500,13 @@ Conventions used in all requirements:
 3. THE HUD SHALL render every touch target with a minimum size of 44 × 44 CSS pixels (default).
 4. THE Input_System SHALL make every mechanic operable using touch alone.
 5. THE Input_System SHALL make every mechanic operable using keyboard alone.
-6. WHERE the Game runs on PC, THE Input_System SHALL provide the default bindings WASD or arrow keys for movement and panning, mouse click for selection, mouse drag for panning, wheel and +/- keys for zoom, E for the Context_Action, Tab to cycle selectable objects in view, Enter to select, Esc to close the open Panel, P to open the Pause_Menu and the Game_Speed keys of criterion 47.8.
+6. WHERE the Game runs on PC, THE Input_System SHALL provide the default bindings WASD or arrow keys for movement and panning, mouse click for selection, mouse drag for panning, wheel and +/- keys for zoom, E for the Context_Action, Tab to cycle selectable objects in view, Enter to select, Esc to close the open Panel, P to open the Pause_Menu and the Game_Speed keys of criterion 47.8; WHILE the CEO Phone has input focus (`.kiro/specs/ceo-phone`), the Phone captures WASD/arrows, Tab, Enter, Space and Esc, so the Tab cycle of this criterion is suspended, and Q and P keep working.
 7. THE Game SHALL present details in side or bottom Panels covering at most 40% (default) of the landscape screen width for side Panels or height for bottom Panels.
 8. THE Game SHALL show numeric data as compact cards with at most 8 values per Panel section, without spreadsheet-style tables.
-9. WHILE no Panel is open, THE HUD SHALL show only Gold, active Alerts, the joystick on touch devices, the Context_Action button and, once available under Requirement 47, the Game_Speed control.
+9. WHILE no Panel is open, THE HUD SHALL show only Gold, active Alerts, the joystick on touch devices, the Context_Action button and, once available under Requirement 47, the Game_Speed control (superseded from Phase 4 by Requirement 69.8).
 10. THE HUD SHALL show at most one Alert per Alert type per object.
 
-### Requirement 19: Emergent Progression (Phase 1 and Phase 2)
+### Requirement 19: Emergent Progression (Phase 1 and Phase 6)
 
 **User Story:** As a player, I want new mechanics to appear because my business creates a problem, so that complexity feels earned instead of level-gated.
 
@@ -571,7 +631,7 @@ Conventions used in all requirements:
 8. THE Project_Documentation SHALL describe the PIN-removal command for forgotten PINs.
 9. THE Project_Documentation SHALL state that the Profile picker and PIN are convenience features only and that no strong authentication exists beyond Tailscale network membership.
 
-### Requirement 27: Second Pub (Phase 2)
+### Requirement 27: Second Pub (Phase 6)
 
 **User Story:** As a player, I want to open or acquire a second pub, so that I can expand beyond my first location.
 
@@ -583,7 +643,7 @@ Conventions used in all requirements:
 4. THE Simulation SHALL operate each Player-owned Pub with its own Storage, Job_Slots, drink price, metrics and Sourcing_Policy.
 5. WHILE the Player owns more than one Pub, THE Management_View SHALL show a summary card per Pub with Gold per Game_Minute, staffing state and Beer Storage level.
 
-### Requirement 28: Warehouse (Phase 2)
+### Requirement 28: Warehouse (Phase 6)
 
 **User Story:** As a player, I want a warehouse, so that I can buffer surpluses and supply several businesses.
 
@@ -594,8 +654,10 @@ Conventions used in all requirements:
 3. THE Simulation SHALL allow Routes with a Warehouse as a pickup stop or drop-off stop.
 4. WHILE the Player rents a Warehouse, THE Simulation SHALL deduct the rental fee per Game_Minute defined in data as a Mandatory_Expense.
 5. IF the Player ends a Warehouse rental while the Warehouse Storage holds any Resource, THEN THE Simulation SHALL reject the Command with Reason_Code storage_not_empty.
+6. THE Definition_Registry SHALL place the Warehouse on a Plot whose road distance to every Pub Plot is at least the minimum warehouse distance defined in data (for example a plot in another District or at the far end of the ring road), so that the long drive is part of the trade-off.
+7. IF the Warehouse Plot of the map data lies closer to a Pub Plot than the minimum warehouse distance, THEN THE Definition_Registry SHALL reject the map with an error naming the Plot and the Pub.
 
-### Requirement 29: Brewery Production (Phase 2)
+### Requirement 29: Brewery Production (Phase 6)
 
 **User Story:** As a player, I want to own a brewery that turns hops and malt into beer, so that I can produce my own supply.
 
@@ -607,20 +669,20 @@ Conventions used in all requirements:
 4. THE Simulation SHALL compute the Brewery's effective unit cost per Beer as input costs plus Brewer Salaries divided by Beer produced over a 5-Game_Minute Rolling_Window.
 5. WHEN the Player selects a Brewery, THE Panel SHALL show the effective unit cost, or "n/a" when no Beer was produced in the Rolling_Window.
 
-### Requirement 30: Market with Fluctuating Prices (Phase 2)
+### Requirement 30: Market with Fluctuating Prices (Phase 6)
 
 **User Story:** As a player, I want to buy and sell basic resources at changing prices, so that producing, consuming or selling are real trade-offs.
 
 #### Acceptance Criteria
 
-1. THE Market SHALL offer a buy price and a sell price for each tradable Resource (Phase 2: Beer, Hops, Malt).
+1. THE Market SHALL offer a buy price and a sell price for each tradable Resource (Phase 6: Beer, Hops, Malt).
 2. THE Market SHALL update prices at the interval defined in data using a bounded random walk around each Resource's base price, driven by the seeded random number generator.
 3. FOR ALL Market updates, THE Market SHALL keep each buy price greater than the corresponding sell price and both prices within the minimum and maximum bounds defined in data, with a minimum bound greater than 0 (price-bounds property).
 4. WHEN the Player buys from the Market a positive whole quantity and the Player's Gold is at least the cost at the current buy price, THE Simulation SHALL deduct the cost and reserve the Resources at the Market_Depot for physical pickup.
 5. WHEN a Player-owned Vehicle unloads a Resource at the Market_Depot, THE Simulation SHALL credit Gold at the sell price current at the unload Tick, with category market_sale.
 6. WHEN the Player opens the Market Panel, THE Panel SHALL show current prices and a price trend of the last 10 updates per Resource, or of all updates when fewer than 10 exist.
 
-### Requirement 31: Own versus Outsource (Phase 2)
+### Requirement 31: Own versus Outsource (Phase 6)
 
 **User Story:** As a player, I want to choose per business whether to buy externally, use internal production or both, so that I can balance cost, flexibility and complexity.
 
@@ -632,7 +694,7 @@ Conventions used in all requirements:
 4. THE Simulation SHALL allow the Player to produce Beer internally, buy Beer externally and sell surplus Beer at the same time.
 5. WHEN the Player selects a Business input, THE Panel SHALL compare the current external unit price with the internal effective unit cost of criterion 29.4.
 
-### Requirement 32: Acquisitions with Hidden Attributes (Phase 2)
+### Requirement 32: Acquisitions with Hidden Attributes (Phase 6)
 
 **User Story:** As a player, I want to acquire existing businesses with surprises inside, so that expansion feels like discovery.
 
@@ -647,7 +709,7 @@ Conventions used in all requirements:
 7. WHEN a hidden attribute is revealed, THE News_Feed SHALL announce the reveal.
 8. WHEN a Liability is revealed, THE Simulation SHALL apply its defined cost as a Mandatory_Expense or its defined penalty (for example deduct 1,600 Gold for cellar repairs).
 
-### Requirement 33: Brands (Phase 2)
+### Requirement 33: Brands (Phase 6)
 
 **User Story:** As a player, I want products and businesses to carry brands, so that the same beer performs differently in different venues.
 
@@ -657,7 +719,7 @@ Conventions used in all requirements:
 2. WHEN a Pub serves a branded product, THE Simulation SHALL apply the Brand's demand and price modifiers for that Pub's Venue_Type.
 3. WHEN the Player acquires a Business with a Brand, THE Simulation SHALL add the Brand to the Player's available Brands.
 
-### Requirement 34: Secret Recipes (Phase 2)
+### Requirement 34: Secret Recipes (Phase 6)
 
 **User Story:** As a player, I want special recipes that only come from acquisitions, so that buying a business can unlock unique advantages.
 
@@ -670,7 +732,7 @@ Conventions used in all requirements:
 5. THE Simulation SHALL clamp every effective repeat-order chance to the range 0% to 90% (default).
 6. THE Simulation SHALL make each Secret_Recipe obtainable only through an Acquisition.
 
-### Requirement 35: Corporate Chains and Synergy (Phase 2)
+### Requirement 35: Corporate Chains and Synergy (Phase 6)
 
 **User Story:** As a player, I want vertically integrated chains to be recognised and rewarded, so that owning the whole supply line feels meaningful.
 
@@ -682,7 +744,7 @@ Conventions used in all requirements:
 4. WHEN a Corporate_Chain is registered or its length increases, THE Renderer SHALL show a "CORPORATE CHAIN x<length> + Synergy" banner and highlight the chain's Routes in Management_View.
 5. THE Definition_Registry SHALL define Synergy as a Corporate_Resource, so that later abilities can consume Synergy.
 
-### Requirement 36: Reputation (Phase 2)
+### Requirement 36: Reputation (Phase 6)
 
 **User Story:** As a player, I want a reputation score, so that my choices, including shady ones, affect demand.
 
@@ -693,7 +755,7 @@ Conventions used in all requirements:
 3. WHEN Reputation changes, THE Simulation SHALL apply the demand modifier defined in data to every Player-owned Pub from the next Tick.
 4. WHEN Reputation changes, THE News_Feed SHALL announce the change and its cause.
 
-### Requirement 37: Questionable Opportunities (Phase 2)
+### Requirement 37: Questionable Opportunities (Phase 6)
 
 **User Story:** As a player, I want tempting shady shortcuts with delayed consequences, so that I face funny moral and business gambles.
 
@@ -708,7 +770,7 @@ Conventions used in all requirements:
 7. WHEN a scheduled Consequence fires, THE News_Feed SHALL show its headline.
 8. WHEN the Player inspects a Questionable_Opportunity, THE Panel SHALL show its reward, cost, duration and legal-status text without Consequence probabilities.
 
-### Requirement 38: Competitor Events (Phase 2)
+### Requirement 38: Competitor Events (Phase 6)
 
 **User Story:** As a player, I want competitors to occasionally act, so that the city changes around me without a complex rival simulation.
 
@@ -721,7 +783,7 @@ Conventions used in all requirements:
 5. WHEN a Competitor offers a Business for sale, THE Simulation SHALL create an Acquisition_Offer for that Business.
 6. THE Simulation SHALL model Competitors without revenue, valuation or debt calculations.
 
-### Requirement 39: Optional Minigames (Phase 2)
+### Requirement 39: Optional Minigames (Phase 6)
 
 **User Story:** As a player, I want optional hands-on minigames, so that I can personally help during busy moments.
 
@@ -731,7 +793,7 @@ Conventions used in all requirements:
 2. WHEN the Player completes a Minigame, THE Simulation SHALL grant the reward defined in data: faster Job completion, bonus Resources, a temporary efficiency boost of at most 15% for at most 60 seconds, or a revealed opportunity.
 3. THE Simulation SHALL keep every Business fully operable by assigned Humans or automation without any Minigame being played.
 
-### Requirement 40: Achievements (Phase 2)
+### Requirement 40: Achievements (Phase 6)
 
 **User Story:** As a player, I want satirical achievements, so that milestones are funny to reach.
 
@@ -749,7 +811,7 @@ Conventions used in all requirements:
 
 1. WHILE the Phase 1 map is displayed on a Mid_Range_Phone, THE Renderer SHALL sustain at least 30 frames per second averaged over any 10-second real-time window at every Zoom_Level.
 2. WHILE the Phase 1 map is displayed on a PC with integrated graphics from 2020 or newer, THE Renderer SHALL sustain at least 60 frames per second averaged over any 10-second real-time window.
-3. THE Simulation SHALL complete one Tick of the Phase 2 reference scenario (3 Pubs, 1 Brewery, 1 Warehouse, 4 Vehicles, 60 Customers) within 4 ms of real time on a Mid_Range_Phone.
+3. THE Simulation SHALL complete one Tick of the Phase 6 reference scenario (3 Pubs, 1 Brewery, 1 Warehouse, 4 Vehicles, 60 Customers) within 4 ms of real time on a Mid_Range_Phone.
 4. WHEN the installed PWA is launched on a Mid_Range_Phone with cached assets, THE Game SHALL show the Profile picker within 5 seconds of real time.
 5. WHEN the averaged frame rate falls below the target of criterion 41.1, THE Renderer SHALL lower render resolution in steps down to a minimum of 0.75× device pixel ratio.
 6. WHEN the averaged frame rate exceeds the target of criterion 41.1 by at least 20% at reduced resolution, THE Renderer SHALL raise render resolution in steps up to a maximum of 1× device pixel ratio.
@@ -806,10 +868,10 @@ Conventions used in all requirements:
 
 1. THE Simulation SHALL model production, storage, transport and trade only in terms of Definitions, so that a Forest → Timber → Construction → Supermarket chain can be added through new Definitions and production rules.
 2. THE Simulation SHALL represent each Human's qualifications as a data-defined set, so that educated or specialist Humans can be added later.
-3. THE Simulation SHALL give every Phase 1 and Phase 2 Human only the "regular" qualification.
+3. THE Simulation SHALL give every Phase 1 and Phase 6 Human only the "regular" qualification.
 4. THE Simulation SHALL represent a Vehicle's driver requirement as a data field, so that automated Vehicles can be defined later without a Driver Job.
 5. THE Simulation SHALL represent Routes as stop lists independent of path-finding, so that traffic and routing simulation can replace direct road paths later.
-6. THE Project SHALL limit implemented functionality to the Phase 1, Phase 2 and Non-Functional requirements of this document.
+6. THE Project SHALL limit implemented functionality to the phases of this document.
 7. THE Game SHALL derive every displayed Human label from the Human_Name through a single display-name function, so that a later display-name mode (for example numbered Humans) requires changing only that function.
 8. THE Game SHALL show user-facing text in English only and SHALL obtain every user-facing string by Text_Key from `packages/content/data/text/en.json` through a single lookup function t(), with no user-facing text literals in code, so that another language can be added later as a data file.
 
@@ -863,3 +925,453 @@ Conventions used in all requirements:
 6. IF the Player assigns a Human to a Job_Slot that holds a Headcount_Fill, THEN THE Simulation SHALL reject the Command with Reason_Code slot_occupied.
 7. WHILE Phase 1 content is active, THE Simulation SHALL create no Headcount_Fill, and THE Game SHALL provide no UI for creating or editing a Headcount_Fill.
 8. THE Renderer SHALL draw no individual figure for a Headcount_Fill.
+
+### Requirement 50: Generic Modifier System (Phase 2)
+
+**User Story:** As the developer, I want one Modifier system with a single getStat function, so that traits, brands, permits, boosts, morale and policies change stats without each feature adding its own wiring.
+
+#### Acceptance Criteria
+
+1. THE Simulation SHALL represent every temporary or permanent stat change as a Modifier with source, target selector, StatId, operation (addBp or addFlat), integer value and an optional untilTick.
+2. THE Simulation SHALL compute every stat that a system reads through getStat as the base value from the Definition plus the sum of the active Modifiers for that target and StatId, using integer basis-point math only.
+3. THE Definition_Registry SHALL define StatId as a closed enumeration that contains only stats read by at least one Simulation system.
+4. IF a Definition or Effect references a StatId outside the enumeration, THEN THE Definition_Registry SHALL reject the Definition with an error naming the Definition and the unknown StatId.
+5. WHEN the Tick count reaches the untilTick of a Modifier, THE Simulation SHALL remove the Modifier before the next system reads any stat.
+6. FOR ALL Traits and Brands present in the Phase 1 and Phase 6 content, THE Simulation SHALL compute through getStat exactly the same stat values as the earlier direct computation of those Traits and Brands (equivalence property).
+7. WHEN the Player opens the "why this number" breakdown for a stat, THE Panel SHALL list the base value and every active Modifier with its source and value.
+8. THE Save_Serializer SHALL include the active Modifiers in the Save_Document, and the schema version SHALL be raised with a migration that starts old saves with no Modifiers.
+9. FOR ALL sets of Modifiers, THE Simulation SHALL produce the same getStat result regardless of the order in which the Modifiers were added (confluence property).
+
+### Requirement 51: Data-Defined Building Services (Phase 2)
+
+**User Story:** As the developer, I want building services defined as data and used through one Command, so that new offices, permits and loans need no new Command handler.
+
+#### Acceptance Criteria
+
+1. THE Definition_Registry SHALL represent each Service with an identifier, cost in Gold, Conditions, Effects and an Access_Tag of `remote` or `presence`.
+2. THE Definition_Registry SHALL represent the services of a Business in a `services` list on the Business Definition, so that no system refers to a Business by identifier.
+3. THE Simulation SHALL accept a single `useService` Command carrying a Business identifier, a Service identifier and optional parameters (for example the chosen fit-out items) that the Service definition validates.
+4. WHEN a `useService` Command is applied and all Conditions hold, THE Simulation SHALL deduct the cost through requireGold and apply the Effects through the shared effect engine of Requirement 52.
+5. IF a Service has the Access_Tag `presence` and the CEO is neither at the Business door nor inside the Business, THEN THE Simulation SHALL reject the Command with Reason_Code not_present.
+6. IF a Condition of the Service does not hold, THEN THE Simulation SHALL reject the Command with the failing Condition's own Reason_Code (default conditions_not_met) and leave the state unchanged.
+7. IF the Business of a `useService` Command is in a locked District, THEN THE Simulation SHALL reject the Command with Reason_Code district_locked.
+8. IF the Player's Gold is lower than the Service cost, THEN THE Simulation SHALL reject the Command with Reason_Code insufficient_gold and the missing Gold amount.
+9. THE Panel SHALL mark each Service with the Access_Tag `presence` with a location icon and a "Drive there" action when the CEO is not present.
+10. THE Simulation SHALL provide Questionable_Opportunities, permits and Phase 3 Office actions as Service definitions where their behaviour fits the Service model.
+11. THE Simulation SHALL keep the Phase 6 instance actions (Plot purchase, construction, Warehouse purchase or rental, Acquisition) as their own Commands and SHALL not express them as Services.
+12. IF a `useService` Command carries parameters that the Service definition does not accept, THEN THE Simulation SHALL reject the Command with Reason_Code conditions_not_met and leave the state unchanged.
+
+### Requirement 52: Shared Conditions and Effects Engine (Phase 2)
+
+**User Story:** As the developer, I want one tested engine for conditions and effects, so that reveals, achievements, quests, services and consequences share behaviour.
+
+#### Acceptance Criteria
+
+1. THE Simulation SHALL evaluate every Condition of a Reveal_Trigger, Achievement, Quest, Service and Consequence through one shared evaluator.
+2. THE Simulation SHALL apply every Effect of a Service, Quest reward and Consequence through one shared applyEffects function over the closed vocabulary gold, addModifier, reveal, schedule, grantResource, news and domain, where a domain Effect names a registered domain handler for behaviour the other kinds cannot express (loans, license, fit-out and hiring).
+3. IF a Definition contains a Condition or Effect outside the vocabulary, or a domain Effect that names an unregistered domain handler, THEN THE Definition_Registry SHALL reject the Definition with an error naming the Definition and the unknown entry.
+4. WHEN an Effect changes Gold, THE Simulation SHALL apply the change through applyGold, so that Gold stays within GOLD_LIMIT.
+5. FOR ALL randomly generated Conditions over valid Simulation states, THE evaluator SHALL return a boolean without throwing and without consuming any value from the seeded random number generator (purity property).
+6. FOR ALL valid Effects, THE Simulation SHALL keep every Gold value within GOLD_LIMIT after applyEffects (Gold-bounds property).
+7. FOR ALL valid Condition definitions, parsing then printing then parsing the Condition JSON SHALL produce an equivalent Condition (round-trip property).
+
+### Requirement 53: Command Log, Replay and State Hash (Phase 2)
+
+**User Story:** As the developer, I want to replay a session exactly and detect divergences, so that bugs on a phone or PC can be reproduced and balance changes are caught in CI.
+
+#### Acceptance Criteria
+
+1. THE Game SHALL record every applied Command with its Tick in a Command_Log together with the start snapshot or Seed of the Save_Slot.
+2. THE Command_Log SHALL compress runs of identical per-Tick movement Commands and SHALL keep at most a rolling tail of Commands defined in data when stored in a Save_Document.
+3. WHEN a Command_Log is replayed headless from its start snapshot, THE Simulation SHALL reproduce the recorded final State_Hash (replay property).
+4. WHEN a replayed session contains Manual_Driving, THE replay SHALL feed the recorded vehicle poses back as Commands.
+5. THE Project SHALL include a golden-playthrough test that replays a recorded ten-minute Command_Log in CI and asserts the final State_Hash.
+6. WHEN a balance or random-number-order change alters the golden State_Hash, THE golden-playthrough test SHALL fail until the developer re-records the golden State_Hash on purpose.
+7. THE Game SHALL compute the State_Hash over the canonical JSON of the Simulation state every N Ticks, where N is defined in data, and expose the latest State_Hash and Tick in development builds and bug reports.
+8. WHEN the Sync_Service uploads a Save_Document, THE Sync_Service SHALL include the State_Hash and Tick, so that two devices reaching the same Tick can show a divergence.
+
+### Requirement 54: Street Layout with Frontage Slots (Phase 2)
+
+**User Story:** As the developer, I want streets built from rows of buildings along the road, so that the town feels full and a building can be placed with only a model before its actions are linked.
+
+#### Acceptance Criteria
+
+1. THE Definition_Registry SHALL represent each street as a list of Frontage_Slots along a road edge, each with a kind of `filler`, `business` or `plot`, a width in World_Units and an optional model key.
+2. THE Renderer SHALL draw the Frontage_Slots of a street shoulder to shoulder without loose empty ground between them.
+3. WHEN a Frontage_Slot has the kind `filler`, THE Game SHALL draw the model with a hitbox and SHALL offer no interaction and require no Business Definition.
+4. WHEN a Frontage_Slot has the kind `business`, THE Game SHALL offer the door, Context_Action and services of its Business.
+5. WHEN a Frontage_Slot has the kind `plot`, THE Game SHALL offer "Inspect" and, when for sale, the buy and build actions of Requirement 27.
+6. THE Definition_Registry SHALL derive Plots, hitboxes, walkable bounds and the Unloading_Zone in front of each Frontage_Slot from the slot list, with the Unloading_Zone on the road next to the slot.
+7. THE Definition_Registry SHALL let a Landmark take a slot of double width and let narrow canal houses take slots of 6 to 8 World_Units.
+8. THE Renderer SHALL fit a model to the width of its Frontage_Slot.
+9. WHEN the developer changes the kind of a Frontage_Slot from `filler` to `business`, THE Game SHALL keep the slot's position and model unchanged.
+10. IF the new street layout changes the identifier of a Plot that existing Save_Documents reference, THEN THE Migration_Pipeline SHALL include a migration step that maps the old Plot identifiers to the new ones.
+11. IF two Frontage_Slots of a street overlap or a slot lies outside its District's bounds, THEN THE Definition_Registry SHALL reject the map with an error naming the District and the slot.
+
+### Requirement 55: Bar_Worker Job (Phase 3)
+
+**User Story:** As a player, I want one bar worker who does the whole service loop, so that throughput comes from walking distance and pour time and layout matters.
+
+#### Acceptance Criteria
+
+1. THE Definition_Registry SHALL define the Job `bar_worker` and SHALL contain no `bartender` and no `server` Job after the Phase 3 migration.
+2. WHILE a Human works as Bar_Worker at an open Pub, THE Simulation SHALL run one worker state machine per Bar_Worker that repeats the steps take order, pour, hand over or deliver, take payment and, when no order is open, clean.
+3. THE Simulation SHALL use the existing order queue and bar entries for the worker state machine and SHALL keep the worker pipeline slot of the earlier staff system.
+4. THE Simulation SHALL derive the duration of each worker step from the Pub Definition's pour time and from the walking distance between layout anchors divided by the Job Definition's movement speed.
+5. THE Definition_Registry SHALL provide the layout anchors (door, bar, taps, seats) of each Pub interior as data or Simulation values, so that the Simulation measures the distances without reading Renderer code.
+6. WHEN two Pubs have different layout anchors, THE Simulation SHALL give them different Bar_Worker throughput for otherwise identical state (layout property).
+7. WHERE a later Job (for example a bouncer) takes over one step, THE Definition_Registry SHALL express the takeover through the Job's `humanRequirements` without special-casing a Job identifier in code.
+8. WHEN a Player starts a Grand Opening Save_Slot, THE Job_Centre SHALL offer "Jan" and "Julia" as Bar_Worker candidates and "Thomas" as Driver candidate (Requirement 66).
+
+### Requirement 56: Seats, Taps and Hands (Phase 3)
+
+**User Story:** As a player, I want to see at a glance which of my pub's three capacity numbers is the bottleneck, so that I know what to buy or whom to hire.
+
+#### Acceptance Criteria
+
+1. THE Simulation SHALL compute for each Pub Seats as the number of Customers that can stay, Taps as the number of drinks that can pour at the same time, and Hands as the sum of Bar_Worker throughput.
+2. WHEN the Player selects a Pub, THE Panel SHALL show Seats, Taps and Hands as three bars and SHALL colour the lowest relative bar as the bottleneck.
+3. WHILE all Taps of a Pub are pouring, THE Simulation SHALL make additional Bar_Workers wait for a free Tap.
+4. THE Simulation SHALL limit the Seats of a Pub to the maximum Seats of the License_Tier set at the Municipality.
+5. WHEN the Player buys an additional Tap at the Supplier and the Player's Gold is at least the Tap price, THE Simulation SHALL deduct the price and raise the Tap count of the destination Pub by 1.
+6. IF the Player buys a Tap beyond the maximum Tap count of the Pub Definition, THEN THE Simulation SHALL reject the Command with Reason_Code limit_reached.
+7. THE Simulation SHALL read Seats, Taps and Hands through getStat so that Modifiers can change them.
+8. WHILE no service cycle of a Bar_Worker has been measured yet, THE Simulation SHALL use as Hands base value the throughput derived from the Pub Definition's pour time plus the default walking distance defined in data.
+9. WHEN the demand load used in the bottleneck ratio is 0, THE Simulation SHALL treat the ratio as 0 (no bottleneck) and SHALL not divide by zero.
+
+### Requirement 57: Tabs, Walkouts and Vibe (Phase 3)
+
+**User Story:** As a player, I want customers to run a tab and sometimes walk out, so that a bad service has visible consequences.
+
+#### Acceptance Criteria
+
+1. WHEN a Customer is served a drink, THE Simulation SHALL add the drink price at that Tick to the Customer's Tab.
+2. WHEN a Customer leaves a Pub, THE Simulation SHALL pay the Tab to the Owner's Gold with category sales, unless the Customer makes a Walkout.
+3. THE Simulation SHALL keep Vibe per Pub as a StatId read through getStat, with a value between 0 and 100.
+4. WHEN a Customer leaves and the Pub's Vibe is below the Walkout threshold defined in data or the Customer's wait time exceeded the long-wait limit defined in data, THE Simulation SHALL decide a Walkout with the probability defined in data, using the seeded random number generator.
+5. WHEN a Walkout happens, THE Simulation SHALL add the unpaid Tab amount to the Pub's lost-income metric and raise no payment.
+6. WHEN a Customer waits longer than the long-wait limit, THE Simulation SHALL lower the Pub's Vibe by the amount defined in data via a Modifier.
+7. THE Panel SHALL show the Pub's Vibe, Walkouts per Game_Minute and the number of open Tabs.
+8. FOR ALL Customer visits, THE Simulation SHALL either pay or write off the whole Tab, with no Tab remaining after the Customer left (conservation property).
+9. WHEN a Customer's pay wait reaches the `payWaitSeconds` defined in data while the Pub's Vibe is not below the Walkout threshold and the Customer did not wait longer than the long-wait limit, THE Simulation SHALL pay the Tab automatically and SHALL decide no Walkout.
+
+### Requirement 58: Kegs (Phase 3)
+
+**User Story:** As a player, I want beer to arrive in kegs, so that the supplier deal and the first load feel physical.
+
+#### Acceptance Criteria
+
+1. THE Definition_Registry SHALL define the Keg as a visual and pricing unit of the Beer Resource with a number of drinks per Keg (`kegDrinks`); all Storage capacity, cargo, loads, Orders and limits SHALL stay counted in drinks.
+2. THE Simulation SHALL count, transport, store and unload Beer amounts in drinks through the same code paths as other Resources, and SHALL derive the number of Kegs shown from the drink amount and the drinks per Keg.
+3. THE Renderer SHALL show Kegs instead of crates on Vehicles and in Storage after the model swap in data.
+4. WHEN a Bar_Worker pours a drink, THE Simulation SHALL reduce the Beer amount of the Pub's Storage by 1 drink.
+5. WHEN a Save_Document of an older schema version contains crate-based Beer amounts, THE Migration_Pipeline SHALL keep the Beer amounts in drinks without changing the total number of drinks (conservation property).
+6. THE Simulation SHALL price Beer per drink as `pricePerKeg / kegDrinks`, and SHALL round every resulting cost up to whole hundredths of Gold.
+
+### Requirement 59: Save Schema v3 Migration (Phase 3)
+
+**User Story:** As the developer, I want one migration to schema v3 for the bar redesign and loans, so that existing playthroughs keep working.
+
+#### Acceptance Criteria
+
+1. THE Migration_Pipeline SHALL include a pure migration to schema version 3 that maps every `bartender` and `server` Job_Slot and Human to `bar_worker`.
+2. WHEN a Customer was mid-order or mid-carry at migration, THE Migration_Pipeline SHALL map the Customer to an equivalent open order at the bar with the drink recorded on the Customer's Tab.
+3. THE Migration_Pipeline SHALL add the Loan list (empty), Tap count, Vibe, Tab fields and the pub_open Reveal_Trigger (fired for existing Save_Slots) to older saves; the Gold_Per_Hour buckets of Requirement 70 are NOT part of schema version 3 (they are schema version 4).
+7. ONCE a schema version 3 Save_Document can exist, THE Migration_Pipeline SHALL never change the v2-to-v3 migration step; later state changes SHALL get their own new schema version and migration step.
+4. FOR ALL Save_Document fixtures of schema versions 1 and 2, migrating to schema version 3 SHALL produce a Save_Document that passes validation (migration property).
+5. WHEN a migration to schema version 3 is applied, THE Game SHALL keep the pre-migration Save_Document as the backup copy.
+6. THE Migration_Pipeline SHALL never import current types.
+
+### Requirement 60: Office Buildings (Phase 3)
+
+**User Story:** As a player, I want a municipality, a bank and a job centre in town, so that opening a pub requires visiting real places.
+
+#### Acceptance Criteria
+
+1. THE Definition_Registry SHALL define the Municipality, Bank and Job_Centre as Business Definitions with owner `npc`, no Storage and an `office.services` list of Services (Requirement 51).
+2. THE Simulation SHALL not refer to the Municipality, Bank or Job_Centre by identifier in any system.
+3. WHEN the CEO triggers "Enter" at the door of an Office, THE Game SHALL show the Desk screen of the Office (Requirement 72).
+4. THE Renderer SHALL draw each Office as a Frontage_Slot of kind `business` with its model or a placeholder box.
+5. THE Municipality SHALL show a ticket-number queue on the first visit in a Save_Slot, and pressing the Context_Action repeatedly SHALL not shorten the queue.
+
+### Requirement 61: Grand Opening Checklist (Phase 3)
+
+**User Story:** As a player, I want to open my pub by visiting the town's offices, so that the first minutes are a story with real decisions.
+
+#### Acceptance Criteria
+
+1. WHEN a Save_Slot starts with the Grand Opening start (Requirement 3), THE HUD SHALL show a "Grand Opening" checklist with the entries Municipality, Bank, Pub fit-out, Supplier, Job centre and Back at the pub.
+2. THE Game SHALL define the Grand Opening as a Quest in `quests.json` evaluated by the Phase 3 quest engine of Requirement 73, with each checklist entry as a Reveal_Trigger and each entry's completion as a Condition over the Simulation state.
+3. WHEN the Player completes an entry, THE HUD SHALL tick the entry and highlight the next recommended entry (the Waypoint to it is Phase 4, Requirement 69.5).
+4. THE Simulation SHALL accept the entries in any order, except that the Pub fit-out requires a Loan and a License_Tier, and the Back at the pub entry requires every other entry.
+5. WHEN the Player uses the "Cut the ribbon" Service at the Pub after unloading the first Kegs, THE Simulation SHALL fire the `pub_open` Reveal_Trigger.
+6. WHILE the `pub_open` Reveal_Trigger has not fired in the Save_Slot, THE Simulation SHALL spawn no Customers at the Player's Pub.
+7. WHILE the `pub_open` Reveal_Trigger has not fired, THE Renderer SHALL show a closed sign and an empty interior at the Player's Pub.
+8. WHERE the dev start of criterion 3.1a is used, THE Simulation SHALL start with `pub_open` fired and skip the checklist.
+
+### Requirement 62: Municipality License (Phase 3)
+
+**User Story:** As a player, I want to choose a license tier, so that the size and type of my pub follow from a decision.
+
+#### Acceptance Criteria
+
+1. THE Municipality SHALL offer the License_Tiers Café (few Seats, low fee), Pub (standard Seats and fee) and Late licence (high fee, more customer types) as Services with Access_Tag `presence`.
+2. WHEN the Player takes a License_Tier and the Player's Gold is at least the fee, THE Simulation SHALL deduct the fee and set the Pub's maximum Seats, minimum Taps and allowed customer types from the tier data.
+3. WHEN the Player takes a License_Tier, THE Simulation SHALL fire the license_granted Reveal_Trigger.
+4. IF the Player takes a License_Tier while a License_Tier is already set, THEN THE Simulation SHALL reject the Command with Reason_Code already_licensed.
+5. THE Definition_Registry SHALL define License_Tiers in `licenseTiers` data with fee, minimum and maximum Seats, minimum Taps (`minTaps`) and customer types.
+6. WHILE `player.license` is null, THE Simulation SHALL treat the Seats of the Player's Pub as 0.
+
+### Requirement 63: Loans (Phase 3)
+
+**User Story:** As a player, I want to take a starter loan with real repayments, so that my first decision has a lasting cost.
+
+#### Acceptance Criteria
+
+1. THE Bank SHALL offer the Loans Sensible, Ambitious and Visionary™ as Services with Access_Tag `presence`, defined in `loanOffers` data with principal, Fit_Out_Budget, repayment per Game_Minute, interest in basis points and term.
+2. WHEN the Player takes a Loan, THE Simulation SHALL create one Loan record in the Simulation state, set the Fit_Out_Budget, and add the principal minus the Fit_Out_Budget to the Player's Gold through applyGold with category loan (the Fit_Out_Budget is part of the principal).
+3. WHILE a Loan has a remaining balance, THE Simulation SHALL deduct the repayment per Game_Minute divided by the number of Ticks per Game_Minute every Tick as a Mandatory_Expense with category loan.
+4. IF the Player's Gold is lower than the repayment, THEN THE Simulation SHALL apply the repayment in full and let Gold go negative, as for other Mandatory_Expenses.
+5. WHEN the remaining balance of a Loan reaches 0, THE Simulation SHALL remove the Loan record.
+6. IF the Player takes a second Loan while another Loan has a remaining balance, THEN THE Simulation SHALL reject the Command with Reason_Code loan_active.
+7. WHEN the Player pays off a Loan early at the Bank with Access_Tag `presence`, THE Simulation SHALL deduct the remaining balance and remove the Loan.
+8. WHILE a Loan exists, THE HUD SHALL show the loan chip with the remaining balance.
+9. THE Save_Serializer SHALL store the Loan records in the Save_Document.
+10. FOR ALL sequences of Ticks, THE Simulation SHALL keep the sum of repayments equal to the principal plus interest when the Loan is repaid in full (conservation property).
+11. IF a `loanOffers` entry has a Fit_Out_Budget above its principal, or a repayment per Game_Minute times its term in Game_Minutes below its principal plus interest, THEN THE Definition_Registry SHALL reject the entry at load with an error naming the offer.
+
+### Requirement 64: Pub Fit-Out (Phase 3)
+
+**User Story:** As a player, I want to spend my loan on tables, taps and a decoration, so that my decision is visible in the pub straight away.
+
+#### Acceptance Criteria
+
+1. WHEN the CEO is inside the Player's Pub and a Loan has set a Fit_Out_Budget, THE Game SHALL offer the "Fit-out" Service with Access_Tag `presence`.
+2. THE Definition_Registry SHALL define fit-out choices in `fitOutItems` data: tables (Seats), taps (Taps) and decorations (Vibe Modifier) with a price each.
+3. WHEN the Player confirms a fit-out whose total price is within the Fit_Out_Budget, THE Simulation SHALL deduct the price from the Fit_Out_Budget and set Seats (up to the License_Tier maximum), Taps and the starting Vibe.
+4. IF the total price of the chosen fit-out exceeds the remaining Fit_Out_Budget, THEN THE Simulation SHALL reject the Command with Reason_Code insufficient_gold and the missing amount.
+5. IF the chosen tables exceed the License_Tier maximum Seats, THEN THE Simulation SHALL reject the Command with Reason_Code limit_reached.
+6. THE Renderer SHALL show the chosen tables, taps and decoration in the Interior_View after the fit-out.
+
+### Requirement 65: Supplier Keg Deal and First Load (Phase 3)
+
+**User Story:** As a player, I want to sign a supply deal and load my first kegs myself, so that the opening day feels physical.
+
+#### Acceptance Criteria
+
+1. THE Supplier SHALL offer the keg deals "small and flexible" and "big on a fixed contract" as Services with Access_Tag `presence`, defined in `supplyDeals` data with price per Keg, Keg size and contract terms.
+2. WHEN the Player signs a deal, THE Simulation SHALL set the Supplier price and Keg size for the Player and fire the supplier_deal Reveal_Trigger.
+3. WHEN the Player signs a deal and the Delivery_Van is at the Supplier, THE Game SHALL let the Player load the first Kegs with the Context_Action "Load".
+4. WHEN the Player unloads the first Kegs at the Pub, THE Simulation SHALL fire the first_kegs Reveal_Trigger.
+5. WHILE the supplier_deal Reveal_Trigger has not fired, THE Simulation SHALL reject Orders with Reason_Code deal_missing.
+6. WHERE the deal is "big on a fixed contract", THE Simulation SHALL deduct the contract fee per Game_Minute as a Mandatory_Expense.
+
+### Requirement 66: Job Centre Hiring (Phase 3)
+
+**User Story:** As a player, I want to interview candidates with visible quirks, so that hiring my first staff is a choice.
+
+#### Acceptance Criteria
+
+1. THE Job_Centre SHALL list candidates with name, Job, Salary and one Quirk, with Access_Tag `presence`.
+2. WHEN the Player interviews a candidate, THE Desk SHALL show the candidate's Quirk and a satirical CV line (for example "passionate about synergy").
+3. WHEN the Player hires a candidate and the Player's Gold is at least the Hiring_Cost, THE Simulation SHALL deduct the Hiring_Cost and add the Human to the Workforce with the Quirk.
+4. WHEN a Grand Opening Save_Slot starts, THE Job_Centre SHALL offer "Jan" and "Julia" as Bar_Worker candidates and "Thomas" as Driver candidate, each with one Quirk.
+5. WHEN the Player has hired one Bar_Worker, THE Simulation SHALL allow hiring a second Bar_Worker only after the hiring_option Reveal_Trigger of Requirement 19.5 has fired; THE Simulation SHALL always allow hiring a Driver.
+6. WHEN the Player hires a candidate, THE Simulation SHALL fire the first_hire Reveal_Trigger once per Save_Slot.
+
+### Requirement 67: Unlock Menu with Vague Teasers (Phase 3)
+
+**User Story:** As a player, I want a list of everything that can unlock, with only vague hints, so that I can sometimes guess the trigger.
+
+#### Acceptance Criteria
+
+1. THE Definition_Registry SHALL define for each Reveal_Trigger a Teaser text key and a description text key in `reveal-triggers.json`.
+2. WHEN the Player opens the Unlock_Menu, THE Panel SHALL list every Reveal_Trigger.
+3. WHILE a Reveal_Trigger has not fired in the Save_Slot, THE Unlock_Menu SHALL show only its Teaser.
+4. WHEN a Reveal_Trigger has fired, THE Unlock_Menu SHALL show its description, what it gave the Player and its name.
+5. IF a Reveal_Trigger Definition lacks a Teaser or a description text key, THEN THE Definition_Registry SHALL reject the Definition with an error naming the Definition.
+6. THE Unlock_Menu SHALL obtain all text through t().
+
+### Requirement 68: CEO Outside Jobs (Phase 3)
+
+**User Story:** As a player, I want to keep doing work only the CEO can do after opening, so that delegating to staff frees my time for deals.
+
+#### Acceptance Criteria
+
+1. WHILE the Player has no hired Driver for the Delivery_Van, THE Simulation SHALL offer emergency supply Orders that only the CEO can carry out by Manual_Driving.
+2. WHEN the Player hires a Driver for the Delivery_Van, THE Simulation SHALL let the Driver perform the Route through Automatic_Delivery.
+3. THE Simulation SHALL schedule municipality requests (for example a noise complaint or an available terrace permit) as Services with Access_Tag `presence` and a deadline.
+4. IF the Player ignores a municipality request until its deadline, THEN THE Simulation SHALL apply the scheduled Consequence defined in data.
+5. THE Simulation SHALL schedule bank meetings for Loan repayment questions and refinancing as Services with Access_Tag `presence`.
+6. THE Game SHALL offer scouting Outside_Jobs that reveal the details of the Competitor Pub and Plots for sale after the CEO inspects them in person.
+7. THE Simulation SHALL offer side deliveries for tips or contracts for other Businesses as Outside_Jobs with a reward, a deadline and a destination.
+8. WHEN the Player has hired a "Head of Errands" (a Headcount_Fill of Requirement 49), THE Simulation SHALL let the Head of Errands perform municipality and bank Outside_Jobs without the CEO.
+9. THE Definition_Registry SHALL define Outside_Jobs as Quest and Service data and not as Business-specific code.
+
+### Requirement 69: HUD Layer (Phase 4)
+
+**User Story:** As a player, I want a small HUD with the essentials, so that I always see my money, my goal and what needs attention.
+
+#### Acceptance Criteria
+
+1. THE HUD SHALL show a money pill with the Gold balance, an arrow and the Gold_Per_Hour value, and WHILE Gold_Per_Hour is negative THE HUD SHALL colour the pill red.
+2. WHEN the Player taps the money pill, THE Game SHALL open the Ledgr app.
+3. WHILE a Loan exists, THE HUD SHALL show the loan chip of Requirement 63.8.
+4. WHILE a Quest is active, THE HUD SHALL show the Quest tracker with the Quest name, progress and the next step.
+5. WHEN the Player taps the Quest tracker, THE Game SHALL set a Waypoint to the target Business of the step, including the next recommended Grand Opening entry highlighted under Requirement 61.3.
+6. THE HUD SHALL show an alert bell with the number of active Alerts, and WHEN the Player taps the bell, THE Panel SHALL list the Alerts.
+7. WHEN an Alert has a fix target, THE Alert list SHALL offer a "Fix" button that deep-links to the right Phone_App screen or sets a Waypoint.
+8. WHILE no Panel is open, THE HUD SHALL show only the elements of this requirement, the joystick on touch devices, the Context_Action button, the Phone button and the Game_Speed control.
+9. THE HUD SHALL keep every touch target at least 44 × 44 CSS pixels.
+
+### Requirement 70: Gold per Hour Finance Buckets (Phase 4)
+
+**User Story:** As a player, I want to see how much Gold I earn per hour and how long I can last, so that I can react before I go broke.
+
+#### Acceptance Criteria
+
+1. THE Simulation SHALL keep a ring of 60 one-minute buckets of integer Gold in the Simulation state, keyed by category and Business (`<category>|<businessId>`, with an empty Business for owner-level entries such as salary and loan), so that per-Business finance (Requirements 8.2, 27.5) and the Money Info_Layer keep working.
+2. THE Simulation SHALL compute Gold_Per_Hour as the sum of all buckets of the last 60 game minutes.
+3. WHEN the Save_Document is loaded with an older schema version, THE Migration_Pipeline SHALL create the buckets from the existing finance data or as zero buckets.
+4. THE Simulation SHALL keep the finance summary of Requirement 8.3 consistent with the buckets.
+5. WHILE Gold_Per_Hour is negative, THE Ledgr app SHALL show the runway in game minutes until Gold reaches 0, and WHILE Gold_Per_Hour is not negative THE Ledgr app SHALL show no runway.
+6. THE Save_Serializer SHALL include the buckets in the Save_Document, and the schema version SHALL be raised to 4 with its own v3-to-v4 migration step (the v2-to-v3 step SHALL not be edited).
+7. FOR ALL sequences of Gold changes, THE sum of the bucket values SHALL equal the sum of the recorded changes within the last 60 game minutes (consistency property).
+
+### Requirement 71: Phone and Phone Apps (Phase 4)
+
+**User Story:** As a player, I want a phone that grows apps as my business grows, so that managing the business feels like a toolbar of earned powers.
+
+#### Acceptance Criteria
+
+1. THE Game SHALL provide the Phone with the Q key on PC and a Phone button on touch, placed outside the joystick zone.
+2. WHILE Manual_Driving is active and the Vehicle is stopped, THE Phone SHALL be available.
+3. THE Definition_Registry SHALL define Phone_Apps in `ui/apps.json` with identifier, name text key, icon, reveal feature and order, and THE Phone SHALL render only the revealed apps without a hard-coded app list.
+4. WHEN a Reveal_Trigger installs a Phone_App, THE HUD SHALL show the toast "New app installed: <name>".
+5. THE Phone SHALL provide the apps To-Do™ (Quests, from start), Wayfindr (Map and minimap, from start), Pintly (venue settings, from license_granted), Ledgr (money, from Loan taken), Staffly (people, from first_hire), Vanly (logistics, from supplier_deal), LinkedOut (news, from first_news) and MijnGemeente (town hall, from the first permit offer).
+6. WHEN the Player opens Pintly, THE Phone SHALL show one card per Player-owned Pub with the sections Status (Seats, Taps, Hands bars with the bottleneck in red, an Open/Closed toggle, waiting Customers, lost Customers per hour, Vibe), Dials (drink price, worker pace Relaxed, Normal or Hustle, auto-reorder threshold) and presence settings (service style, fit-out, decorations, License_Tier) marked with the location icon.
+7. WHEN the Player opens Ledgr, THE Phone SHALL show Gold_Per_Hour for the last hour and the hour before, a sparkline of the last 60 game minutes, at most 8 category rows, the runway of Requirement 70.5 and the Loan card.
+8. WHEN the Player opens To-Do™, THE Phone SHALL show the main Quest chain, side jobs and requests, each with reward, deadline and a "Drive there" button.
+9. WHEN the Player opens Wayfindr, THE Phone SHALL show a top-down town map with building icons, the services of a tapped building and the Info_Layers of Requirement 74, and WHEN Wayfindr is installed THE HUD SHALL show a minimap in the top right.
+10. WHEN a Service or setting has Access_Tag `remote`, THE Phone SHALL apply the change immediately through a Command, and WHEN it has Access_Tag `presence`, THE Phone SHALL show "Drive there" and apply no change (Requirement 51.5).
+11. THE Phone SHALL use the Card, Row, Bar and PanelButton patterns, at most 8 values per section, a width of at most 40% of the screen on landscape phones and touch targets of at least 44 × 44 CSS pixels.
+12. THE Phone SHALL obtain every text through t() keys.
+13. THE Phone SHALL replace the earlier Pub, Human, Vehicle, Supplier and Finance Panels, and the Business Panel that opens on entering a Player-owned Pub SHALL become the Pintly card.
+14. WHERE the automation phase later arrives, THE Phone SHALL be replaceable by a Dashboard™ that shows only KPIs, without changing the Simulation.
+
+### Requirement 72: Desk Counter Screens (Phase 4)
+
+**User Story:** As a player, I want in-person counter screens in offices, so that big decisions feel like signing real paper.
+
+#### Acceptance Criteria
+
+1. WHEN the CEO enters an Office or the Player's Pub for a presence Service, THE Game SHALL show the Desk counter screen instead of a normal Panel.
+2. THE Desk SHALL show a clerk portrait with one satirical line and two to four service cards, each with its cost and effect.
+3. WHEN the Player selects a service card, THE Desk SHALL require a hold-to-confirm "stamp" gesture before the Game submits the `useService` Command.
+4. WHEN the stamp gesture completes, THE Game SHALL play a stamp sound and a screen shake.
+5. IF the Player releases the stamp gesture before it completes, THEN THE Desk SHALL submit no Command.
+6. THE Desk SHALL work with touch alone and with keyboard alone, with touch targets of at least 44 × 44 CSS pixels.
+7. THE Desk SHALL build its service cards from Service definitions, so that a new Office needs only data.
+
+### Requirement 73: Quests and Waypoint (Engine Phase 3, UI Phase 4)
+
+**User Story:** As a player, I want a visible chain of goals with directions, so that I always know where to go next.
+
+#### Acceptance Criteria
+
+1. THE Definition_Registry SHALL define Quests in `quests.json` with steps, step Conditions from the shared evaluator, rewards from the Effect vocabulary and an optional target Business per step.
+2. WHEN a step Condition becomes true, THE Simulation SHALL advance the Quest and apply the step's Effects once per Save_Slot.
+3. THE Quest chain SHALL contain at least the Grand Opening, then "First 100 pints" and then "Second location".
+4. WHEN the Player requests a Waypoint to a target Business, THE Renderer SHALL draw a path from the CEO along the roads from `pathCacheFor` as road arrows.
+5. THE Game SHALL keep the Waypoint in web-only state, so that the Waypoint is never part of the Simulation state or Save_Document.
+6. WHEN the CEO reaches the target or the Player dismisses the Waypoint, THE Renderer SHALL remove the arrows.
+7. IF a Quest definition contains a step with an unknown Condition or Effect, THEN THE Definition_Registry SHALL reject the Quest with an error naming the Quest.
+8. THE Project SHALL deliver the quest engine of criteria 1, 2 and 7 in Phase 3 for the Grand Opening checklist of Requirement 61, and SHALL deliver the To-Do™ app, HUD tracker and Waypoint of criteria 4 to 6 in Phase 4.
+
+### Requirement 74: Info Layers (Phase 4)
+
+**User Story:** As a player, I want map layers that show demand, stock, staff, routes and money, so that the Management_View has a clear purpose.
+
+#### Acceptance Criteria
+
+1. THE Game SHALL provide the Info_Layers Demand, Stock, Staff, Routes and Money.
+2. WHEN the Player selects an Info_Layer in Wayfindr, THE Renderer SHALL tint the Management_View buildings in 3D with that layer's values.
+3. WHEN the Player selects an Info_Layer in Wayfindr, THE Wayfindr map SHALL show the same values as the Management_View.
+4. THE Game SHALL keep the selected Info_Layer in web-only state.
+5. WHILE the Info_Layer is off, THE Renderer SHALL show the Owner colours of Requirement 15.8.
+
+### Requirement 75: Readable Customers (Phase 5)
+
+**User Story:** As a player, I want to read my customers' mood and see money arrive, so that my pub is understandable at a glance.
+
+#### Acceptance Criteria
+
+1. WHILE a Customer waits for a drink in the Interior_View, THE Renderer SHALL show a thought bubble with a beer icon above the Customer.
+2. WHILE a Customer's wait time exceeds half of the Pub Definition's patience limit, THE Renderer SHALL show an angry icon instead.
+3. WHEN a Customer pays the Tab, THE Renderer SHALL show a coin pop and play a coin sound, and WHERE the Player has muted sound, THE Renderer SHALL play no sound.
+4. THE Renderer SHALL take the icon set from the theme configuration of Requirement 20.1.
+5. WHILE more than 20 Customer figures would be visible, THE Renderer SHALL drop the thought bubbles and keep the aggregated indicators of Requirement 15.11.
+
+### Requirement 76: Human Quirks and Speech Bubbles (Phase 5)
+
+**User Story:** As a player, I want my named Humans to have personality, so that automation later visibly removes it.
+
+#### Acceptance Criteria
+
+1. THE Definition_Registry SHALL define Quirks in data with text keys and optional behaviour (for example "Jan hums while pouring", "Thomas takes the long route past the bakery").
+2. THE Simulation SHALL assign each start-state or hired Human one Quirk from the Human Definition or the Name_Pool data.
+3. WHEN a Human performs the task named by a Quirk, THE Renderer SHALL show a speech bubble with the Quirk's text.
+4. WHILE a Job_Slot holds a Headcount_Fill, THE Renderer SHALL show no Quirk and no speech bubble for that Job_Slot.
+5. WHERE a Quirk has a behaviour Modifier, THE Simulation SHALL apply the Modifier through getStat (Requirement 50).
+
+### Requirement 77: Street Life (Phase 5)
+
+**User Story:** As a player, I want to see life outside my pub, so that the street feels alive even when the work happens inside.
+
+#### Acceptance Criteria
+
+1. WHILE a Pub has more waiting Customers than free Seats, THE Renderer SHALL show a queue at its door.
+2. WHILE a Pub is open and busy, THE Renderer SHALL show a glow in its windows.
+3. WHEN the Competitor Pub's popularity band is High, THE Renderer SHALL show cheering from the sports pub.
+4. THE Renderer SHALL show the rival owner leaning in the doorway of the Competitor Pub.
+5. THE Renderer SHALL derive all street-life effects from Simulation state and keep them out of the Simulation state.
+
+### Requirement 78: Summary Card (Phase 5)
+
+**User Story:** As a player, I want a periodic report with a silly award, so that I get a natural pause point.
+
+#### Acceptance Criteria
+
+1. WHEN the number of game minutes defined in data has elapsed since the last card, THE Game SHALL show the Summary_Card with served and lost Customers and profit.
+2. THE Game SHALL measure the interval in game minutes and not in real time, so that the interval matches the Game_Speed.
+3. THE Summary_Card SHALL name an "Employee of the Month" chosen by the seeded random number generator from the working Humans with names, excluding Headcount_Fills.
+4. WHEN the Player dismisses the Summary_Card, THE Game SHALL resume the previous Game_Speed.
+5. WHILE the Summary_Card is open, THE Game SHALL stop advancing Ticks.
+
+### Requirement 79: Satire Hooks as Content (Phase 5)
+
+**User Story:** As a player, I want satirical events on top of existing systems, so that the game is funny without new engine code.
+
+#### Acceptance Criteria
+
+1. THE Definition_Registry SHALL express the following events only as Services, Questionable_Opportunities, Competitor events, Modifiers or scheduled Consequences, without a new Command: consultant visit, team-building day, rival poaching staff, health inspector, loyalty card, happy hour and LinkedIn-style news.
+2. WHEN the Player pays for a consultant visit, THE Simulation SHALL apply a randomised effect drawn through the seeded random number generator, which may be negative.
+3. WHEN the Player starts a team-building day, THE Simulation SHALL make the staff unavailable for the duration defined in data and then add a Modifier that raises their work speed.
+4. WHEN a "rival poaches staff" event fires, THE Game SHALL offer the Player a counter-offer and apply the outcome through Effects.
+5. WHEN a health inspector Consequence fires after the Player took a shortcut, THE Simulation SHALL apply the fine as a Mandatory_Expense and announce it in the News_Feed.
+6. WHEN the Player buys a loyalty card, THE Simulation SHALL add a Modifier that raises the repeat-order chance within the 90% clamp of Requirement 34.5.
+7. WHEN the Player starts happy hour, THE Simulation SHALL add a Modifier for a limited time that raises demand and lowers the drink price.
+8. THE News_Feed SHALL show news in a LinkedIn-style tone from text keys.
+
+### Requirement 80: Phase 6 Reuse of the Foundations (Phase 6)
+
+**User Story:** As the developer, I want the economy expansion built on the Phase 2 foundations, so that it adds data and not special cases.
+
+#### Acceptance Criteria
+
+1. THE Simulation SHALL express Traits, Brands, Recipe Traits, Reputation effects, Synergy effects and Boosts of Requirements 32 to 40 as Modifiers read through getStat.
+2. THE Simulation SHALL keep Plot purchase, construction, Warehouse purchase or rental and Acquisition as their own Commands (Requirement 51, criterion 11) and SHALL express Questionable_Opportunity actions as Services where Requirement 51 applies.
+3. THE Simulation SHALL express reveals, Achievements, Consequences and Competitor-event effects through the Condition and Effect engine of Requirement 52.
+4. WHEN Phase 6 content places a Business on the map, THE Definition_Registry SHALL use Frontage_Slots of Requirement 54.
+5. WHEN Phase 6 content changes Pub staffing, THE Simulation SHALL use the Bar_Worker Job and Seats, Taps and Hands of Requirements 55 and 56.
+6. WHEN Phase 6 adds new vehicle types, THE Definition_Registry SHALL define their `handling` values (for example capacity, speed and manual top speed) in `vehicles.json`.

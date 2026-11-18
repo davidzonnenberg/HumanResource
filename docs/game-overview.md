@@ -133,6 +133,12 @@ Verified with typecheck, lint, unit and property tests and `vite build`. "Playab
 - A crash-safe exit.
 - The "van does not move" bug is fixed in code but still needs an in-game check.
 
+### CEO Phone shell (Nov 2026, `.kiro/specs/ceo-phone` task 1)
+- Q, or the 📱 HUD button, opens the phone as a right-docked side panel, at most 40% of the screen width.
+- Home has elapsed game time, money and a quest placeholder, plus the app grid and dock. Navigation covers Back/Home/Recents and keyboard focus. While the phone has focus, the CEO doesn't move.
+- Apps: Settings (dark mode, text size, reduced motion, Do Not Disturb, quest pings; stored per device) and a minimal LinkedOut, installed by `news_feed`.
+- The app registry is `packages/content/data/ui/apps.json`. The notification shade, badges and the other apps are next (ceo-phone tasks 2–6).
+
 ### Recent polish (Nov 2026, task 34)
 - Stardew-style interiors.
 - Model-exact hitboxes for walking and driving.
@@ -150,36 +156,41 @@ Verified with typecheck, lint, unit and property tests and `vite build`. "Playab
   - the production system and the achievements system
 - None of these have UI panels or buttons yet, so the player cannot reach them.
 
-## 5. Outstanding
+## 5. Outstanding (six-phase plan)
 
-### Phase 1 gaps (needed before "Phase 1 complete")
-- Task 13.3: Panel framework polish, a shared TouchTarget and the side/bottom sheet rules.
-- Tasks 13.4/13.5: remaining Panel items from the spec, such as reveal-gated storage responses and "Add Human" gating. Check `tasks.md` for exact gaps.
-- Task 15: the Phase 1 playable checkpoint on phone and PC.
-- Task 23: the Phase 1 complete checkpoint.
+The plan lives in `.kiro/specs/human-resource-mvp/tasks.md`. Each phase heading there says what to do first, which model fits, and how to verify.
 
-### Polish and fun (task 34)
-- 34.5 Driving overhaul: built, needs an in-game feel check.
-  - About 2x faster manual driving. The manual top speed is separate from the route speed.
-  - Space (or a held "Drift" button on touch) is the handbrake drift. Gas + brake, or gas + handbrake, at low speed spins donuts.
-  - Fading tyre marks.
-  - All tuning is per vehicle type in `vehicles.json`, because more vehicle types are planned.
-  - Not yet: dust puffs, looser camera while sliding.
-  - Later: fuel/range, crash damage, style points (see wishlist).
-- 34.6 Solid furniture inside (bar, tables).
-- Remove the temporary `[drive]` debug logging once driving is confirmed.
+### Phase 1: Playable core (finish)
+- 13.3 to 13.5: the remaining Panel work (framework polish, Pub/Human/Vehicle/Supplier/Competitor/Plot/Customer/Finance panel gaps, reveal-gated "Add Human" and storage responses).
+- 15: playable checkpoint on phone and PC. 23: Phase 1 complete.
+- 34.6 solid furniture inside; 34.8 in-game feel check of the driving overhaul (about 2x speed, handbrake drift, donuts, tyre marks, all tuned per vehicle in `vehicles.json`); 34.7 remove the temporary `[drive]` debug logging after that check.
+- Not yet: dust puffs and a looser camera while sliding. Later: fuel/range, crash damage, style points (see wishlist).
 
-### Phase 2 (tasks 25 to 33)
-- 25.3 Sourcing policies. Per business: buy externally, use internal production, or both.
-- 26 Plots and construction (buy land, build), a second pub, the Warehouse (buffer, rental).
-- 27 Brewery production: hops + malt into beer, with the generic production system.
-- 28 Acquisitions with hidden attributes, liabilities and surprises.
-  - Brands (the same beer performs differently per venue).
-  - Secret recipes that only come from acquisitions.
-- 29 Corporate chains and synergy (vertical integration bonuses), Reputation, questionable opportunities (shady shortcuts with delayed consequences) and competitor events.
-- 30 Minigames ("Help Serve") and satirical Achievements.
-- 31 Phase 2 UI: panels for all of the above, a News feed, banners and visuals.
-- 32 Performance tooling: a tick benchmark and a debug overlay with tick time, FPS and DPR.
+### Phase 2: Foundations (requirements 50 to 54)
+- Generic Modifier system with `getStat` and a "why this number" breakdown. Existing traits, brands and boosts move onto it with an equivalence test.
+- One shared Condition and Effect engine for reveals, achievements, quests, services and consequences.
+- Data-defined building Services and one `useService` Command (remote versus presence access).
+- Command log, replay, a golden-playthrough hash test in CI, and a state hash sent with sync.
+- Street layout from frontage slots (filler, business, plot); city hall becomes a double-width slot.
+
+### Phase 3: Grand Opening and bar redesign (requirements 55 to 68)
+- New game starts as the Grand Opening: municipality (license tier), bank (loan), pub fit-out, supplier keg deal and first load, job centre hiring with quirks, ribbon cutting. `?dev=1` keeps the running-pub start.
+- One `bar_worker` job replaces bartender and server; Seats / Taps / Hands; tabs, walkouts and vibe; kegs (drinks stay the unit).
+- Quest engine, unlock menu with teasers, the CEO's outside jobs (emergency runs, municipality requests, bank meetings, scouting, side deliveries, Head of Errands).
+- One v3 save migration with fixtures.
+
+### Phase 4: Phone UI (requirements 69 to 74)
+- HUD: money pill with Gold per hour, loan chip, quest tracker, alert bell with "Fix".
+- The Phone and its reveal-gated apps (To-Do™, Wayfindr with minimap, Pintly, Ledgr, Staffly, Vanly, LinkedOut, MijnGemeente) replace the old panels.
+- Desk counter screens with hold-to-stamp, a web-only Waypoint with road arrows, and Info_Layers shared with the Management View.
+
+### Phase 5: Feel alive and satire content (requirements 75 to 79)
+- Thought bubbles and coin pops with sound, quirks and speech bubbles (none for headcount), street life, the periodic summary card with an employee of the month.
+- Satire as data: consultant, team-building, rival poaching, health inspector, loyalty card, happy hour, LinkedIn-style news.
+
+### Phase 6: Economy expansion (requirements 27 to 40 and 80; old tasks 24 to 33)
+- Built already: definitions pack, v1 to v2 migration, Market system. Still to do: sourcing policies, plots and construction, second pub, Warehouse (placed far from the pubs), Brewery, acquisitions with hidden attributes, brands and secret recipes, chains and synergy, Reputation, questionable opportunities, competitor events, minigames, achievements, their screens (as Phone apps), and performance tooling.
+- All of it is built on `getStat`, the effect engine, Services and frontage slots.
 
 ## 6. Content inventory (what exists in data today)
 
@@ -206,9 +217,9 @@ Verified with typecheck, lint, unit and property tests and `vite build`. "Playab
 - Automatic vans and NPC Humans ignore physics. They follow road paths.
 - Customer and staff positions inside a pub are derived by the renderer from sim state. The sim has no coordinates for them.
 
-## 7b. Idea backlog to replan (docs/ideas.md)
+## 7b. Idea backlog (docs/ideas.md; replanned into the six phases above)
 
-Near-term ideas waiting for a review and replan into tasks:
+Near-term ideas. They have been replanned into the phases of section 5; `docs/ideas.md` keeps the original text with a "Moved to spec" line per section:
 - The Grand Opening checklist start, with new office buildings (Municipality, Bank, Job centre). These are plain npc Business definitions with an `office.services` marker, and interactions are door Commands.
 - An unlock menu with vague teasers.
 - The CEO's outside jobs after opening.

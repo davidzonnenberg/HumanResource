@@ -52,7 +52,7 @@ export function App() {
     case 'game':
       return (
         <Suspense fallback={<div className="screen center">{t('app.loading')}</div>}>
-          <GameScreen onExit={() => setScreen({ kind: 'slots', profile: screen.profile })} />
+          <GameScreen profileId={screen.profile.id} onExit={() => setScreen({ kind: 'slots', profile: screen.profile })} />
         </Suspense>
       );
   }

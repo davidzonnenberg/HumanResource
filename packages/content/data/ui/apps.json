@@ -1,0 +1,22 @@
+[
+  {
+    "id": "news",
+    "nameKey": "app.news.name",
+    "icon": "📰",
+    "colour": "#364fc7",
+    "revealFeature": "news_feed",
+    "tabs": [],
+    "dock": null,
+    "order": 70
+  },
+  {
+    "id": "set",
+    "nameKey": "app.set.name",
+    "icon": "⚙️",
+    "colour": "#868e96",
+    "revealFeature": null,
+    "tabs": [],
+    "dock": 3,
+    "order": 90
+  }
+]

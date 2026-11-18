@@ -8,7 +8,7 @@ Design goals, in priority order:
 
 1. **Determinism and testability.** All rules live in `packages/sim`, which cannot import DOM, three, Rapier, network or Node APIs. State is plain JSON data. Randomness comes only from a seeded PRNG stored in state. Every external influence (Player input, physics pose of a manually driven van, UI events that fire Reveal_Triggers) enters as a Command applied at a Tick boundary. This makes the determinism, round-trip and invariant properties directly testable in Node (Requirements 2, 24, 44).
 2. **Data-driven content.** Businesses, Resources, Vehicles, Jobs, Humans, Recipes, Traits, Brands, Achievements, Reveal_Triggers, text tables, the Name_Pool, start state, map and tunables are JSON data validated by zod schemas plus a referential-integrity pass at startup (Requirement 1). Formulas (demand, staffing, reputation modifier) are parameterised formula kinds, never evaluated strings.
-3. **Phase 2 is additive.** Phase 2 adds Definitions, optional state sections and systems in reserved pipeline slots. Phase 1 code paths are already generic (Resource lots with recipe id, generic production rules, Sourcing_Policy defaulting to "buy externally", Owner on every entity, Reputation present at 50). A schema migration adds the Phase 2 state sections to existing saves.
+3. **Later phases are additive.** The economy expansion (Phase 6, the former "Phase 2") adds Definitions, optional state sections and systems in reserved pipeline slots. The foundations of Phase 2 (modifiers, shared conditions and effects, services, replay, frontage slots) are built first so that Phases 3 to 6 are mostly JSON. See "Phase plan and dependencies". Phase 1 code paths are already generic (Resource lots with recipe id, generic production rules, Sourcing_Policy defaulting to "buy externally", Owner on every entity, Reputation present at 50). A schema migration (v1 to v2) adds the Phase 6 state sections to existing saves.
 4. **Phone-first performance.** Instanced placeholder primitives, aggregated indicators at far zoom, adaptive DPR, a sub-4 ms Tick budget, and lazy loading of the physics chunk.
 
 Key decisions and rationale:
@@ -34,6 +34,34 @@ Research notes that informed the design:
 - OneDrive has no supported per-subfolder exclusion for personal accounts; Microsoft's answers state only file-type exclusion exists, and admin folder-name exclusion is a managed-policy feature ([Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/3984238/how-to-exclude-a-folder-from-onedrive-syncing)). Files reached through a folder link inside the OneDrive folder are still synchronised ([Microsoft Support](https://support.microsoft.com/en-au/office/can-t-synchronize-onedrive-files-and-folders-from-a-local-file-location-other-than-the-default-onedrive-path-b7eef9d4-4203-431d-8345-fe49254f9da0)), so a junction from the project to an outside `node_modules` is not a reliable exclusion. The repository-hygiene section below reflects this. Content was rephrased for compliance with licensing restrictions.
 - `@dimforge/rapier3d-compat` (used by `@react-three/rapier`) embeds its WASM in the JS bundle, so Workbox precaches it like any other chunk and manual driving works offline.
 - `vite-plugin-pwa` with `registerType: 'prompt'` exposes an `onNeedRefresh` callback and an `updateSW()` function, which lets the Game save first and then activate the new service worker (Requirement 42.4).
+
+## Phase plan and dependencies
+
+The requirements are delivered in six phases. The order is chosen so that each phase turns the next one into mostly data.
+
+| Phase | Delivers | Depends on | Who builds it |
+|---|---|---|---|
+| 1 Playable core | One pub, customer loop, van, CEO and Management_View, saves and sync. Built, including the polish listed under "Built Phase 1 reference". | none | done |
+| 2 Foundations | Modifiers and `getStat`, shared Conditions and Effects, data-defined Services and `useService`, Command_Log, replay and State_Hash, Frontage_Slots | Phase 1 | strong model for the contracts, cheap model for tests and content conversion |
+| 3 Grand Opening and bar redesign | `bar_worker`, Seats/Taps/Hands, tabs, Vibe, kegs, offices, license, loans, fit-out, supply deals, job centre, checklist, unlock menu, outside jobs, save v3 | Phase 2 | strong model for the worker state machine and the v3 migration, cheap model for content and panels |
+| 4 Phone UI | Gold per hour buckets, HUD, Phone and apps, Desk, quests UI and Waypoint, Info_Layers | Phase 3 (services, quests, loans, finance data) | cheap model, following the existing panel patterns |
+| 5 Feel alive and satire | Readable customers, quirks, street life, summary card, satire services | Phases 2 to 4 | cheap model |
+| 6 Economy expansion | Second pub, warehouse, brewery, market, acquisitions, chains, reputation, questionable opportunities, competitor events, minigames, achievements | all earlier phases | strong model for acquisition transfer and chains, cheap model for the rest |
+
+Why this order:
+
+- Foundations first. Traits, brands, permits, boosts, quirks and policies all change stats. If each ships its own wiring, every later feature costs a new handler. With `getStat`, `useService` and one effect engine, new offices, loans, permits and satire events are data. Phase 2 therefore has no new gameplay and must not change Phase 1 numbers (equivalence property).
+- Phase 3 before Phase 4. The Phone and Desk are views over services, quests, loans and finance buckets. Building the screens first would mean building them twice. The Desk needs the Services of Phase 2 and the offices of Phase 3.
+- Phase 5 is polish on top of existing state, so it comes after the systems that produce the state it shows.
+- Phase 6 last. It is the largest content block, and it reuses everything: traits and brands become modifiers, plot and building actions use the same cost and effect path, competitor events use the effect engine, and new Business types are placed with Frontage_Slots. The Phase 6 foundation step (contracts, migration v1 to v2, scheduler, `createBusiness`, lot threading) is already built and stays valid. Its later steps are adjusted to read stats through `getStat` once Phase 2 exists.
+- One save migration for Phases 2 to 4 (see "Save schema and migrations"), so playthroughs are migrated once.
+
+Working rules, in the spirit of `.kiro/steering/phase2-guide.md` (that guide describes the Phase 6 economy work and keeps its old "Phase 2" naming; it needs a small update to point at `getStat` and the Service model):
+
+- The first task of every phase defines contracts (zod schemas, state shapes, Command and Reason_Code types, migration fixtures). It goes to the strong model. Mistakes there spread everywhere.
+- Fixtures for the previous schema version are generated from the current code before any schema change.
+- Content JSON, panels that follow the `PubPanel` pattern, Phone app screens and test extensions go to the cheap model. If a cheap model fails the same test twice, the task escalates to the strong model instead of being retried.
+- Every phase ends with typecheck, lint, the full test suite and build green, with no Phase 1 test expectation changed to make a new phase pass.
 
 ## Architecture
 
@@ -183,7 +211,7 @@ HumanResource/                       (git: main, remote github.com/davidzonnenbe
         config/sim.json              tunables (tick ms, thresholds, factors)
         config/camera.json           zoom bands, threshold, hysteresis, tilt, fov
         config/theme.json            palette, vehicle/crate scales
-        phase2/                      Phase 2 definitions (additive pack)
+        phase2/                      Phase 6 economy definitions (additive pack; folder name kept from before the renumbering)
       index.ts                       typed re-export of raw JSON
     sim/
       src/
@@ -280,7 +308,7 @@ export function slotCapacity(slot: JobSlot, state: SimState): number;   // worki
 
 ### Tick pipeline
 
-Systems are entries in an ordered array. Each entry has an id, the phase it belongs to and a `run(ctx)` function. A system that depends on an optional Phase 2 state section returns early when the section is absent. Phase 2 entries already have reserved positions, so adding them does not reorder Phase 1 systems.
+Systems are entries in an ordered array. Each entry has an id, the phase it belongs to and a `run(ctx)` function. A system that depends on an optional state section (Phase 6 economy, or a Phase 2 to 5 section) returns early when the section is absent. Phase 6 entries already have reserved positions (new Phase 2 to 5 entries use the fractional slots listed after the table), so adding them does not reorder Phase 1 systems.
 
 ```ts
 interface TickContext {
@@ -289,7 +317,7 @@ interface TickContext {
   events: DomainEvent[];      // append-only for this Tick
   ledger: ResourceLedgerTick; // created/removed quantities per Resource and cause
 }
-interface SystemEntry { id: SystemId; phase: 1 | 2; run(ctx: TickContext): void; }
+interface SystemEntry { id: SystemId; phase: 1 | 2 | 3 | 4 | 5 | 6; run(ctx: TickContext): void; }
 ```
 
 | # | System | Phase | Responsibility | Requirements |
@@ -297,27 +325,42 @@ interface SystemEntry { id: SystemId; phase: 1 | 2; run(ctx: TickContext): void;
 | 0 | `clock` | 1 | `tick += 1`; derive game second | 2.1 |
 | 1 | `commands` | 1 | Drain queue; validate and apply each Command; emit results | 2.7, 2.8, 6.8, 7.x, 10.3–10.5, 12.1–12.3, 13.x |
 | 2 | `scheduler` | 1 | Fire due `ScheduledEvent`s in (fireTick, seq) order: construction done, hidden reveals, Consequences, QO completion | 27.3, 32.6, 37.4–37.6 |
-| 3 | `competitorEvents` | 2 | Roll Competitor event table | 38 |
-| 4 | `market` | 2 | Bounded random-walk price update at interval | 30.2, 30.3 |
-| 5 | `acquisitions` | 2 | Generate and expire Acquisition_Offers | 32.1, 32.2 |
+| 3 | `competitorEvents` | 6 | Roll Competitor event table | 38 |
+| 4 | `market` | 6 | Bounded random-walk price update at interval | 30.2, 30.3 |
+| 5 | `acquisitions` | 6 | Generate and expire Acquisition_Offers | 32.1, 32.2 |
 | 6 | `humans` | 1 | Walking along paths, arrival → start Job, boarding Vehicles | 7.4–7.9, 7.15, 13.12 |
-| 7 | `production` | 1 | Generic production rules (Phase 1 has none active; Brewery in Phase 2) | 9.3, 29.1, 29.2 |
+| 7 | `production` | 1 | Generic production rules (Phase 1 has none active; Brewery in Phase 6) | 9.3, 29.1, 29.2 |
 | 8 | `customerArrivals` | 1 | Arrival rate → spawn, seat or lose (no_seat); patience checks | 4.1, 4.3, 4.8–4.10 |
-| 9 | `staff` | 1 | Bartenders pour (FIFO lot), Servers carry drinks | 4.6, 5.1–5.5, 34.3 |
+| 9 | `staff` | 1 | Bartenders pour (FIFO lot), Servers carry drinks (Phase 3: replaced in the same slot by the Bar_Worker state machine) | 4.6, 5.1–5.5, 34.3 |
 | 10 | `customerVisits` | 1 | Drinking, reorder roll, pay, leave | 4.4, 4.5, 4.7, 34.4, 34.5 |
-| 11 | `minigames` | 2 | Apply active temporary boosts / expire | 39.2 |
+| 11 | `minigames` | 6 | Apply active temporary boosts / expire | 39.2 |
 | 12 | `logistics` | 1 | Automatic Vehicles move along graph paths, arrive, load/unload, wait; manual pose already applied in step 1 | 11.x, 12.4–12.8, 7.12 |
-| 13 | `sourcing` | 1 | Auto-reorder (Phase 1); Sourcing_Policy shortfall sizing (Phase 2) | 10.8–10.10, 10.12, 31.2 |
-| 14 | `questionable` | 2 | Offer refresh; occupied timers handled via scheduler | 37 |
+| 13 | `sourcing` | 1 | Auto-reorder (Phase 1); Sourcing_Policy shortfall sizing (Phase 6) | 10.8–10.10, 10.12, 31.2 |
+| 14 | `questionable` | 6 | Offer refresh; occupied timers handled via scheduler | 37 |
 | 15 | `finance` | 1 | Salaries per Tick with exact carry, rentals; Mandatory_Expenses | 7.3, 8.5, 28.4 |
-| 16 | `chains` | 2 | Corporate_Chain detection and Synergy generation | 35 |
-| 17 | `reputation` | 2 | Clamp, demand modifier refresh, news | 36 |
+| 16 | `chains` | 6 | Corporate_Chain detection and Synergy generation | 35 |
+| 17 | `reputation` | 6 | Clamp, demand modifier refresh, news | 36 |
 | 18 | `metrics` | 1 | Rolling windows: Pub metrics, Vehicle deliveries, Route flows, recommended staff, popularity band, Brewery unit cost | 6.1–6.3, 11.6–11.9, 17.4, 29.4 |
 | 19 | `alerts` | 1 | Derive Alert set from conditions and previous Alert set | 4.11, 4.12, 5.6, 6.5, 6.6, 9.8, 9.9, 10.7, 10.10, 12.5, 31.3 |
 | 20 | `reveals` | 1 | Evaluate Reveal_Trigger conditions over this Tick's events and state; record first firing | 19.1, 19.4–19.6 |
-| 21 | `achievements` | 2 | Evaluate Achievement conditions; award once | 40.2 |
+| 21 | `achievements` | 6 | Evaluate Achievement conditions; award once | 40.2 |
 
 Ordering rationale: Commands first so Player changes apply from this Tick (price change "from the next Tick" holds because the Command is applied at the boundary before any payment). Consumption (8–10) runs before logistics and sourcing, so auto-reorder sees post-consumption stock and post-delivery Pending_Quantity. Finance runs after operations so Salary is charged every Tick regardless of what happened. Metrics, Alerts and Reveals run last because they observe the final state of the Tick.
+
+New systems of Phases 2 to 5 take fractional slots, so no existing slot moves:
+
+| Slot | System | Phase | Responsibility |
+|---|---|---|---|
+| 0.5 | `modifiers` | 2 | Remove Modifiers whose `untilTick` is reached, before any system reads a stat (50.5) |
+| 1.5 | `ceoProximity` | 1 (built) | Only clears `ceo.insideBusinessId` when the CEO is no longer at or inside that Business; it never enters a Business |
+| 2.5 | `errands` | 3 | A Headcount_Fill "Head of Errands" performs due presence Outside_Jobs without the CEO (68.8) |
+| 9 | `staff` | 3 | Becomes the `bar_worker` state machine (same slot, same order queue and bar entries) |
+| 10 | `customerVisits` | 3 | Tabs, payment at leave, Walkouts, Vibe modifiers on long waits |
+| 15 | `finance` | 3 and 4 | Also charges Loan repayments and supply contract fees with the exact-carry rule, and rotates the one-minute Gold buckets |
+| 18.5 | `summaryCard` | 5 | Decides when the Summary_Card is due and picks the Employee of the Month |
+| 20.5 | `quests` | 3 | Advances Quests when a step Condition becomes true and applies the step Effects once |
+
+`customerArrivals` (8) returns immediately while `pub_open` has not fired (61.6). Scheduler kinds are added to the closed `scheduledKindSchema` (see Phases 2 to 5 design).
 
 ### Commands
 
@@ -345,12 +388,16 @@ type Command =
   | { type: 'resetVehicle'; vehicleId: Id; x: number; z: number; heading: number } // upright reset onto road point
   // CEO (Req 14, 15)
   | { type: 'ceoMove'; dx: number; dz: number }   // normalised intent, |d| <= 1, applied for one Tick
-  | { type: 'ceoEnter'; businessId: Id }
-  | { type: 'ceoExit' }
+  | { type: 'ceoEnter'; businessId: Id; door?: { x: number; z: number } }   // door hint is validated, see notes
+  | { type: 'ceoExit'; door?: { x: number; z: number } }                     // door hint is validated, see notes
   | { type: 'uiEvent'; event: 'managementViewOpened' | 'panelOpened'; target?: Id }
   // Districts (Req 48): issuer 'system' only; no Player UI in Phase 1, used by tests and later expansion
   | { type: 'unlockDistrict'; districtId: DistrictId }
-  // Phase 2 (additive)
+  // Phases 2 to 5 (see "Phases 2 to 5 design")
+  | { type: 'useService'; businessId: Id; serviceId: string; params?: ServiceParams }
+  | { type: 'setWorkerPace'; businessId: Id; pace: 'relaxed' | 'normal' | 'hustle' }   // access: remote
+  | { type: 'setPubOpen'; businessId: Id; open: boolean }                               // access: remote
+  // Phase 6 (economy expansion, additive)
   | { type: 'buyPlot'; plotId: Id }
   | { type: 'construct'; plotId: Id; businessDefId: DefId }
   | { type: 'acquireWarehouse'; plotId: Id; mode: 'buy' | 'rent' }
@@ -367,7 +414,10 @@ type ReasonCode =
   | 'invalid_route' | 'not_owner' | 'slot_occupied' | 'human_occupied' | 'unknown_entity'
   | 'not_in_range' | 'not_stopped' | 'vehicle_not_manual' | 'storage_not_empty'
   | 'insufficient_humans' | 'nothing_to_load' | 'nothing_to_unload' | 'offer_expired'
-  | 'district_locked';
+  | 'district_locked'
+  // Phases 2 to 5
+  | 'not_present' | 'conditions_not_met' | 'already_licensed' | 'loan_active'
+  | 'deal_missing' | 'limit_reached' | 'already_done';
 
 type CommandResult =
   | { seq: number; ok: true }
@@ -376,11 +426,15 @@ type CommandResult =
 
 Notes:
 
-- `assign` to a Job_Slot occupied by a Human is valid and displaces the occupant (7.7); `slot_occupied` is returned when the slot holds a Headcount_Fill (49.6) and for Phase 2 cases such as an occupied Plot.
+- `assign` to a Job_Slot occupied by a Human is valid and displaces the occupant (7.7); `slot_occupied` is returned when the slot holds a Headcount_Fill (49.6) and for Phase 6 cases such as an occupied Plot.
 - `assign`, `setRoute` and `placeOrder` targeting a Business in a locked District are rejected with `district_locked` (48.7).
 - `insufficient_gold` always carries `missingGold = cost − gold` (7.2, 8.4, 10.5, 32.5).
 - `manualVehicleUpdate` is submitted by the Physics_Layer once per Tick (2.9). The Simulation clamps the reported position to the drivable bounds and stores it; it does not trust speed for anything except the "stopped" check (< 0.5 World_Units/s).
 - `manualLoad`/`manualUnload` are valid only if the Vehicle is under Manual_Driving, its last reported speed is below 0.5 and its position is inside the Business's Unloading_Zone (13.6–13.8).
+- `ceoEnter` and `ceoExit` accept an optional `door` hint from the web layer, which knows the model-derived door position (16.5). The handler validates the hint: it must lie within `config.doorHintTolerance` of the Business's door point from the map data, otherwise the hint is ignored and the data position is used. A rejected or ignored hint never rejects the Command. Entering is explicit: nothing enters a Business automatically (14.4).
+- `useService` is the only Command for data-defined Services. `params` carries the choice for services that need one (for example the fit-out picks). It is a small closed shape (`{ choice?: string; picks?: Record<string, number> }`), validated against the Service Definition. This extends the `businessId` plus `serviceId` shape of 51.3 and should be confirmed in review.
+- Settings with an Access_Tag (`setWorkerPace`, `setPubOpen`, `setDrinkPrice`, `setAutoReorder` are `remote`) are listed in `settings.json` with `commandType` and `access`. A handler for a setting tagged `presence` runs the same `requireAccess` check as `useService` and rejects with `not_present` (71.10).
+- Instance-level Phase 6 actions (`buyPlot`, `construct`, `acquireWarehouse`, `acceptAcquisition`, `startQuestionable`) keep their dedicated Commands, because their target is a Plot or an offer, not a Business Definition. They run the same `requireGold` plus `applyEffects` path as Services (80.2).
 
 ### Simulation systems in detail
 
@@ -519,7 +573,7 @@ type Condition =
 - `state.reveals.fired` is an ordered list of trigger ids and is part of the save (19.3). UI features check `isRevealed(featureKey)`. There are no levels or XP (19.2).
 - The Pub Panel's "Add Human" response (6.7) is gated by the `hiring_option` reveal, so it appears only after the first patience-expired loss; "Change drink price" is always available.
 
-#### Phase 2 systems (additive)
+#### Phase 6 systems (economy expansion, additive)
 
 | System | State section added by migration | Notes |
 |---|---|---|
@@ -531,13 +585,27 @@ type Condition =
 | `reputation` | already present in Phase 1 | Phase 1 has no system that changes it, so it stays at 50 (36.2). |
 | `minigames`, `achievements` | `boosts`, `achievements` list | Boost ≤ 15% for ≤ 60 s enforced by schema bounds (39.2). |
 
-Each Phase 2 Business type is a Definition (`brewery`, `warehouse`, `market_depot`) handled by the same storage, staffing, production and logistics code (1.8, 1.9, 46.1).
+Each Phase 6 Business type is a Definition (`brewery`, `warehouse`, `market_depot`) handled by the same storage, staffing, production and logistics code (1.8, 1.9, 46.1).
 
 ### Interaction helpers (pure, in `packages/sim/interaction`)
 
-- `contextActionFor(view)` takes the CEO position, mode, inside-Business flag, manual Vehicle pose and speed, and the interactable list (Businesses' entrances, Vehicles, Plots, Supplier, Competitor Pub). It returns the action for the nearest object within `interactionRange` (default 2), or `null`: `Enter` for owned Businesses, `Inspect` for Competitor Pub, Competitor Vehicle, Supplier and Plots for sale, `Drive` for owned Vehicles, `Load`/`Unload` when driving, stopped (< 0.5) and inside an Unloading_Zone (`Unload` if the Business accepts part of the cargo, else `Load`), `Exit` when driving and stopped, `Help Serve` (Phase 2) when inside an owned Pub above the waiting threshold (13.1, 13.2, 13.6, 14.2, 14.3, 14.5, 39.1).
+- `contextActionFor(view)` takes the CEO position, mode, inside-Business flag, manual Vehicle pose and speed, and the interactable list (Businesses' entrances, Vehicles, Plots, Supplier, Competitor Pub). It returns the action for the nearest object within `interactionRange` (default 2), or `null`: `Enter` for owned Businesses and for Businesses whose Definition has an `office` marker (Phase 3; the Player's Pub also offers its presence Services through Enter), `Leave` on the interior door mat, `Inspect` for Competitor Pub, Competitor Vehicle, Supplier and Plots for sale, `Drive` for owned Vehicles, `Load`/`Unload` when driving, stopped (< 0.5) and inside an Unloading_Zone (`Unload` if the Business accepts part of the cargo, else `Load`), `Exit` when driving and stopped, `Help Serve` (Phase 6) when inside an owned Pub above the waiting threshold (13.1, 13.2, 13.6, 14.2, 14.3, 14.5, 39.1).
 - `nextViewMode(mode, d, cam)`: `ceo → management` when `d > T`; `management → ceo` when `d < T × (1 − hysteresis)`; otherwise unchanged (15.3, 15.4).
 - `nearestRoadPoint(graph, x, z)`: projection onto every edge segment, minimum distance.
+
+### Built Phase 1 reference (Nov 2026 polish)
+
+These items are built and are the baseline later phases extend. Where a statement above conflicts with this list, this list wins.
+
+| Item | Where | Design consequence |
+|---|---|---|
+| Explicit building entry | `ceoEnter` / `ceoExit` with validated door hints; `ceoProximity` only clears `insideBusinessId` | Nothing enters a Business on proximity. The Context_Action `Enter` is the only way in. Offices and the pub fit-out reuse this path (Phase 3). |
+| Model-derived hitboxes | `apps/web/src/render/footprints.ts` | Footprints come from the bounds of the scaled model. The Simulation keeps only interior walls and the CEO interior position. Frontage fitting (Phase 2) reuses the same code. |
+| Curbs | Renderer lifts figures onto the curb height; Physics_Layer curb is a physical step; per-wheel ray-cast suspension | Phase 2 frontage slots must leave the curb strip free in front of every slot. |
+| Driving overhaul | `physics/handling.ts` reads `handling` per Vehicle Definition (`manualTopSpeed`, drift, donut, suspension) | There is no `manualSpeedBonus`. New Vehicles only need data. |
+| Owner-variant vehicle GLBs | `render/assets/modelMap.ts` maps a model key plus owner to a glTF variant | Owner colour is a model variant, not a tint, for Vehicles. |
+| Landmarks | `packages/content/data/maps/landmarks.json`, render-only, model-derived hitbox | Seed of the Frontage_Slot `filler` kind (Phase 2). City hall sits on its own slot of double width. |
+| Visibility rule | Customers, staff, crates and Human_Name labels inside a Business are drawn only when the CEO is inside that Business. Outside, Customers are drawn walking to the door and disappear at the door, and appear at the door when leaving (14.10). | Phase 5 thought bubbles, coin pops and the queue at the door follow the same rule: indoor effects only indoors, door queue only outdoors. |
 
 ### Game loop (`apps/web/src/loop/GameLoop.ts`)
 
@@ -584,11 +652,11 @@ class GameLoop {
 - Scene: ground plane and road meshes merged into a few static geometries per material; Businesses as boxes (with removable roof and front-wall groups for interior view); Humans and Customers as capsules; Vehicles as box + four wheel cylinders; crates as small boxes. Owner colours and palette come from `theme.json` (20.1). Business names come from text tables via the registry (16.2).
 - Asset mapping (16.4): `modelMap.ts` maps each `modelKey` to either `{ kind: 'primitive', shape, size, colorToken }` or `{ kind: 'gltf', url, scale, offset, rotation }`. A unit test asserts that every model key referenced in the registry has a mapping. Replacing a placeholder with a Kenney/KayKit glTF is a one-line mapping change; glTFs are loaded via drei `useGLTF` and precached by Workbox.
 - Instancing: one `InstancedMesh` per (modelKey, material) for Humans, Customers and crates; matrices updated in `useFrame`. Businesses and Vehicles are few, so they are regular meshes until glTF swaps make instancing worthwhile.
-- Interior (14.4): "Enter" sets `ceo.insideBusinessId`; the renderer hides that Business's roof and front walls and the camera eases to the Person band over the interior. No scene change or loading screen (15.1).
+- Interior (14.4): entry is explicit. The `ceoEnter` Command (with a validated door hint) sets `ceo.insideBusinessId`, and the `ceoProximity` system only ever clears it; the renderer hides that Business's roof and front walls and the camera eases to the Person band over the interior. No scene change or loading screen (15.1).
 - Customers and staff animate between layout anchors (entrance, seats, bar, storage, exit) defined in the Business layout data (4.13, 5.7).
 - Cargo crates: `crateCount = ceil(cargo / cratesPerUnit)` capped at a visual max, laid out on the vehicle bed (11.3). Storage indicators: stacked crates at 100%, empty shelf at 0 for Player-owned Businesses (9.6, 9.7).
 - Name labels (7.24): drei `Text` (troika SDF) billboards above Humans, shown only in CEO_Mode at Person/Business bands, limited to the 12 nearest Humans in view, text from `displayName()`.
-- Management overlays (15.8): Owner-coloured markers per Business, Vehicle and Plot; Route polylines; bottleneck Routes drawn in warning colour (11.7); Phase 2 chain highlight (35.4).
+- Management overlays (15.8): Owner-coloured markers per Business, Vehicle and Plot; Route polylines; bottleneck Routes drawn in warning colour (11.7); Phase 6 chain highlight (35.4); Phase 4 Info_Layer tints (see Phases 2 to 5 design).
 - Aggregation (15.11): when more than 20 Customer figures (default) would be visible, Customer instances are hidden and each Business shows an activity indicator (bubble with count, pulse rate from arrivals per minute). Visibility count uses Business bounding spheres against the camera frustum.
 - Collision effect (20.3): on physics contact events above an impulse threshold, the van body mesh plays a squash-and-wobble spring and a small bounce; the cargo crate meshes jiggle.
 - Districts (48.9): static geometry is built per District so an unlock adds a chunk without rebuilding others. Locked Districts render desaturated with a fence/"coming soon" marker at each District_Connector and are not selectable; Phase 1 ships the starting District plus, optionally, one visible locked neighbour.
@@ -609,8 +677,8 @@ class GameLoop {
 ### Physics_Layer (`apps/web/src/physics`)
 
 - Mounted only during Manual_Driving and lazy-loaded (`import('./ManualDriving')`) so the Rapier chunk is not on the startup path (41.4). It is still precached for offline use.
-- Colliders: static cuboids for Business footprints and map boundary walls generated from map data; kinematic bodies for other Vehicles positioned from snapshots each frame; a ground plane.
-- Driven Vehicle: one dynamic cuboid body with mass and restitution (`bounciness`) from the Vehicle Definition. Per physics step: forward force from throttle × `acceleration`; lateral velocity damped by `(1 − steeringLooseness)` for drift; yaw rate from steer input scaled by speed; linear velocity magnitude clamped to `speed × (1 + manualSpeedBonus)` (13.3, 13.4). Body roll is a visual spring on the mesh proportional to lateral acceleration × `bodyRoll`.
+- Colliders: static cuboids for building footprints derived from the scaled model bounds (`render/footprints.ts`, 16.5) and map boundary walls generated from map data; kinematic bodies for other Vehicles positioned from snapshots each frame; a ground plane.
+- Driven Vehicle: one dynamic cuboid body with mass and restitution (`bounciness`) from the Vehicle Definition. Per physics step: forward force from throttle × `acceleration`; lateral velocity damped by `(1 − steeringLooseness)` for drift; yaw rate from steer input scaled by speed; linear velocity magnitude clamped to the Vehicle Definition's `handling.manualTopSpeed` (a per-vehicle value in `vehicles.json`, read by `physics/handling.ts`; there is no global manual speed bonus) (13.3, 13.4). Body roll is a visual spring on the mesh proportional to lateral acceleration × `bodyRoll`.
 - Upright monitor (13.14): if the body's up vector is more than 90° from world up for 2 s real time, submit `resetVehicle` at `nearestRoadPoint` and teleport the body. Out-of-bounds (13.15): if outside the drivable polygon, reset after a 0.5 s fade (well within 2 s).
 - Each Tick, the loop reads the body pose and speed and submits `manualVehicleUpdate` (2.9).
 - If Rapier fails to initialise, Manual_Driving is disabled with a toast; Automatic_Delivery covers every delivery (13.16).
@@ -639,7 +707,7 @@ Raw Pointer and Keyboard events are mapped to intents; intents become camera act
 ### UI: HUD, Panels and screens (`apps/web/src/ui`)
 
 - Layout: landscape-first; a CSS `orientation: portrait` media query on coarse-pointer devices shows the rotate-device prompt (18.1, 18.2).
-- HUD (18.9): Gold (floor to whole Gold, 8.8) with debt warning when negative (8.6); Alert stack (one per type per object, tap to select the object); joystick (touch only); Context_Action button; small pause button; sync badge only when not synced; Game_Speed control (segmented pause / 1x / 2x / 4x, ≥ 44 × 44 CSS px per segment) only once speeds are available (47.4, 47.7). Phase 2 adds the News_Feed ticker and counters revealed by Reveal_Triggers (3.5).
+- HUD (18.9): Gold (floor to whole Gold, 8.8) with debt warning when negative (8.6); Alert stack (one per type per object, tap to select the object); joystick (touch only); Context_Action button; small pause button; sync badge only when not synced; Game_Speed control (segmented pause / 1x / 2x / 4x, ≥ 44 × 44 CSS px per segment) only once speeds are available (47.4, 47.7). Phase 6 adds the News_Feed ticker and counters revealed by Reveal_Triggers (3.5).
 - Text (46.8): every user-facing string, including button labels, Panel titles, dialogs and error screens, comes from `t(key, params)` in `apps/web/src/text/t.ts`. `TextKey` is the union of keys of the imported `en.json`, so unknown literal keys fail type-checking; at runtime a missing key renders the key itself and logs a dev warning. The Simulation emits only Text_Keys and params (Alerts, News_Feed, reveal names), never strings. ESLint `react/jsx-no-literals` (with an allow-list for punctuation and numbers) blocks raw JSX text. A unit test scans `apps/web/src/**` and content references for `t('…')` keys and text-key fields in Definitions and asserts each exists in `en.json`.
 - Pause_Menu contains a "Testing" toggle (Dev_Mode, 47.6) alongside resume, save-slot exit and settings.
 - Panels: side sheet ≤ 40% of width in landscape (bottom sheet ≤ 40% height when the side does not fit), built from `Card` components with ≤ 8 values per section; no tables (18.7, 18.8).
@@ -652,13 +720,13 @@ Raw Pointer and Keyboard events are mapped to intents; intents become camera act
 | Vehicle | Capacity, cargo, Route, Driver, deliveries/min (5 min), Route editor, "Resume Route" when suspended | 11.6, 12.1, 13.13 |
 | Supplier | Unit price, reserved Orders, Order form | 10.1, 10.3 |
 | Competitor Pub | Name, popularity band, drink price | 17.4 |
-| Plot | Status, price; Phase 2 buy/construct | 14.5, 27.1, 27.2 |
+| Plot | Status, price; Phase 6 buy/construct | 14.5, 27.1, 27.2 |
 | Customer | State, drinks, wait | 14.6 |
 | Finance | Income/expenses per category, last 5 Game_Minutes | 8.3 |
-| Phase 2 | Market (prices + 10-update trend), Brewery (missing requirements, unit cost), Acquisition offer ("?" markers), Questionable_Opportunity (no probabilities), multi-Pub summary cards, input sourcing comparison | 27.5, 29.2, 29.5, 30.6, 31.5, 32.3, 37.8 |
+| Phase 6 | Market (prices + 10-update trend), Brewery (missing requirements, unit cost), Acquisition offer ("?" markers), Questionable_Opportunity (no probabilities), multi-Pub summary cards, input sourcing comparison | 27.5, 29.2, 29.5, 30.6, 31.5, 32.3, 37.8 |
 
 - Screens: Definition error screen (lists every error, blocks start/load, 1.7); Profile picker (22.4, 22.5); PIN pad with lockout countdown (22.6, 26.6); Slot list (create, rename, delete with confirmation, 22.9, 22.10); Pause_Menu; Sync conflict dialog (25.4); migration/newer-version errors (24.7–24.9); PWA update prompt (42.3); "Resume Route?" dialog (13.11); localStorage fallback warning (23.6).
-- Achievement toast and chain banner (Phase 2) are driven by `DomainEvent`s.
+- Achievement toast and chain banner (Phase 6) are driven by `DomainEvent`s.
 
 ### Persistence (`apps/web/src/persistence`)
 
@@ -700,7 +768,7 @@ export interface SaveDocument<S = unknown> {
 - Deserialise: `JSON.parse` → envelope schema (shared) → version check → migrations → `simStateSchema.safeParse` → semantic checks (`invariants/check.ts`: stock sums, slot links, ids exist). The first zod issue path is reported as the invalid field (24.9).
 - Migration_Pipeline: `migrations: Array<{ from: number; to: number; name: string; up(doc: unknown): unknown }>`, applied in order from the document version to current (24.5). Each step is a pure function over JSON; older-version shapes are typed locally inside the migration file and never imported from current code.
 - Before applying migrations the loader stores the original document in `backups` for the slot, replacing any older backup (24.6). A throwing step aborts with `{ step: name }`, leaving the stored copy unchanged (24.7). A version above current shows "please update" and does not touch storage (24.8).
-- Phase 2 delivery adds a migration (e.g. `v1 → v2`) that inserts empty `market`, `acquisitions`, `questionable`, `chains` sections and default Sourcing_Policies.
+- The Phase 6 foundation step added migration `v1 → v2` (built; the v3 migration for Phases 2 to 4 is described under "Save schema and migrations") that inserts empty `market`, `acquisitions`, `questionable`, `chains` sections and default Sourcing_Policies.
 
 ### Sync_Service (`apps/web/src/sync`)
 
@@ -911,6 +979,353 @@ Rendering (41.1, 41.2, 41.5, 41.6):
 - Adaptive DPR: a custom monitor keeps a 10 s rolling average FPS. Below 30 FPS it lowers DPR in steps of 0.05 × device DPR to a floor of 0.75 × device DPR; when the average exceeds 36 FPS (target + 20%) at reduced resolution it raises in steps up to 1 × device DPR. A 3 s cooldown between steps prevents oscillation.
 - Startup (41.4): the Profile picker is the first route and does not import three/R3F; the game screen chunk is preloaded in the background; Rapier loads only for Manual_Driving.
 
+## Phases 2 to 5 design
+
+This section adds the foundations and the Grand Opening content on top of the Phase 1 design above. It follows `architecture.md`: the Simulation stays pure, content lives in data, input arrives as Commands, Gold is integer hundredths.
+
+### Where each new piece lives
+
+| Piece | Package and path | Notes |
+|---|---|---|
+| Modifier, StatId, `getStat`, `explainStat` | `packages/sim/src/stats/` | Pure. `StatId` is a zod enum in `defs/schemas.ts`. |
+| Condition and Effect schemas, `evaluateCondition`, `applyEffects`, `printCondition` | `packages/sim/src/conditions/` (extends the existing `evaluate.ts`) | `applyEffects` lives next to it. The only module that turns Effects into state changes. |
+| Service definitions, `useService` handler, `requireAccess` | `packages/sim/src/commands/useService.ts`, schema in `defs/schemas.ts` | Services are fields of `BusinessDef`. |
+| Command_Log types, `canonicalJson`, `stateHash`, `runLog` | `packages/sim/src/replay/` | Pure. Hash is FNV-1a 64 bit over the canonical JSON bytes, built from two 32-bit halves (no BigInt, no `Math.pow`). |
+| Command recorder, rolling tail, bug-report export | `apps/web/src/loop/commandRecorder.ts` | Wraps `simBridge.submit`. Never imported by the sim. |
+| Frontage derivation | `packages/sim/src/defs/frontage.ts` | Turns `streets` into Plots, fillers and Unloading_Zones at registry load. |
+| Frontage model fitting | `apps/web/src/render/footprints.ts` (extended) | Scales a model to its slot width. |
+| Layout anchors | `packages/content/data/layouts/<key>.json`, loaded into `reg.layouts`, helpers in `packages/sim/src/layout/anchors.ts` | The Renderer reads the same data through the registry. |
+| Bar worker, tabs, vibe, seats, taps | `packages/sim/src/systems/staff.ts`, `customers.ts`, `pubCapacity.ts` | Same slots as Phase 1 systems. |
+| License, Loan, fit-out, supply deals, candidates, quests, requests | Definitions in `packages/content/data/phase3/*.json`, handlers as domain Effects in `packages/sim/src/conditions/domainEffects.ts` | No office id appears in any system. |
+| Gold buckets | `packages/sim/src/money/buckets.ts` | Used by `applyGold` and by the finance summary. |
+| Phone apps registry | `packages/content/data/ui/apps.json`, schema in `defs/schemas.ts` | Reference checks (reveal feature, text keys) in `defs/registry.ts`. |
+| Phone, Desk, HUD additions, Waypoint, selected Info_Layer | `apps/web/src/ui/phone/`, `ui/desk/`, `store/waypointStore.ts` | Waypoint and layer are web-only state and never enter `SimState` (73.5, 74.4). |
+| Info_Layer values | `packages/sim/src/interaction/infoLayers.ts` | Pure derived selectors, not state. |
+| Quirks, summary card | `packages/content/data/phase5/*.json`, `packages/sim/src/systems/summaryCard.ts` | Renderer effects are derived and never saved. |
+
+### Modifiers and `getStat` (Phase 2, Requirement 50)
+
+```ts
+type StatId = 'demand' | 'premiumPrice' | 'repeatOrderChance'      // already wired in Phase 1 and 6
+  | 'seats' | 'taps' | 'vibe' | 'drinkPrice' | 'workSpeed';        // read by Phase 3 to 5 systems
+// A StatId is added to the enum in the same change that makes a system read it. Definitions with other stats are rejected (50.3, 50.4).
+
+type SourceRef = { kind: 'trait' | 'brand' | 'recipe' | 'service' | 'quest' | 'consequence' | 'fitout' | 'quirk' | 'boost' | 'longWait'; id: string };
+type TargetSelector = { kind: 'player' } | { kind: 'business' | 'human' | 'vehicle'; id: Id };
+
+interface Modifier {
+  id: Id;                       // `mod_0001`, from idCounters, so the order of the list is deterministic
+  source: SourceRef; target: TargetSelector; stat: StatId;
+  op: 'addBp' | 'addFlat'; value: number;    // integers
+  untilTick?: Tick;
+}
+```
+
+- Stored modifiers live in `state.modifiers: Modifier[]`, sorted by id. Static ones (Traits, Brands, Recipe Traits, Quirks) are not stored. `getStat` derives them from the Definitions of the target, so existing content keeps working with no state change.
+- `getStat(state, reg, target, stat)`: `base` comes from the Definition or the runtime field named by the StatDef. `sumBp` is the sum of all `addBp` values, `sumFlat` the sum of all `addFlat` values (stored plus static). Result = `base + sumFlat + mulDivFloor(base, sumBp, 10000)` (`mulDivCeil` for stats whose StatDef says `rounding: 'ceil'`, which are the cost-like stats). Because only sums are used, the result does not depend on Modifier order (50.9).
+- Trait data written as `addPct` is converted once at registry load to `addBp = addPct × 100` (the equivalence property 50.6 compares against the earlier direct computation).
+- `modifiers` system (slot 0.5) deletes every Modifier with `untilTick <= tick`.
+- `explainStat(state, reg, target, stat)` returns `{ base, entries: { source, op, value }[], total }` for the "why this number" Panel (50.7).
+- Phase 6 effects (brand demand, recipe repeat chance, boosts, reputation demand modifier, synergy effects) are all written as Modifiers (80.1). The `boosts` section of Phase 6 stays as the saved form of `source.kind = 'boost'` Modifiers created by `completeMinigame`.
+
+### Conditions and Effects (Phase 2, Requirement 52)
+
+```ts
+type Condition =                      // existing kinds stay as they are
+  | ... // event, goldAtLeast, corporateResourceAtLeast, ownedBusinessCountAtLeast, all, any
+  | { kind: 'not'; of: Condition }
+  | { kind: 'revealed'; feature: string }
+  | { kind: 'statAtLeast' | 'statBelow'; target: TargetSelector; stat: StatId; value: number }
+  | { kind: 'loanActive' | 'licensed' | 'pubOpen' } | { kind: 'humanCountAtLeast'; jobId?: JobId; count: number }
+  | { kind: 'serviceUsed'; serviceId: string } | { kind: 'questStepDone'; questId: string; step: number };
+
+type Effect =                         // the closed vocabulary of 52.2
+  | { kind: 'gold'; amount: Gold | { range: [Gold, Gold] }; category: FinanceCategory; source?: string }
+  | { kind: 'addModifier'; target: TargetSelector; stat: StatId; op: 'addBp' | 'addFlat'; value: number | { range: [number, number] }; durationSeconds?: number }
+  | { kind: 'reveal'; triggerId: DefId }
+  | { kind: 'schedule'; event: ScheduledKind; delaySeconds: [number, number]; payload: Record<string, string | number> }
+  | { kind: 'grantResource'; destination: 'serviceBusiness' | { businessId: Id }; resourceId: ResourceId; qty: number }
+  | { kind: 'news'; textKey: TextKey; params?: Record<string, string | number> }
+  | { kind: 'domain'; op: DomainOp; args: Record<string, string | number> };
+type DomainOp = 'setLicense' | 'startLoan' | 'payOffLoan' | 'applyFitOut' | 'setSupplyDeal' | 'buyTap'
+  | 'hireCandidate' | 'fireRibbon' | 'occupyStaff';
+```
+
+- `evaluateCondition(state, reg, events)` is the one evaluator for Reveal_Triggers, Achievements, Quests, Services and Consequences (52.1). It reads state and the Tick's events only. It never reads or writes `state.rng` (52.5).
+- `printCondition` prints the canonical JSON (fixed key order). `parseCondition(print(c))` equals `c` after normalisation (52.7).
+- `applyEffects(ctx, effects, scope)` applies each Effect in order. `gold` goes through `applyGold`, so `GOLD_LIMIT` holds (52.4). Ranges are the only RNG use and are drawn in effect order, so a replay draws the same values. This is the "randomised effect" of 79.2.
+- The `domain` kind is a design extension. The six kinds of 52.2 cannot express starting a Loan, setting a License_Tier, applying a fit-out or hiring a candidate, because those write dedicated state. `DomainOp` is a closed enum and every op is a named function in `domainEffects.ts` that validates its arguments and writes through the same helpers as other code. Requirement 52.2 names it as the seventh kind.
+- Unknown Condition or Effect kinds, unknown StatIds and unknown `DomainOp`s are rejected at registry load with the Definition name (50.4, 52.3, 73.7).
+
+### Services and `useService` (Phase 2, Requirement 51)
+
+```ts
+interface ServiceDef {
+  id: string; nameKey: TextKey; descriptionKey: TextKey;
+  cost: Gold;                                   // integer, charged with mulDivCeil rules like other costs
+  access: 'remote' | 'presence';                // Access_Tag
+  conditions: { when: Condition; reason?: ReasonCode }[];   // reason defaults to 'conditions_not_met'
+  effects: Effect[];
+  once?: boolean;                               // second use rejected with 'already_done'
+  params?: { kind: 'choice' | 'picks' };        // which ServiceParams shape the Desk must send
+}
+// BusinessDef gets:   services?: ServiceDef[];   office?: { clerkKey: TextKey; lineKeys: TextKey[] }   // marker for the Desk
+```
+
+`useService` validation order, all before any mutation (51.4 to 51.8):
+
+1. Business and Service exist, else `unknown_entity`.
+2. District unlocked, else `district_locked`.
+3. `access === 'presence'` requires the CEO inside the Business or within `interactionRange` of its door, else `not_present`.
+4. Conditions in listed order. The first failing one rejects with its `reason`. This is how `already_licensed`, `loan_active`, `deal_missing` and `limit_reached` are produced from data, without a handler per service.
+5. `once` and `already_done`.
+6. `requireGold(cost)`, else `insufficient_gold` with `missingGold`.
+7. Deduct cost, `applyEffects`, record `state.servicesUsed[serviceId]`.
+
+`state.servicesUsed: Record<string, Tick>` is used by `once` and by the `serviceUsed` Condition. Offices are plain Business Definitions (`owner: 'npc'`, `storage: {}`, `services`, `office`). No system names an Office (60.2). The Phone applies `remote` settings through their own Commands and shows "Drive there" for `presence` ones (71.10).
+
+### Command_Log, replay and State_Hash (Phase 2, Requirement 53)
+
+```ts
+interface LogEntry { tick: Tick; issuer: Issuer; cmd: Command; repeat?: number }   // repeat: the same Command on `repeat` consecutive Ticks
+interface CommandLog { baseTick: Tick; baseHash: string; entries: LogEntry[] }
+function runLog(reg, base: SimState, log: CommandLog, untilTick: Tick): { state: SimState; hash: string };
+function canonicalJson(state: SimState): string;     // keys sorted, numbers printed by the standard JSON rules
+function stateHash(state: SimState): string;          // 16 hex characters, FNV-1a 64 over UTF-8 bytes of canonicalJson
+```
+
+- `canonicalJson` sorts object keys at every level, so insertion order differences do not change the hash.
+- Recording: the web `commandRecorder` wraps `submit`. Runs of identical per-Tick Commands (`ceoMove`, joystick intents) are stored with `repeat`. Manual driving poses differ every Tick and are stored as they are (53.4). Replay feeds them back as Commands, so it never needs Rapier.
+- Storage: the Save_Document envelope gets an optional `commandLog` holding only the tail since the previous Local_Store write, limited to `config.commandLogTailLimit` entries, plus `baseTick` and `baseHash`. A full log with its start snapshot is exported by the bug-report button and used by the golden test. The optional field needs no schema bump.
+- The web loop computes `stateHash` every `config.stateHashEveryTicks` Ticks and keeps the latest `{ tick, hash }` for the debug overlay. The upload DTO gets optional `stateHash` and `tick` fields (53.7, 53.8). The server stores them and returns them in the meta response, so two devices at the same Tick can compare.
+- Golden playthrough: `packages/sim/test/golden/ten-minutes.log.json` plus `ten-minutes.hash`. The test replays the log and asserts the hash. A `npm.cmd run golden:record` script rewrites the hash on purpose (53.5, 53.6).
+
+### Frontage_Slots (Phase 2, Requirement 54)
+
+```ts
+interface StreetDef {
+  id: string; districtId: DistrictId;
+  edge: { a: NodeId; b: NodeId }; side: 'left' | 'right'; startOffset: number;
+  slots: FrontageSlot[];                          // laid out shoulder to shoulder from startOffset
+}
+interface FrontageSlot {
+  id: string; kind: 'filler' | 'business' | 'plot'; width: number;     // World_Units; narrow houses 6 to 8, landmarks double
+  modelKey?: string; businessDefId?: DefId; plotId?: Id; price?: Gold; facing?: number;
+}
+```
+
+- `DistrictDef` gets `streets: StreetDef[]` and a derived `fillers: { slotId; x; z; w; d; rotation; modelKey }[]`. The existing explicit `plots` array remains valid, so a District can be converted one street at a time.
+- `defs/frontage.ts` derives, per slot: the position along the road edge from the cumulative widths, a `PlotDef` for kinds `business` and `plot` (id = `slot.plotId ?? slot.id`, so existing Plot ids do not change and saves need no id mapping), the `accessNode` (nearest road node), the Unloading_Zone on the road next to the slot, and the hitbox and walkable cut-out. A `filler` needs only a model key (54.3). Changing a slot from `filler` to `business` changes only `kind` and `businessDefId`, not the position or model (54.9).
+- Registry checks: slots of one street do not overlap and lie within the edge length, every derived Plot lies inside the District bounds, `business` slots reference an existing Business Definition (54.11). If a layout change would rename an existing Plot id, a v3 migration step maps old to new ids (54.10). The converted Old Town keeps its ids, so that step is empty unless a later layout renames them.
+- The Renderer draws slots without loose ground between them, leaves the curb strip in front, and scales each model to its slot width using the footprint code (54.2, 54.8). City hall becomes a double-width slot on its street. Off-street landmarks stay in `landmarks.json`.
+
+### Bar_Worker and pub capacity (Phase 3, Requirements 55 to 57)
+
+Layout anchors (55.5):
+
+```ts
+interface LayoutDef { key: string; door: P; mat: P; bar: P; till: P; cleanSpot: P; taps: P[]; seats: P[]; storage: P; exit: P }   // P = {x, z} in interior-local units
+```
+
+The Simulation reads anchors through `reg.layouts`. Distance is the straight-line distance (`Math.sqrt`) between two anchors, because an interior has no obstacles that the sim models. Step duration in Ticks = `ceil(distance / jobMovementSpeed × ticksPerSecond)`. The pub definition lists `layoutKey`, and the registry checks `seats.length >= pub.seats` and `taps.length >= pub.maxTaps`.
+
+Worker state machine (one per working Bar_Worker or per headcount unit; the task cursor already exists as `StaffTask`):
+
+```ts
+type WorkerTask =
+  | { step: 'walk'; to: AnchorRef; doneTick: Tick; then: WorkerTask['step'] }
+  | { step: 'takeOrder' | 'pour' | 'handOver' | 'takePayment' | 'clean'; customerId?: Id; tapIndex?: number; doneTick: Tick };
+```
+
+Priority for an idle worker is data (`config.barWorkerPriority`, default `takePayment, handOver, pour, takeOrder, clean`). The worker picks the first step that has work and a free resource:
+
+- `takePayment`: a Customer in `paying` state with a Tab. Ends with the Tab paid (see below).
+- `handOver`: a poured drink on the bar. A walk to the seat is added, and handing over starts the drink.
+- `pour`: an order taken and not poured, one beer in stock, and a free Tap. If every Tap is busy the worker waits (56.3). Taps are reserved per Tick by index, so two workers never use the same Tap.
+- `takeOrder`: a seated Customer whose order has not been taken. The order is registered when the step ends (`orderQueue[i].taken`).
+- `clean`: when nothing else has work. Finishing a clean step removes the oldest `longWait` Modifier of that Pub early, which is how idle workers help the Vibe recover.
+
+The `staff` system keeps its pipeline slot and the existing order queue, bar entries and lot threading (55.3). Work speed is read as `getStat(worker, 'workSpeed')` and divides step durations. The Pace setting maps to a `workSpeed` Modifier (`relaxed` −10%, `normal` 0, `hustle` +15%; values in data), so Hustle and quirks use the same path.
+
+Seats, Taps and Hands (56):
+
+- `seats = player.license ? min(getStat(pub, 'seats'), license.maxSeats) : 0` (62.6), `taps = min(getStat(pub, 'taps'), def.maxTaps)`. Base values come from `PubRuntime.seatsBuilt` and `PubRuntime.tapsBuilt`, which the fit-out and the supplier tap purchase raise. The seat array of `PubRuntime` is sized to `seats`.
+- `hands` is the sum over workers of `1 / averageCycleSeconds` per minute, measured from the worker steps of the last 60 seconds. While a worker has no measured cycle yet, its base is `60 / (pourSeconds + 2 × config.defaultWalkDistance / movementSpeed)` (56.8).
+- The Panel bars show `capacity / demandLoad` for each of the three numbers, with `demandLoad` taken from the existing staffing formula inputs (arrivals per minute and stay length). The lowest ratio is the bottleneck. When `demandLoad` is 0, the ratio is defined as 0 and no bottleneck is shown, with no division (56.9). `metrics` computes the three ratios.
+- The Supplier service `buy_tap` uses the `buyTap` domain op. It rejects with `limit_reached` when `tapsBuilt` is already at `def.maxTaps` (56.6).
+
+Tabs, Walkouts and Vibe (57):
+
+```ts
+interface Customer { ...; typeId: string; tab: { amount: Gold; lines: number }; waitedLong: boolean; payDeadlineTick: Tick | null }
+interface PubRuntime { ...; seatsBuilt: number; tapsBuilt: number; vibeBase: number; open: boolean; pace: 'relaxed' | 'normal' | 'hustle';
+                       orderQueue: { customerId: Id; placedTick: Tick; taken: boolean; poured: boolean }[]; lostIncome: RingBuffer }
+```
+
+- Serving a drink adds the price at the serve Tick to `tab` (57.1).
+- A Customer who finishes enters `paying` and waits for a `takePayment` step. If no worker has finished it within `config.payWaitSeconds`, the Customer leaves. If the walkout condition below holds (low Vibe or `waitedLong`), the walkout path applies. Otherwise the Customer pays the Tab automatically and no RNG value is drawn (57.9, consistent with Property 64).
+- At the end of `takePayment` the Tab is paid through `applyGold(…, 'sales', pubId)`. For a Competitor Pub it is a no-op, as before.
+- Walkout rule (57.4): when a Customer would leave `paying`, a Walkout is possible only if `getStat(pub, 'vibe') < config.walkoutVibeBelow` or `waitedLong` is true. Then `rngInt(0, 99) < config.walkoutPct` decides. Outside that condition no RNG value is drawn.
+- A Walkout adds the Tab amount to `lostIncome` and pays nothing. After either outcome `tab` is zero, so no Tab remains once the Customer is gone (57.8).
+- When a wait exceeds `config.longWaitSeconds`, the Customer gets `waitedLong = true` once and the Pub gets a `longWait` Modifier `{ stat: 'vibe', op: 'addFlat', value: −config.longWaitVibePenalty, untilTick: tick + config.longWaitVibeSeconds }` (57.6).
+- Vibe is `clamp(getStat(pub, 'vibe'), 0, 100)`. Base is `vibeBase`, set by the fit-out decoration, so a pub without a decoration has the data default.
+- Customer types (`customerTypes.json`) hold weights, patience and tab multipliers. A License_Tier lists the allowed types. Arrivals draw the type with `rngInt` over the allowed weights only when more than one type is allowed.
+
+`pub_open` gating (61.6): `customerArrivals` returns immediately unless `isRevealed('pub_open')`. While the Pub is `open = false` (Pintly toggle, or before opening) no arrivals are generated either. Customers already inside finish normally.
+
+### Kegs (Phase 3, Requirement 58)
+
+The canonical Beer amount in every Stock, cargo, load, Order and limit stays in drinks. A Keg is a visual and pricing unit only, not a second unit of account (58.1).
+
+```ts
+interface ResourceDef { ...; container?: { id: string; drinks: number; modelKey: string } }   // beer: keg with `drinks` per keg
+// player.supplyDeal.kegDrinks overrides container.drinks for the Player's Orders (small kegs or big kegs)
+```
+
+- Orders, loads and unloads stay in drinks. They are not rounded to whole Kegs.
+- Helpers `toContainers(amount, size)` (a display count) and `fromContainers(count, size)` live in `storage/containers.ts`. Only the UI and the Renderer use them.
+- The conservation ledger keeps working in drinks, so Property 3 is unchanged.
+- Price per drink = `pricePerKeg / kegDrinks`. Every cost computed from it is rounded up to whole hundredths, using `costOf` rounding (58.6).
+- The open Keg is the oldest lot at the Pub (FIFO), and each pour takes one drink from it. When it is empty the next lot is "opened" without any extra step (58.4).
+- The Renderer shows kegs instead of crates by `modelKey` and count `ceil(amount / drinksPerContainer)` (58.3).
+- Migration of crate-based Beer (58.5): amounts do not change, so the total number of drinks is identical by construction. The migration only sets `player.supplyDeal` for existing saves to the default small-keg deal and fires `supplier_deal`.
+
+### Offices, license, loans, fit-out, supply deals, hiring (Phase 3, Requirements 60 to 66)
+
+All of these are Definitions, Services and domain Effects.
+
+| Data file (`packages/content/data/phase3/`) | Shape (short) | Used by |
+|---|---|---|
+| `licenseTiers.json` | `{ id, fee, minSeats, maxSeats, minTaps, customerTypes[] }` | Municipality service `take_license_<tier>` with `setLicense` |
+| `loanOffers.json` | `{ id, principal, fitOutBudget, repaymentPerMinute, interestBp, termMinutes }` | Bank services with `startLoan` |
+| `fitOutItems.json` | `{ id, kind: 'table' \| 'tap' \| 'decoration', price, seats?, taps?, vibe?, modelKey }` | Pub service `fit_out` with `applyFitOut` |
+| `supplyDeals.json` | `{ id, pricePerKeg, kegDrinks, contractFeePerMinute? }` | Supplier services with `setSupplyDeal` |
+| `candidates.json` | `{ id, name, jobId, quirkId, cvKey, salaryPerMinute }` | Job centre services with `hireCandidate` |
+| `requests.json` | `{ id, businessRole, serviceId, deadlineSeconds, consequence: Effect[] }` | Municipality and bank requests (68) |
+
+State additions:
+
+```ts
+interface PlayerState { ...; license: { tierId: string; minSeats: number; maxSeats: number; minTaps: number; customerTypes: string[] } | null;   // while null, seats = 0 (62.6)
+                        supplyDeal: { dealId: string; kegDrinks: number; pricePerKeg: Gold; contractFeePerMinute: Gold; feeCarry: number } | null;
+                        fitOutBudget: Gold }
+interface Loan { id: Id; offerId: string; principal: Gold; remaining: Gold; repaymentPerMinute: Gold; carry: number; startTick: Tick }
+// SimState: loans: Loan[]; requests?: Record<Id, { id: Id; defId: string; businessId: Id; expiresTick: Tick }>
+```
+
+- `startLoan`: rejects with `loan_active` when `loans` is not empty (done by the Service condition). Adds `principal − fitOutBudget` through `applyGold` (category `loan`, added to `FinanceCategory`; the fit-out budget is part of the principal, 63.2), sets `fitOutBudget` to the offer budget and creates the Loan with `remaining = principal + ceil(principal × interestBp / 10000)`. The loan chip and the Ledgr app read this record (63.8).
+- Load-time validation (63.11): the registry rejects an offer unless both hold:
+  - `fitOutBudget ≤ principal`
+  - `repaymentPerMinute × termMinutes ≥ principal + ceil(principal × interestBp / 10000)`
+- Repayment in `finance`: `carry += repaymentPerMinute; charge = floor(carry / ticksPerMinute); carry −= charge × ticksPerMinute; charge = min(charge, remaining)`. The charge is a Mandatory_Expense (category `loan`), so Gold may go negative (63.4). When `remaining` reaches 0 the record is removed (63.5). Early payoff pays `remaining` in full (63.7).
+- `applyFitOut`: the Service `params.picks` lists item ids with counts. The op checks the total price against `fitOutBudget` (`insufficient_gold` with the missing amount), the table count against `license.maxSeats` (`limit_reached`), and the tap count against the pub maximum. It then raises `seatsBuilt`, `tapsBuilt` and `vibeBase`, lowers `fitOutBudget`, and fires `fit_out_done`. The budget is not Gold: it can only be spent here.
+- `setLicense` rejects with `already_licensed` through the Service condition. It sets `player.license`, fires `license_granted`, and the Pub's `seatsBuilt` is capped at the tier maximum.
+- `setSupplyDeal` sets `player.supplyDeal` and fires `supplier_deal`. Until it fires, `placeOrder` and auto-reorder are rejected with `deal_missing` (65.5). The dev start sets a default deal.
+- Contract fees use the same exact-carry rule inside `finance` (65.6).
+- `hireCandidate` creates a Human with the candidate's name and Quirk (the name does not go through the Name_Pool draw, but it still follows the uniqueness rule of 7.21), charges the Hiring_Cost, fires `first_hire` once, and refuses a second Bar_Worker until `hiring_option` has fired (66.5).
+- `fireRibbon` (service "Cut the ribbon") requires `first_kegs` fired and every other checklist entry done, then fires `pub_open` (61.5).
+- Reveal_Triggers added: `license_granted`, `loan_taken`, `fit_out_done`, `supplier_deal`, `first_hire`, `first_kegs`, `pub_open`, `first_news`, `first_permit_offer`. `first_kegs` fires on the `vehicleUnloaded` event at a Player Pub for the first time.
+- Unlock menu (67): each Reveal_Trigger Definition gets `teaserKey`, `descriptionKey` and `gaveKey`. The registry rejects a Definition without the first two (67.5). The Panel lists all triggers, showing only the teaser until the id is in `reveals.fired`.
+
+### Grand Opening and quests (Phase 3 engine, Phase 4 UI, Requirements 61 and 73)
+
+```ts
+interface QuestDef { id: string; nameKey: TextKey; steps: { id: string; textKey: TextKey; done: Condition; targetBusinessRole?: string; reward?: Effect[]; requires?: string[] }[] }
+// SimState: quests: Record<string, { step: number; doneSteps: string[] }>
+```
+
+- The Grand Opening checklist is the quest `grand_opening`. Its steps are Municipality, Bank, Pub fit-out (`requires` a Loan and a License_Tier), Supplier, Job centre and Back at the pub (`requires` every other step) (61.4). Steps outside `requires` can be done in any order.
+- `targetBusinessRole` is a role tag on a Business Definition (`municipality`, `bank`), not an id, so the Waypoint and HUD resolve the Business by tag and no system names a Business.
+- The `quests` system (slot 20.5) checks the open steps each Tick, advances those whose Condition holds, and applies each step reward once (73.2). The quest chain after the Grand Opening is "First 100 pints" and "Second location".
+- The engine lands in Phase 3, because the checklist needs it. The To-Do app, the tracker and the Waypoint land in Phase 4.
+- Dev start: `newGame(..., { start: 'dev' })` fires all checklist triggers and sets the quest to completed (61.8).
+
+### CEO outside jobs (Phase 3, Requirement 68)
+
+- Emergency supply runs: `placeOrder` already works without a Driver. The runs exist as soon as an Order is waiting and no Driver is assigned, so the existing `awaiting_pickup` Alert covers it. No new code besides the quest text.
+- Municipality and bank requests are `requests` records created by a scheduler event `spawnRequest` (a new member of `scheduledKindSchema`, along with `requestDeadline`). Each request is answered by a presence Service of the same Office. When the deadline Tick passes unanswered, the request's `consequence` Effects apply (68.4).
+- Scouting is a Service with `access: 'presence'` on a Competitor Business or a Plot that reveals its details (a `reveal` Effect).
+- Side deliveries are Quests with a `deliver` step Condition over the `vehicleUnloaded` event and a reward.
+- Head of Errands (68.8): a Job with `maxHeadcountPerSlot ≥ 1` whose capacity lets the `errands` system (slot 2.5) apply due presence Services marked `delegable` without the CEO.
+
+### Finance buckets and Gold per hour (Phase 4, Requirement 70, schema v4)
+
+```ts
+interface FinanceState { minutes: { minute: number; byKey: Record<string, Gold> }[] }   // ring of 60 entries, replaces the 300 second buckets
+// byKey key = `${FinanceCategory}|${businessId}` (businessId '' for owner-level entries: salary, severance, loan, contract, license, service)
+```
+
+- `applyGold` adds to the bucket for `floor(tick / ticksPerMinute)` under the key `category|businessId`. At a minute boundary the ring rotates and the oldest bucket is cleared.
+- Selectors:
+  - `goldPerHour = Σ byKey over the 60 buckets`: the current partial minute plus the 59 before it.
+  - `goldPerHourOf(businessId)` and `byCategory` sum the matching keys, so per-Business finance (8.2, 27.5) and the Money Info_Layer keep working.
+  - The Finance Panel's 5-minute view sums the last 5 buckets (70.4).
+- Runway in game minutes = `floor(gold / (−goldPerHour / 60))` when `goldPerHour < 0`, otherwise not shown (70.5). The sparkline is the running sum of buckets. These are pure selectors in `money/buckets.ts`.
+- Migration (its own v3 → v4 step, 70.6): the 300-second buckets are folded into minute buckets by `floor(second / 60)`, keeping their `category|source` keys mapped to `category|businessId`. Older entries become zero buckets (70.3).
+
+### Phone, Desk, HUD, Waypoint and Info_Layers (Phase 4, Requirements 69 to 74)
+
+- The phone shell and its apps are designed in `.kiro/specs/ceo-phone/design.md`, which replaces tasks 56 and 59.
+  - `ui/apps.json` has `{ id, nameKey, icon, colour, revealFeature, tabs, dock, order }`.
+  - `revealFeature` is always a reveal **feature**, never a trigger id. App features are named `app_<id>`. An existing feature may be reused, as LinkedOut reuses `news_feed`.
+  - The content test checks that every non-null feature is known and that every text key exists.
+  - The Phone renders the installed apps sorted by `order` (71.3). Installing an app is the `revealFired` event, which also shows the "New app installed" toast (71.4).
+- Phone placement: Q on PC, a button outside the joystick zone on touch, available while Manual_Driving only when the Vehicle is stopped. The Phone is web-only UI over `simBridge` selectors and Commands. It replaces `PubPanel`, the Human, Vehicle, Supplier and Finance panels app by app (71.13). The Business panel that auto-opened on entering a Pub becomes the Pintly card.
+- Settings and their access tag come from `settings.json` (see the Commands notes). The Phone sends the Command for `remote` ones and shows "Drive there" for `presence` ones. The Simulation enforces the same rule.
+- Desk (72): `ui/desk/Desk.tsx` replaces the normal Panel when the CEO enters an Office, or the Pub for a presence service. The service cards are built from `BusinessDef.services` and `office.lineKeys`. Selecting a card starts the stamp gesture (hold to confirm, keyboard: hold Enter). Only a completed gesture sends `useService`. Releasing early sends nothing (72.5). Sound and screen shake are web effects.
+- HUD (69): money pill from `goldPerHour`, loan chip from `loans[0]`, quest tracker from `quests`, alert bell with a "Fix" button that carries a `fix` target (`{ app, screen }` or a Business role) in the Alert, and the Phone button. The existing rule "at most one Alert per type per object" stays.
+- Waypoint (73.4 to 73.6): `store/waypointStore.ts` keeps `{ targetBusinessId }`. A renderer component draws road arrows along the path from `pathCacheFor` between the CEO's nearest road point and the target access node. It clears when the CEO is within `interactionRange` of the target or the Player dismisses it. It is never saved.
+- Info_Layers (74): `interaction/infoLayers.ts` returns `Record<Id, number>` in 0..1 per layer: Demand (arrivals per minute over a data maximum), Stock (storage fill), Staff (working capacity over required), Routes (flow of the last 300 seconds), Money (net Gold per minute per Business, from the existing metrics). Wayfindr and the 3D tint call the same function, so they agree (74.2, 74.3). The selected layer is web state.
+
+### Feel alive and satire content (Phase 5, Requirements 75 to 79)
+
+- Readable customers (75): thought bubbles and coin pops are drawn from Customer state and the `customerPaid` event. Bubbles and sound follow the visibility rule (indoors only) and the existing aggregation rule above 20 figures. Icons come from `theme.json`. A mute flag is a web setting.
+- Quirks (76): `quirks.json` `{ id, textKey, trigger: 'pour' | 'walk' | 'idle' | 'serve', modifiers?: Modifier-like[] }`. `Human.quirkId` is optional, set from the start state or the candidate. A quirk with `modifiers` is a static source for `getStat` on that Human (76.5). A Headcount_Fill has no quirk and no bubble (76.4), because there is no Human record.
+- Street life (77): queue size, window glow and cheering are derived in the Renderer from waiting Customers, Seats and the popularity band. None of it is saved.
+- Summary card (78): `state.summary: { nextCardTick: Tick; base: { served: number; lost: number; gold: Gold } }`. The `summaryCard` system emits a `summaryDue` event with the deltas and an Employee of the Month. The name is picked with `rngPick` over Humans with `kind: 'human'` fills only (78.3). Because the interval is `nextCardTick` in game time, it follows Game_Speed by construction (78.2). The web loop adds a `summaryCard` pause reason and restores the earlier speed on dismissal (78.4, 78.5).
+- Satire hooks (79): all seven hooks are Services, Questionable_Opportunities, Competitor events or Consequences. The consultant uses the `range` Effects. Team-building uses the `occupyStaff` domain op plus a `schedule` Effect of kind `applyEffects` that applies an `addModifier` after the occupied time. Rival poaching is a Competitor event that opens a Service as a `request`. The health inspector is a Consequence with a `gold` Effect. Loyalty card and happy hour are `addModifier` Effects (`repeatOrderChance`, `demand`, `drinkPrice`). The LinkedIn-style news is `news` Effects with text keys.
+
+### Phase 6 reuse of the foundations (Requirement 80)
+
+- Traits, Brands, Recipe Traits, Reputation demand, Synergy and Boosts are read through `getStat` (80.1). The Phase 6 code that is not built yet is written against `getStat` from the start. The parts of the foundation step already built (trait schema, registry conversion) keep working through the load-time conversion above.
+- Plot, building, acquisition and questionable actions keep their dedicated Commands but follow the cost and effect path (80.2). Reveals, Achievements, Consequences and Competitor event effects use `evaluateCondition` and `applyEffects` (80.3). New Business placements use Frontage_Slots (80.4). Phase 6 pub staffing uses `bar_worker` and Seats, Taps and Hands (80.5). Vehicles use `handling` data (80.6).
+
+### Save schema and migrations
+
+| Version | Lands in | Contents |
+|---|---|---|
+| v1 | Phase 1 | Built. |
+| v2 | Phase 6 foundation step | Built. Market, acquisitions, questionable, chains, boosts, reputationPending, sourcing defaults, depot Plot and Business. |
+| v3 | Start of Phase 3 | One migration for everything Phases 2 and 3 need (below). |
+| v4 | Phase 4 | Gold minute buckets keyed by category and Business (Requirement 70), with its own v3 → v4 step. |
+
+Rule: once v3 saves can exist, the v2 → v3 step is never edited again. Every later state change gets its own version and step (59.7).
+
+The decision: one migration, version 3, for Phases 2 and 3, so existing playthroughs are migrated once for them. The Gold buckets are v4. Phase 2 ships before it without a bump, because everything Phase 2 adds is either optional and means "empty" when absent (`modifiers`, `servicesUsed`, `commandLog` in the envelope) or derived (frontage output, hash). The version bump to 3 happens in the first Phase 3 task that adds a required field. That task also writes the migration for the Phase 2 sections, which satisfies 50.8. Phase 5 additions (`Human.quirkId`, `summary`) are optional with defaults on read, so they need no new version. If a later change adds a required field, it becomes v4 with its own step.
+
+Migration v2 to v3 (pure JSON function, local types, never imports current types):
+
+1. Add `modifiers: []`, `servicesUsed: {}`, `loans: []`, `quests`, `requests: {}`, `summary`.
+2. Jobs: map every `bartender` and `server` Job_Slot to `bar_worker`, merging per Pub. Keep the Humans, set `jobId` on their assignment, and keep one `bar_worker` slot per old slot (the Pub Definition lists the new slot counts, so no Human is lost; extra Humans stay unassigned if the new count is lower) (59.1).
+3. Customers: add `tab = { amount: drinksConsumed × pubPrice at migration, lines: drinksConsumed }`, `typeId` default, `waitedLong: false`. Customers in `waiting` keep their order entry with `taken: true`. A drink carried by a Server (`carry` task) goes back to the bar entry list, and the Customer keeps waiting (59.2).
+4. Pubs: `seatsBuilt = seats.length`, `tapsBuilt = def default`, `vibeBase = data default`, `open: true`, `pace: 'normal'`, `lostIncome` empty ring.
+5. Player: `license` of the Pub tier, `supplyDeal` default small-keg deal, `fitOutBudget: 0`. Fired reveals gain `pub_open`, `license_granted`, `supplier_deal`, `first_hire`, `first_kegs` for existing saves (59.3).
+6. Finance: unchanged in v3 (the minute buckets are the v3 → v4 step).
+7. Insert the Office Businesses and their Plots as literal JSON, like the depot in v1 to v2, so existing saves have a town with a Municipality, Bank and Job_Centre. The new `plots` follow the frontage derivation, with ids that were not used before.
+8. Plot id mapping step (54.10): empty unless the street conversion renamed ids.
+9. Phase 6 sections (v2) stay as they are.
+
+Fixtures for v1 and v2 are generated from the current code before the first schema change. A test migrates every fixture, then runs `simStateSchema`, `checkInvariants` and 300 Ticks (59.4). Because migrations run in order, v1 fixtures also pass through v2 to v3.
+
+### Reason codes and Commands added
+
+Commands: `useService`, `setWorkerPace`, `setPubOpen`. Reason codes: `not_present`, `conditions_not_met`, `already_licensed`, `loan_active`, `deal_missing`, `limit_reached`, `already_done`. All of them need `reason.<code>` text keys in `en.json` (the dynamic keys are not covered by the key test, so they are added by hand, as in `phase2-guide.md`). New scheduler kinds are added to `scheduledKindSchema` and to the dispatch switch together with their handlers:
+- `spawnRequest`
+- `requestDeadline`
+- `applyEffects`, with payload `{ sourceRef, effectIndex }`, an index into a data Effect list such as a Service, Questionable_Opportunity or Consequence definition, so delayed Effects are expressible. Team-building ("work faster after the occupied time") and consultant follow-ups use it.
+
+`applyEffects` replaces the earlier one-off `applyAfterOccupied` kind.
+
 ## Data Models
 
 All types live in `packages/sim/src/state/types.ts` and `packages/sim/src/defs/schemas.ts` (zod schemas with `z.infer` types). Ids are prefixed strings (`biz_0001`, `hum_0004`, `veh_0001`, `cus_0123`) allocated from `state.idCounters`, so allocation is deterministic.
@@ -997,7 +1412,9 @@ interface VehicleDef {
   id: DefId; type: string; capacity: number; speed: number;          // World_Units / s
   driverRequirement: { jobId: JobId } | null;                         // null = automated later (46.4)
   allowedResources: ResourceId[];
-  handling: { acceleration: number; steeringLooseness: number; bodyRoll: number; bounciness: number; mass: number };
+  handling: { acceleration: number; steeringLooseness: number; bodyRoll: number; bounciness: number; mass: number;
+              manualTopSpeed: number;                      // about 2x the route speed for the Delivery_Van (13.4)
+              driftGrip: number; lowSpeedThreshold: number; suspension: { rest: number; stiffness: number; damping: number } };  // 13.18, 13.19, 13.21
   modelKey: string;
 }
 
@@ -1045,7 +1462,7 @@ interface PlotDef {
 interface SimConfig {
   tickMs: 100; ticksPerSecond: 10; maxTicksPerFrame: 10;   // base cap, multiplied by Game_Speed in the web loop
   gameSpeeds: [1, 2, 4];                                    // read by the web loop only
-  interactionRange: 2; manualSpeedBonus: 0.10; manualTipFactor: 0.05; stoppedSpeed: 0.5;
+  interactionRange: 2; doorHintTolerance: 1.5; manualTipFactor: 0.05; stoppedSpeed: 0.5;
   lostAlertPct: 10; lostAlertMinArrivals: 10; bottleneckPct: 10; routeWaitSeconds: 10;
   repeatChanceMax: 0.9; reputationStart: 50; popularityBands: { low: number; high: number };
 }
@@ -1084,12 +1501,23 @@ interface SimState {
   reveals: { fired: string[] };
   achievements: string[];
   news: NewsItem[];                          // bounded to last 50
-  // Phase 2 optional sections, added by migration
+  // Phase 6 optional sections, added by migration v2 (Phase 2 to 5 additions are listed under "Phases 2 to 5 design")
   market?: MarketState;
   acquisitions?: { offers: Record<Id, AcquisitionOffer> };
   questionable?: { offers: Record<Id, QuestionableOffer>; running: Record<Id, RunningQuestionable> };
   chains?: { registered: Record<string, CorporateChain> };
   boosts?: ActiveBoost[];
+  // Phase 2 (optional until v3; required from v3)
+  modifiers?: Modifier[];
+  servicesUsed?: Record<string, number>;           // serviceId|businessId → count, for `once` Services
+  // Phase 3 (v3)
+  loans?: Loan[];
+  quests?: Record<string, { step: number; doneSteps: string[] }>;
+  requests?: Record<Id, { id: Id; defId: string; businessId: Id; expiresTick: Tick }>;
+  // PlayerState gains license, supplyDeal, fitOutBudget; PubRuntime gains seatsBuilt, tapsBuilt, vibeBase, open, pace, lostIncome
+  // Phase 5 (optional, no version bump)
+  summary?: { nextCardTick: Tick; base: { served: number; lost: number; gold: Gold } };
+  // Human gains optional quirkId (Phase 5)
 }
 
 interface PlayerState {
@@ -1162,6 +1590,11 @@ interface Customer {
   state: 'entering' | 'waiting' | 'drinking' | 'paying' | 'leaving';
   stateUntil: Tick; drinksConsumed: number; servedAny: boolean;
   currentLot: Omit<Lot, 'qty'> | null;           // recipe of the drink being consumed
+  // Phase 3 (v3): tab and walkout fields (Req 57)
+  typeId?: string;
+  tab?: { amount: Gold; lines: number };
+  waitedLong?: boolean;
+  payDeadlineTick?: Tick | null;
 }
 
 interface Vehicle {
@@ -1195,8 +1628,9 @@ interface CeoState { x: number; z: number; heading: number; insideBusinessId: Id
 
 interface ScheduledEvent {
   seq: number; fireTick: Tick;
-  kind: 'constructionDone' | 'revealAttribute' | 'consequence' | 'questionableDone';
-  payload: Record<string, string | number>;
+  kind: 'constructionDone' | 'revealAttribute' | 'consequence' | 'questionableDone'   // Phase 1/6
+      | 'spawnRequest' | 'requestDeadline' | 'applyEffects';                         // Phase 3 (scheduledKindSchema)
+  payload: Record<string, string | number>;      // applyEffects: { sourceKind, sourceId, effectIndex }
 }
 
 interface RingBuffer { size: number; head: number; headSecond: number; values: number[]; sum: number }
@@ -1208,10 +1642,12 @@ interface MetricsState {
   routesBottleneck: Record<Id, boolean>;
 }
 interface FinanceState {
-  buckets: { second: number; byKey: Record<string, Gold> }[];   // key = `${category}|${sourceId}`; last 300 seconds
+  buckets: { second: number; byKey: Record<string, Gold> }[];   // v1–v3: key = `${category}|${sourceId}`; last 300 seconds
+  // v4 (Phase 4, Req 70) replaces it with: minutes: { minute: number; byKey: Record<string, Gold> }[]  // 60 entries, key = `${category}|${businessId}`
 }
 type FinanceCategory = 'sales' | 'tip' | 'salary' | 'hiring' | 'severance' | 'purchase' | 'rental'
-  | 'construction' | 'acquisition' | 'liability' | 'fine' | 'market_sale' | 'other';
+  | 'construction' | 'acquisition' | 'liability' | 'fine' | 'market_sale' | 'other'
+  | 'loan' | 'contract' | 'license' | 'service';                 // Phase 3 additions
 interface NewsItem { tick: Tick; textKey: string; params: Record<string, string | number> }
 ```
 
@@ -1229,7 +1665,15 @@ type DomainEvent =
   | { type: 'uiManagementViewOpened' }
   | { type: 'news'; item: NewsItem }
   | { type: 'achievementAwarded'; achievementId: DefId }
-  | { type: 'chainRegistered'; length: number; routeIds: Id[] };
+  | { type: 'chainRegistered'; length: number; routeIds: Id[] }
+  // Phases 2 to 5 additions
+  | { type: 'serviceUsed'; businessId: Id; serviceId: string }
+  | { type: 'walkout'; pubId: Id; amount: Gold }
+  | { type: 'tabPaid'; pubId: Id; amount: Gold }
+  | { type: 'loanStarted' | 'loanRepaid'; loanId: Id }
+  | { type: 'questStepDone'; questId: string; stepId: string }
+  | { type: 'requestSpawned' | 'requestExpired'; requestId: Id }
+  | { type: 'summaryDue'; served: number; lost: number; gold: Gold; employeeOfTheMonth: Id | null };
 ```
 
 ### Save_Document and server records
@@ -1250,7 +1694,9 @@ interface LocalMeta { fallbackWarned: boolean; pinLockouts: Record<string, numbe
 interface SyncQueueEntry { kind: 'deleteSlot'; profileId: string; slotId: string; queuedAt: string }
 ```
 
-### Start state data (excerpt)
+### Start state data (excerpt, running-pub dev start)
+
+From Phase 3 the default start is the Grand Opening start in `start-state.json` (no Humans, closed pub, no Loan, offices present, checklist reveals unfired). The excerpt below is the dev start of 3.1a, kept as `start-state.dev.json` and chosen by `newGame(reg, seed, { start: 'grand_opening' | 'dev' })`. Both starts use the same `createBusiness` path.
 
 ```json
 {
@@ -1319,7 +1765,7 @@ Unless stated otherwise, "any run" means: a generated valid Definition_Registry 
 
 ### Property 7: Gold ledger consistency
 
-*For any* run, every Gold value in state is an integer, and the Player's Gold change over any window equals the sum of finance entries recorded in that window across all categories and sources; the Finance Panel totals per category equal the model sum of the last 300 game seconds of entries.
+*For any* run, every Gold value in state is an integer, and the Player's Gold change over any window equals the sum of finance entries recorded in that window across all categories and Businesses; the Finance Panel totals per category equal the model sum of the last 5 one-minute buckets (from schema v4; before v4, the last 300 game seconds).
 
 **Validates: Requirements 8.1, 8.2, 8.3**
 
@@ -1349,7 +1795,7 @@ Unless stated otherwise, "any run" means: a generated valid Definition_Registry 
 
 ### Property 12: Unstaffed work produces nothing
 
-*For any* Pub state with no working Bartender, no Tick emits a pour for that Pub; *for any* Pub state with no working Server, no Tick emits a served drink for that Pub; and Humans with status `en_route` never hold a work task.
+*For any* Pub state with no working Bartender (Phase 1–2) or no working Bar_Worker (after the Phase 3 migration), no Tick emits a pour for that Pub; *for any* Pub state with no working Server (Phase 1–2) or no working Bar_Worker (after Phase 3), no Tick emits a served drink for that Pub; and Humans with status `en_route` never hold a work task.
 
 **Validates: Requirements 5.4, 5.5, 7.5**
 
@@ -1397,7 +1843,7 @@ Unless stated otherwise, "any run" means: a generated valid Definition_Registry 
 
 ### Property 20: Manual speed cap
 
-*For any* Vehicle Definition and any velocity, the clamped manual velocity magnitude is at most `speed × (1 + manualSpeedBonus)` and velocities below the cap are unchanged.
+*For any* Vehicle Definition and any velocity, the clamped manual velocity magnitude is at most `handling.manualTopSpeed` and velocities below the cap are unchanged.
 
 **Validates: Requirements 13.4**
 
@@ -1409,7 +1855,7 @@ Unless stated otherwise, "any run" means: a generated valid Definition_Registry 
 
 ### Property 22: Context action selection
 
-*For any* CEO position, mode and interactable layout, `contextActionFor` returns the action of the nearest interactable within Interaction_Range according to its kind and Owner (Enter, Drive, Inspect, Help Serve), returns Load/Unload only when driving, stopped below 0.5 World_Units/s and inside an Unloading_Zone (Unload iff the Business accepts part of the cargo), and returns null when nothing is in range.
+*For any* CEO position, mode and interactable layout, `contextActionFor` returns the action of the nearest interactable within Interaction_Range according to its kind, Owner and `office` marker (Enter for owned Businesses and `office` Businesses, Inspect for rival Businesses, Drive, Help Serve), returns Leave only on the interior door mat, returns Load/Unload only when driving, stopped below 0.5 World_Units/s and inside an Unloading_Zone (Unload iff the Business accepts part of the cargo), and returns null when nothing is in range.
 
 **Validates: Requirements 13.2, 13.6, 14.2, 14.3, 14.5, 39.1**
 
@@ -1569,6 +2015,171 @@ Unless stated otherwise, "any run" means: a generated valid Definition_Registry 
 
 **Validates: Requirements 48.5, 48.6, 48.7**
 
+### Properties of Phases 2 to 5
+
+### Property 49: getStat equivalence with the earlier direct computation
+
+*For any* Trait, Brand or Recipe present in the Phase 1 and Phase 6 content, any target and any Reputation, `getStat` returns exactly the value the earlier direct computation (`premiumPrice`, repeat chance, brand demand and price) returned, before any stored Modifier exists.
+
+**Validates: Requirements 50.2, 50.6**
+
+### Property 50: getStat confluence
+
+*For any* set of stored and static Modifiers and any permutation of their order, `getStat` returns the same value, and the value equals `base + Σ addFlat + mulDivFloor(base, Σ addBp, 10000)` (with the ceiling variant for cost-like stats).
+
+**Validates: Requirements 50.1, 50.2, 50.9**
+
+### Property 51: Modifier expiry
+
+*For any* run, after the `modifiers` system of a Tick no stored Modifier has `untilTick` at or before the current Tick, and the stat of an affected target equals its value computed without the expired Modifier.
+
+**Validates: Requirements 50.5**
+
+### Property 52: Unknown stat, condition, effect or domain op is rejected
+
+*For any* valid generated registry and any single mutation that introduces a StatId outside the enumeration, a Condition or Effect kind outside the vocabulary, or an unknown `DomainOp`, registry validation fails with an error naming the Definition and the unknown entry.
+
+**Validates: Requirements 50.3, 50.4, 52.3, 73.7**
+
+### Property 53: Condition evaluation is pure
+
+*For any* generated Condition and valid Simulation state, `evaluateCondition` returns a boolean without throwing, leaves the state deep-equal to its earlier copy, and does not change `state.rng`.
+
+**Validates: Requirements 52.1, 52.5**
+
+### Property 54: Condition print and parse round trip
+
+*For any* valid Condition, parsing its canonical JSON print yields a Condition equivalent to the original, and printing the parsed Condition gives the same text.
+
+**Validates: Requirements 52.7**
+
+### Property 55: Effects keep Gold within bounds
+
+*For any* valid list of Effects (including `range` amounts) and any state whose Gold fields are within the limit, after `applyEffects` every Gold field is within `GOLD_LIMIT`, every Gold change was applied through `applyGold`, and two runs with the same state and RNG produce the same result.
+
+**Validates: Requirements 52.2, 52.4, 52.6, 79.2**
+
+### Property 56: useService validation and atomic rejection
+
+*For any* state and `useService` Command, the Command is rejected without any state change in this priority order: unknown entity, locked District, `presence` without the CEO present, the first failing Condition (with its own reason), `once` already used, insufficient Gold. When all checks pass, Gold decreases by exactly the cost and the Effects are applied once.
+
+**Validates: Requirements 51.3, 51.4, 51.5, 51.6, 51.7, 51.8**
+
+### Property 57: Replay reproduces the recorded hash
+
+*For any* run recorded as a Command_Log from a start snapshot (including runs with manual driving poses), replaying the log headless to the same Tick yields a state deep-equal to the recorded one and the same `stateHash`.
+
+**Validates: Requirements 53.1, 53.3, 53.4**
+
+### Property 58: Command_Log compression round trip
+
+*For any* Command_Log, expanding the compressed form (runs of identical per-Tick Commands stored with `repeat`) gives the original entry sequence, and the stored tail never exceeds the configured limit.
+
+**Validates: Requirements 53.2**
+
+### Property 59: State_Hash is canonical
+
+*For any* two deep-equal Simulation states whose object keys were inserted in different orders, `stateHash` is equal. *For any* two states that differ in one value, the canonical JSON differs, and the hash differs for all generated cases.
+
+**Validates: Requirements 53.7, 53.8**
+
+### Property 60: Frontage layout validity
+
+*For any* generated street, the derived slot rectangles do not overlap, lie within the road edge length and the District bounds, every derived Plot lies inside its District, and changing a slot's kind from `filler` to `business` changes neither its rectangle nor its model key. *For any* street with an overlapping or out-of-bounds slot, registry validation fails and names the District and the slot.
+
+**Validates: Requirements 54.1, 54.6, 54.9, 54.11**
+
+### Property 61: Layout distance drives throughput
+
+*For any* two layouts that are equal except that the anchors of one are scaled farther apart, and otherwise identical state, the Bar_Worker average cycle time at the farther layout is greater than or equal to that at the nearer layout, and strictly greater when any walking step exists.
+
+**Validates: Requirements 55.4, 55.6**
+
+### Property 62: Capacity limits hold
+
+*For any* run, occupied seats never exceed `seats`, simultaneous pours never exceed `taps`, `seats` never exceeds the License_Tier maximum, `taps` never exceeds the Pub maximum, and buying a Tap at the maximum is rejected with `limit_reached` without any change.
+
+**Validates: Requirements 56.1, 56.3, 56.4, 56.5, 56.6, 64.5**
+
+### Property 63: Tab conservation
+
+*For any* run, every Customer's Tab equals the sum of the drink prices recorded at the serve Ticks, and when the Customer is gone the Tab has been either paid in full to the Owner's Gold or written off in full into `lostIncome`, never partly, with a zero Tab left.
+
+**Validates: Requirements 57.1, 57.2, 57.5, 57.8, 4.7**
+
+### Property 64: Walkouts need a reason
+
+*For any* run, every Walkout occurs for a Customer who left with Vibe below the Walkout threshold or with `waitedLong` set, and no RNG value is drawn for a leaving Customer when neither condition holds.
+
+A Customer whose pay wait times out without either condition pays the Tab automatically (57.9).
+**Validates: Requirements 57.3, 57.4, 57.6, 57.9**
+
+### Property 65: Container helpers preserve drinks
+
+*For any* drink amount and container size, `fromContainers(toContainers(amount))` plus the remainder equals the amount; every capacity, cargo, load and Order stays in drinks; the per-drink price `pricePerKeg / kegDrinks` gives costs rounded up to whole hundredths; and migrating a crate-based save leaves the total number of drinks unchanged.
+
+**Validates: Requirements 58.2, 58.4, 58.5**
+
+### Property 66: Migration to v3 is valid and removes old jobs
+
+*For any* Save_Document fixture of schema versions 1 and 2 and any generated v2 state, migrating to v3 passes validation, leaves no `bartender` or `server` Job_Slot or assignment, keeps every Human, keeps each Customer's drinks on a Tab, and the pre-migration copy is kept as the backup.
+
+**Validates: Requirements 59.1, 59.2, 59.3, 59.4, 59.5**
+
+### Property 67: Loan repayment conservation
+
+*For any* Loan offer and any Gold balance (including negative balances), the sum of all repayment charges over the Loan's life equals `principal + interest` exactly, no charge makes `remaining` negative, and the Loan record is removed in the Tick `remaining` reaches 0.
+
+**Validates: Requirements 63.3, 63.4, 63.5, 63.10**
+
+### Property 68: Loan rules
+
+*For any* state, taking a Loan while another has a remaining balance is rejected with `loan_active` without any change, a taken Loan adds exactly `principal` through `applyGold` with category `loan`, and an early payoff deducts exactly `remaining` and removes the Loan.
+
+**Validates: Requirements 63.2, 63.6, 63.7**
+
+### Property 69: Grand Opening gating
+
+*For any* run that starts in the Grand Opening start, no Customer arrives while `pub_open` has not fired, the "Pub fit-out" step is done only after a Loan and a License_Tier exist, and "Back at the pub" is done only after every other step.
+
+**Validates: Requirements 61.4, 61.5, 61.6**
+
+### Property 70: Fit-out budget
+
+*For any* fit-out picks, the Command is accepted iff the total price is within `fitOutBudget` and the tables fit the License_Tier maximum; when accepted `fitOutBudget` decreases by exactly the total price and Seats, Taps and Vibe base rise by the chosen items; otherwise nothing changes and the reason is `insufficient_gold` or `limit_reached`.
+
+**Validates: Requirements 64.2, 64.3, 64.4, 64.5**
+
+### Property 71: Gold bucket consistency
+
+*For any* sequence of Gold changes over any number of Ticks, the per-Business sums of the `category|businessId` buckets add up to the total, `goldPerHour` equals the sum of the recorded changes of the last 60 game minutes (current partial minute included), the 5-minute finance summary equals the sum of the last 5 buckets, and the runway is defined iff `goldPerHour` is negative.
+
+**Validates: Requirements 70.1, 70.2, 70.4, 70.5, 70.7, 8.3**
+
+### Property 72: Quest steps advance once
+
+*For any* run and Quest, each step is marked done at most once, its reward Effects are applied exactly once, steps with `requires` are never done before the steps they require, and a done step is never undone.
+
+**Validates: Requirements 73.1, 73.2, 61.4**
+
+### Property 73: Visible apps match fired triggers
+
+*For any* set of fired Reveal_Triggers, `visibleApps` returns exactly the apps whose `revealFeature` has fired, sorted by `order`, and returns no app twice.
+
+**Validates: Requirements 71.3, 71.4**
+
+### Property 74: Summary card interval and winner
+
+*For any* run, the Summary_Card is due exactly every configured number of game minutes regardless of Game_Speed, the Employee of the Month is a working Human with a name (never a Headcount_Fill), and the shown deltas equal the differences of the counters since the last card.
+
+**Validates: Requirements 78.1, 78.2, 78.3**
+
+### Property 75: Quirks respect Headcount_Fills
+
+*For any* Job_Slot holding a Headcount_Fill, no Quirk, speech bubble or quirk Modifier applies to that slot, and *for any* Human with a Quirk that has a behaviour Modifier, `getStat` for that Human includes it.
+
+**Validates: Requirements 76.4, 76.5**
+
 ## Error Handling
 
 | Area | Failure | Handling |
@@ -1600,6 +2211,22 @@ Unless stated otherwise, "any run" means: a generated valid Definition_Registry 
 | Profiles | Wrong PIN / lockout | 401 with attempts left; 423 with `retryAfterSec`; UI shows remaining time (26.4–26.6). |
 | PWA | Update available | Prompt; save before activation (42.3, 42.4). |
 | PWA | Service worker unsupported or insecure context | Game still runs online; installability and offline play unavailable; a notice explains that HTTPS via Tailscale is required. |
+
+### Error handling for Phases 2 to 5
+
+| Area | Failure | Handling |
+|---|---|---|
+| Services | Any failed check of `useService` | Rejected with the Reason_Code of the first failing check and no state change. The Desk shows the matching `reason.*` text. `not_present` shows "Drive there" and sets a Waypoint. |
+| Effects | Unknown kind, StatId or DomainOp in data | Registry error at startup naming the Definition. At runtime an unknown `DomainOp` throws in dev and test builds, because the registry has already blocked it. |
+| Replay | Final hash differs from the recorded one | The replay helper reports the first Tick where the per-Tick hash differs (when per-Tick hashes were recorded) and fails the test. The golden test never re-records by itself. |
+| Command_Log | Log longer than the tail limit | The oldest entries are dropped and `baseTick` and `baseHash` move up to the new start. The log then only supports replay from the stored base snapshot. |
+| Frontage | Overlap or out-of-bounds slot | Registry error naming the District and the slot. The game does not start. |
+| Layout | Pub with fewer seat or tap anchors than its limits | Registry error naming the Definition and the layout key. |
+| Loans | Gold goes negative from repayment | Allowed. Repayment is a Mandatory_Expense. The HUD debt warning and the Ledgr runway show it. |
+| Migration v3 | A Customer or Human state cannot be mapped | The step throws with its name, the stored copy stays unchanged and the error names the step (24.7). |
+| Quests | Quest references an unknown Condition, Effect or role tag | Registry error naming the Quest. |
+| Phone | An app references a missing text key or reveal feature | Registry error naming the app. The Phone never renders a hard-coded app. |
+| Summary card | No named working Human | The card is shown without an Employee of the Month line. |
 
 ## Testing Strategy
 
@@ -1647,15 +2274,25 @@ Focused on concrete behaviour and edge cases not worth randomising:
 - Text keys (46.8, required): every `t('…')` key in `apps/web/src` and every text-key field in Definitions exists in `en.json`. Gold limit (8.10, required): Property 47 plus an example at exactly 2^50 (accepted) and 2^50 + 1 (reported).
 - Districts: base content has one unlocked District and at most one locked neighbour; locked-District Context_Actions are null; camera pan bounds equal the unlocked union (48.4, 48.9, 48.10).
 - Input keymap defaults (18.6); touch target min size via computed style (18.3); every registry model key has an asset mapping (16.4); UI uses `displayName()` for Human labels (lint rule `no-restricted-syntax` on `.name` access in `ui/` for Human types, plus a test, 46.7).
-- Phase 2 examples: construction completion, Warehouse end-rental rejection, Liability cost on reveal, Competitor "open location" skipped without free Plot, Questionable_Opportunity insufficient Humans.
+- Phase 6 examples: construction completion, Warehouse end-rental rejection, Liability cost on reveal, Competitor "open location" skipped without free Plot, Questionable_Opportunity insufficient Humans.
 
 ### Integration, smoke and performance
 
 - Determinism replay test: a recorded Command log from a scripted session replays to an identical final state hash.
-- Tick benchmark (`vitest bench`) for the Phase 2 reference scenario; CI fails above 1 ms average per Tick on desktop. Phone-level checks (41.1–41.4) are manual using the debug overlay and Chrome remote debugging; they cannot be fully automated.
+- Tick benchmark (`vitest bench`) for the Phase 6 reference scenario; CI fails above 1 ms average per Tick on desktop. Phone-level checks (41.1–41.4) are manual using the debug overlay and Chrome remote debugging; they cannot be fully automated.
 - Docker smoke: build image, start compose with a temp volume, hit `/api/health`, upload and fetch a save, restart container, fetch again (25.16, 43.1–43.4).
 - PWA: manifest fields and precache manifest content checked after `vite build` (42.1, 42.2); offline launch verified manually or with Playwright later.
 
 ### Why PBT fits this feature
 
 The Simulation is a deterministic state machine over plain data with large input spaces (Command sequences, prices, capacities, name pools, graph positions), which is the case PBT is designed for. Rendering, physics feel, layout and deployment are not property-tested; they are covered by example, smoke, benchmark and manual device tests.
+
+### Testing Phases 2 to 5
+
+- Properties 49 to 75 follow the same rules as the earlier ones: one property-based test each, at least 100 runs, tagged `// Feature: human-resource-mvp, Property N: <title>`. Arbitraries are added to `packages/sim/test/arbitraries/`: `arbCondition`, `arbEffects`, `arbModifierSet`, `arbStreet`, `arbLayoutPair`, `arbLoanOffer`, `arbFitOutPicks`, `arbCommandLog`. Phase 3 runs use a `grandOpeningSim(seed)` helper (Grand Opening start with all offices) and a `devSim(seed)` helper (running pub). Properties 1, 2, 3 and 6 run on both starts.
+- Golden playthrough (53.5): a recorded ten-minute log of the dev start is replayed in CI and its hash asserted. It runs in the normal test command and fails on any balance or RNG-order change until `golden:record` is run on purpose.
+- Equivalence first: before any Phase 1 stat is rewritten to `getStat`, a test records the old direct values for generated Traits and Brands. Property 49 compares against those recorded values, so the refactor cannot silently change a number.
+- Migration fixtures: v1 and v2 fixtures are generated from the code before each schema change and committed. The v3 test migrates both, validates, runs 300 Ticks and checks the invariants. A v2 save with a Customer mid-order and a Customer mid-carry is part of the fixtures (59.2).
+- Example tests (not properties): the municipality ticket-queue gag (60.5), the Desk stamp gesture needing the full hold (72.5), the Phone showing "Drive there" for a `presence` setting (71.10), the Waypoint clearing near the target (73.6), unlock menu teaser versus description (67.3, 67.4), Grand Opening dev start skipping the checklist (61.8), and the street-life and thought-bubble visibility rules as smoke renders.
+- Not property tested: Desk and Phone layout, sounds, screen shake, speech bubble timing, street-life effects, and model fitting. These use example, snapshot and manual device checks.
+- Content tests: every Service, Quest, app, quirk, license, loan, fit-out, deal and candidate text key exists in `en.json`; every `targetBusinessRole` resolves to a Business Definition role tag; every Reveal_Trigger has a teaser and a description key.

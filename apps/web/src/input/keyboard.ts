@@ -7,6 +7,8 @@ import { runContextAction, setPauseMenu, setSpeed, stepGameSpeed, toggleSpeedPau
 import { screenToWorld } from '../render/theme';
 import { bridge } from '../store/simBridge';
 import { camState } from '../render/cameraState';
+import { handlePhoneKey, registerRecompute, togglePhone } from '../ui/phone/phoneActions';
+import { phoneHasFocus } from '../ui/phone/phoneKeys';
 
 const MOVE = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright']);
 
@@ -54,9 +56,18 @@ function cycleSelection(): void {
 }
 
 export function installKeyboard(): () => void {
+  registerRecompute(recomputeMove);
   const down = (e: KeyboardEvent) => {
     if (isTyping(e)) return;
     const key = e.key.toLowerCase();
+    // CEO Phone (ceo-phone 9, 10): Q toggles it anywhere; while it has focus it captures navigation
+    // keys so the CEO does not move. P, Q and the Game_Speed keys fall through.
+    if (key === 'q' && !e.repeat) {
+      e.preventDefault();
+      togglePhone();
+      return;
+    }
+    if (phoneHasFocus() && handlePhoneKey(e)) return;
     // Space = handbrake while driving (34.5); otherwise it keeps its normal button behaviour.
     if (key === ' ' && bridge.loop?.sim.state.ceo.drivingVehicleId) {
       inputState.keys.add(' ');

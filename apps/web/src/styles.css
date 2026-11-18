@@ -120,3 +120,72 @@ input[type='range'] { width: 100%; height: var(--touch); }
 
 /* PWA update prompt */
 .update-prompt { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 80; display: flex; gap: 10px; align-items: center; background: #fff; padding: 10px 14px; border-radius: 14px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2); }
+
+/* ---- CEO Phone (ceo-phone spec; colours from .kiro/steering/phone-ui.md §5) ----------------------
+   One layout for PC and landscape phones: a side panel docked right, full height minus margins,
+   at most 40% of the screen width, phone proportions where the width allows. No bottom sheet. */
+.phone { --bg: #f6f2fb; --card: #fff; --fg: #1c1b1f; --mut: #6b6875; --acc: #d9480f; --chip: #ece6f3; --neg: #e03131; --pos: #2f9e44; --focus: #4dabf7;
+  position: fixed; right: 12px; top: 12px; bottom: 12px; width: min(40vw, calc((100vh - 24px) * 9 / 19.5)); min-width: min(40vw, 260px);
+  z-index: 40; border-radius: 34px; padding: 8px; background: #0d0d0f; box-shadow: 0 0 0 3px var(--case, #3a86ff), 0 12px 34px rgba(0, 0, 0, 0.4);
+  font-size: 14px; font-family: system-ui, Roboto, sans-serif; }
+.phone[data-theme='dark'] { --bg: #121116; --card: #1f1d25; --fg: #ece9f1; --mut: #a7a2b3; --acc: #ff8a3d; --chip: #2c2934; }
+.phone[data-text='s'] { font-size: 13px; }
+.phone[data-text='l'] { font-size: 16px; }
+.phone * { box-sizing: border-box; }
+.phone button { font: inherit; color: inherit; cursor: pointer; }
+.phone button:focus-visible, .phone input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.ph-screen { height: 100%; border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); }
+.ph-status { display: flex; justify-content: space-between; align-items: center; min-height: 30px; padding: 6px 18px 2px; font-size: 0.85em; }
+.ph-cam { width: 10px; height: 10px; border-radius: 50%; background: #000; }
+.ph-main { flex: 1; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+.ph-nav { display: flex; justify-content: space-around; padding: 2px 0 6px; }
+.ph-nav button { width: 64px; min-height: 44px; border: 0; background: none; border-radius: 22px; font-size: 16px; }
+.ph-nav button:hover, .ph-icon:hover { background: var(--chip); }
+/* Home */
+.ph-home { flex: 1; overflow: auto; display: flex; flex-direction: column; background: linear-gradient(160deg, #ff9a3d, #7b4dff); color: #fff; }
+.phone[data-theme='dark'] .ph-home { background: linear-gradient(160deg, #6b3200, #2b1a66); }
+.ph-wg { display: block; width: calc(100% - 24px); margin: 8px 12px; padding: 12px 14px; border-radius: 22px; border: 0; background: rgba(255, 255, 255, 0.2); color: #fff; text-align: left; min-height: 44px; }
+.ph-wg.neg { box-shadow: inset 0 0 0 2px var(--neg); }
+.ph-wg-muted { opacity: 0.75; }
+.ph-wg-big { font-size: 2.4em; font-weight: 300; line-height: 1; }
+.ph-wg-sub { display: block; opacity: 0.85; font-size: 0.85em; }
+.ph-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 4px; padding: 10px 12px; }
+.ph-dock { margin: auto 12px 8px; padding: 8px; border-radius: 28px; background: rgba(255, 255, 255, 0.22); display: flex; justify-content: space-around; min-height: 66px; }
+.ph-appicon { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; color: #fff !important; font-size: 0.8em; min-height: 64px; min-width: 44px; padding: 2px; }
+.ph-ic { width: 50px; height: 50px; border-radius: 17px; display: grid; place-items: center; font-size: 24px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); flex: none; }
+/* App shell */
+.ph-app { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.ph-topbar { display: flex; align-items: center; gap: 6px; padding: 4px 8px; }
+.ph-title { font-size: 1.4em; font-weight: 600; flex: 1; }
+.ph-pad { padding-left: 10px; }
+.ph-icon { min-width: 44px; min-height: 44px; border-radius: 22px; border: 0; background: none; font-size: 18px; }
+.ph-icon:disabled { opacity: 0.35; cursor: default; }
+.ph-body { flex: 1; overflow: auto; padding-bottom: 10px; }
+.ph-card { background: var(--card); border-radius: 18px; padding: 12px 14px; margin: 8px 12px; }
+.ph-row { display: flex; justify-content: space-between; align-items: center; min-height: 44px; gap: 8px; }
+.ph-row.ph-col { flex-direction: column; align-items: stretch; }
+.ph-mut { color: var(--mut); font-size: 0.85em; }
+.ph-block { display: block; }
+.ph-hd { font-size: 0.8em; color: var(--acc); font-weight: 700; margin: 14px 18px 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+.ph-tabs { display: flex; background: var(--card); border-top: 1px solid var(--chip); }
+.ph-tabs button { flex: 1; min-height: 58px; border: 0; background: none; color: var(--mut); font-size: 0.8em; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.ph-tabs button.on { color: var(--fg); font-weight: 600; }
+.ph-tab-pill { padding: 3px 18px; font-size: 16px; border-radius: 14px; }
+.ph-tabs button.on .ph-tab-pill { background: var(--chip); }
+.ph-recent { display: flex; gap: 12px; align-items: center; width: calc(100% - 28px); margin: 10px 14px; padding: 16px; border-radius: 22px; background: var(--card); border: 0; text-align: left; min-height: 44px; }
+/* Controls */
+.ph-switch { width: 52px; height: 44px; border: 0; background: none; padding: 6px 0; flex: none; }
+.ph-switch-track { display: block; position: relative; width: 52px; height: 32px; border-radius: 16px; background: var(--chip); border: 2px solid var(--mut); }
+.ph-switch-track::after { content: ''; position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--mut); transition: left 0.2s; }
+.ph-switch.on .ph-switch-track { background: var(--acc); border-color: var(--acc); }
+.ph-switch.on .ph-switch-track::after { left: 24px; background: #fff; }
+.ph-seg { display: flex; background: var(--chip); border-radius: 22px; padding: 3px; margin: 6px 0; }
+.ph-seg button { flex: 1; min-height: 44px; border: 0; border-radius: 20px; background: none; font-size: 0.9em; }
+.ph-seg button.on { background: var(--acc); color: #fff; }
+.ph-stepper { display: inline-flex; align-items: center; gap: 4px; }
+.ph-btn { min-height: 44px; padding: 0 14px; border-radius: 22px; border: 0; background: var(--acc); color: #fff; font-weight: 600; white-space: nowrap; }
+.ph-btn.tonal { background: var(--chip); color: var(--fg); }
+.phone[data-motion='reduced'] *, .phone[data-motion='reduced'] *::after { transition: none !important; animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .phone *, .phone *::after { transition: none !important; animation: none !important; } }
+/* Portrait shows the rotate prompt instead (D2). */
+@media (orientation: portrait) and (pointer: coarse) { .phone { display: none; } }

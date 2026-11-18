@@ -8,10 +8,13 @@ import { installKeyboard } from '../../input/keyboard';
 import { installGestures } from '../../input/gestures';
 import { stopSlot } from '../../game/session';
 import { t } from '../../text/t';
+import { Phone } from '../phone/Phone';
+import { usePhoneSettings } from '../phone/phoneSettings';
 
-export function GameScreen({ onExit }: { onExit: () => void }) {
+export function GameScreen({ onExit, profileId }: { onExit: () => void; profileId: string }) {
   const wrap = useRef<HTMLDivElement>(null);
   useEffect(() => installKeyboard(), []);
+  useEffect(() => void usePhoneSettings.getState().load(profileId), [profileId]); // per-device phone settings (D7)
   useEffect(() => (wrap.current ? installGestures(wrap.current) : undefined), []);
   const exit = async () => {
     await stopSlot(true);
@@ -24,6 +27,7 @@ export function GameScreen({ onExit }: { onExit: () => void }) {
       <PanelHost />
       <PauseMenu onExit={() => void exit()} />
       <GameDialogs />
+      <Phone />
       <div className="rotate-prompt">{t('app.rotate')}</div>
     </div>
   );
