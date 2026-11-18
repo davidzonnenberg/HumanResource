@@ -30,9 +30,8 @@ export function updateUpright(s: UprightState, upY: number, inBounds: boolean, d
   return 'ok';
 }
 
-/** Arcade speed cap: manual top speed = automatic speed × (1 + bonus) (13.4). */
-export function clampManualVelocity(vx: number, vz: number, autoSpeed: number, bonus: number): { vx: number; vz: number } {
-  const max = autoSpeed * (1 + bonus);
+/** Arcade speed cap (13.4): manual velocity never exceeds the Vehicle's `handling.manualTopSpeed`. */
+export function clampManualVelocity(vx: number, vz: number, max: number): { vx: number; vz: number } {
   const sp = Math.hypot(vx, vz);
   if (sp <= max || sp === 0) return { vx, vz };
   const k = max / sp;

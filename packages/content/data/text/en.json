@@ -76,6 +76,7 @@
   "action.load": "Load",
   "action.unload": "Unload",
   "action.exitVehicle": "Get out",
+  "action.drift": "Drift",
   "action.helpServe": "Help serve",
 
   "alert.out_of_beer": "Out of Beer",

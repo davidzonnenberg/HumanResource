@@ -4,7 +4,6 @@
   "maxTicksPerFrame": 10,
   "gameSpeeds": [1, 2, 4],
   "interactionRange": 2.5,
-  "manualSpeedBonus": 0.1,
   "manualTipFactor": 0.05,
   "stoppedSpeed": 0.5,
   "lostAlertPct": 10,

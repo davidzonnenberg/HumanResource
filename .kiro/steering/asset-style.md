@@ -102,6 +102,56 @@ Swap `<SIZE PHRASE>` per generation to force different heights and sizes:
 Owner-tinted pubs are recolored in-engine, so decide up front: neutral light
 grey/off-white base (tint reads cleanly) or baked brown-cafe color (no tint).
 
+### Town offices for the Grand Opening (planned, see `docs/ideas.md`)
+
+The planned start sends the CEO to a Municipality (town hall), a Bank and a Job
+centre / café notice board. These are npc buildings, so they are not tinted
+by owner: bake their own colours. Use the same canal-house style so they sit in
+the street, but give each one a readable silhouette from the fixed camera:
+
+- Municipality: a slightly grander stepped-gable town hall, a small clock or
+  bell tower, a flag, a stone stair, and a "ticket number" sign by the door.
+- Bank: a narrow, smug, overly polished facade, columns or pilasters, gold
+  lettering band, a revolving-door look.
+- Job centre: a modest office or café front with a big notice board / posters
+  in the window ("passionate about synergy").
+
+The tone stays toy-like and satirical: the institutions look a bit too
+self-important for a tiny street.
+
+### Landmarks (city hall and other big buildings, about 2x a canal house)
+
+Same base prefix and building negatives. Swap "tall narrow" for a wide,
+grand frontage and keep it chunky, so it still reads as part of the street:
+
+```
+old-town Dutch-German canal-town style, a grand but goofy town hall
+landmark, about twice as wide as a canal house, symmetrical facade with a
+big central stepped gable, one oversized chunky clock tower rising from the
+middle of the roof, a tiny flag on top, wide stone staircase across the
+front leading to a big double wooden door, cream stone trim around tall
+arched windows, warm red-brown brick, pitched slate-grey roof, a small
+balcony above the door, lanterns beside the entrance, flush street
+frontage, flat back side, a single coherent facade color with matching
+trim, calm muted brick tones, two or three colors only, smooth simple
+surfaces, satirical self-important bureaucratic look.
+```
+
+Extra negatives: `people, cars, readable letters, signage text, statues,
+fountain, courtyard, side wings, asymmetrical`.
+
+Image step: 1024x1024 (the pre-processor crops to 1024 anyway), keep the
+whole building inside the frame with about 10% white margin (a wide
+building gets cropped first, and a cut-off tower ruins the mesh). CFG about
+4-5, 30+ steps, new seed per try, pick the image with the cleanest
+silhouette and the fewest thin spikes.
+
+3D step (Pixal3D/Trellis2 graph): Remesh 1024 (thin tower and window frames
+need it), Decimate about 120000 (one landmark may cost more than a canal
+house), Unwrap padding 4, Texture Resolution and Render UV Atlas 2048, AO
+strength 0, metallic/roughness/normal_map unplugged. Then
+`npm.cmd run models:optimize -- --texture=2048`.
+
 ### Street tile (klinker / cobble) – repeatable, top-down
 
 Streets are a tiny mesh GPU-instanced across the grid (copy-paste next to each
@@ -336,6 +386,11 @@ version of the same building. Two viable approaches:
   interior. Because it is its own scene, sizes do not need to match — a small
   building on the street can be huge on the inside. This sidesteps the roof
   problem entirely and is the recommended path if we want real interiors.
+
+  Status (Nov 2026): the Stardew-style approach is BUILT. Press E at the drawn
+  model's door and the scene shows only that building's interior. Today the
+  interior is the old box shell at the plot's position, so a separate,
+  bigger interior scene is still possible later.
 
 ## Chosen ground set (in use)
 - Road: klinker_00001 (herringbone) -> `tile_road.jpg`

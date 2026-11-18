@@ -9,10 +9,11 @@ import { useHud, useSession } from '../store/stores';
 import { inputState } from '../input/inputState';
 import { camState } from '../render/cameraState';
 import { ownerColor, screenToWorld, theme } from '../render/theme';
-import { VanBody, crateCount, renderHeadings } from '../render/Vehicles';
+import { VehicleBody, crateCount, renderHeadings, vehicleGltf } from '../render/Vehicles';
 import { sidewalkBoxes } from '../render/World';
-import { footprint, footprintVersion } from '../render/footprints';
-import { clampManualVelocity, newUprightState, stickToDrive, updateUpright } from './uprightMonitor';
+import { allFootprints, footprint, footprintVersion } from '../render/footprints';
+import { newUprightState, stickToDrive, updateUpright } from './uprightMonitor';
+import { driveStep } from './handling';
 
 const up = new THREE.Vector3();
 const fwd = new THREE.Vector3();
@@ -26,12 +27,18 @@ const wheelPt = new THREE.Vector3();
 // above the springs, so it only touches walls and buildings, never the curb edge.
 const GRAVITY = 20;
 const VS = theme.vehicleScale;
+/** Wheel corners in van-body units; multiplied by the vehicle's size (vehicleScale x model scale). */
 const WHEELS: readonly (readonly [number, number])[] = [
-  [-0.85 * VS, -1.0 * VS],
-  [0.85 * VS, -1.0 * VS],
-  [-0.85 * VS, 1.0 * VS],
-  [0.85 * VS, 1.0 * VS],
+  [-0.85, -1.0],
+  [0.85, -1.0],
+  [-0.85, 1.0],
+  [0.85, 1.0],
 ];
+
+/** World size of a vehicle: theme scale times its GLB `scale` knob, so the hitbox follows the model. */
+function vehicleSize(modelKey: string, owner: string): number {
+  return VS * (vehicleGltf(modelKey, owner)?.scale ?? 1);
+}
 const RAY_TOP = 0.9; // ray origin above the body origin (the van's ground contact)
 const SPRING = 260; // per-wheel stiffness, as acceleration per metre of compression
 const DAMPER = 22; // per-wheel damping, as acceleration per m/s along the spring
@@ -48,6 +55,61 @@ function driveDebug(dt: number, data: () => Record<string, unknown>): void {
   console.info('[drive]', data());
 }
 
+// ---- Tyre marks while drifting / spinning donuts (render only, fade by shrinking) ----------------
+const MAX_MARKS = 300;
+const MARK_LIFE = 6; // seconds
+const MARK_SPACING = 0.3; // world units between marks per wheel
+const marks = { x: new Float32Array(MAX_MARKS), z: new Float32Array(MAX_MARKS), yaw: new Float32Array(MAX_MARKS), born: new Float32Array(MAX_MARKS).fill(-1e9), next: 0 };
+const lastMark = new Map<number, { x: number; z: number }>();
+
+function addSkidMark(x: number, z: number, yaw: number, wheel: number): void {
+  const prev = lastMark.get(wheel);
+  if (prev && Math.hypot(x - prev.x, z - prev.z) < MARK_SPACING) return;
+  lastMark.set(wheel, { x, z });
+  const i = marks.next;
+  marks.x[i] = x;
+  marks.z[i] = z;
+  marks.yaw[i] = yaw;
+  marks.born[i] = performance.now() / 1000;
+  marks.next = (i + 1) % MAX_MARKS;
+}
+
+const markObj = new THREE.Object3D();
+function TyreMarks() {
+  const mesh = useRef<THREE.InstancedMesh>(null);
+  const geo = useMemo(() => new THREE.PlaneGeometry(0.32, 0.45).rotateX(-Math.PI / 2), []);
+  useEffect(
+    () => () => {
+      marks.born.fill(-1e9);
+      lastMark.clear();
+    },
+    [],
+  );
+  useFrame(() => {
+    const m = mesh.current;
+    if (!m) return;
+    const now = performance.now() / 1000;
+    let n = 0;
+    for (let i = 0; i < MAX_MARKS; i++) {
+      const age = now - (marks.born[i] ?? -1e9);
+      if (age > MARK_LIFE) continue;
+      const k = 1 - age / MARK_LIFE;
+      markObj.position.set(marks.x[i] ?? 0, 0.07, marks.z[i] ?? 0);
+      markObj.rotation.set(0, marks.yaw[i] ?? 0, 0);
+      markObj.scale.set(k, 1, 0.6 + 0.4 * k);
+      markObj.updateMatrix();
+      m.setMatrixAt(n++, markObj.matrix);
+    }
+    m.count = n;
+    m.instanceMatrix.needsUpdate = true;
+  });
+  return (
+    <instancedMesh ref={mesh} args={[geo, undefined, MAX_MARKS]} frustumCulled={false} renderOrder={2}>
+      <meshBasicMaterial color="#2b2320" transparent opacity={0.45} depthWrite={false} polygonOffset polygonOffsetFactor={-3} />
+    </instancedMesh>
+  );
+}
+
 function Van({ vehicleId }: { vehicleId: string }) {
   const body = useRef<RapierRigidBody>(null);
   const wobble = useRef<THREE.Group>(null);
@@ -59,6 +121,9 @@ function Van({ vehicleId }: { vehicleId: string }) {
   const { rapier } = useRapier();
   const ray = useMemo(() => new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 }), [rapier]);
   const loop = bridge.loop;
+  const v = loop?.sim.state.vehicles[vehicleId];
+  const def = v ? loop?.sim.reg.vehicles[v.defId] : undefined;
+  const size = def && v ? vehicleSize(def.modelKey, v.owner) : VS;
 
   useBeforePhysicsStep((world) => {
     const b = body.current;
@@ -69,7 +134,7 @@ function Van({ vehicleId }: { vehicleId: string }) {
     const t = b.translation();
     const share = b.mass() / WHEELS.length;
     for (const [wx, wz] of WHEELS) {
-      wheelPt.set(wx, RAY_TOP, wz).applyQuaternion(suspQuat);
+      wheelPt.set(wx * size, RAY_TOP, wz * size).applyQuaternion(suspQuat);
       ray.origin = { x: t.x + wheelPt.x, y: t.y + wheelPt.y, z: t.z + wheelPt.z };
       const hit = world.castRay(ray, MAX_RAY, true, undefined, undefined, undefined, b);
       if (!hit) continue; // wheel in the air
@@ -81,8 +146,6 @@ function Van({ vehicleId }: { vehicleId: string }) {
       b.applyImpulseAtPoint({ x: 0, y: accel * share * dt, z: 0 }, contact, true);
     }
   });
-  const v = loop?.sim.state.vehicles[vehicleId];
-  const def = v ? loop?.sim.reg.vehicles[v.defId] : undefined;
   // Start pose is captured once per takeover; later sim updates come from the body itself.
   const start = useMemo(() => ({ x: v?.pose.x ?? 0, z: v?.pose.z ?? 0, heading: renderHeadings.get(vehicleId) ?? v?.pose.heading ?? 0 }), [vehicleId]);
 
@@ -101,6 +164,7 @@ function Van({ vehicleId }: { vehicleId: string }) {
       // Never touch the Rapier body here. On exit the physics world is torn down around this
       // cleanup, and reading a freed body passes a null pointer into the WASM side (the crash).
       inputState.physicsBeforeTick = null;
+      inputState.driftHeld = false;
       camState.physicsPose = null;
       if (lastHeading.current !== null) renderHeadings.set(vehicleId, lastHeading.current);
     };
@@ -120,43 +184,41 @@ function Van({ vehicleId }: { vehicleId: string }) {
     fwd.y = 0;
     fwd.normalize();
 
-    // Input: PC keys (W/S throttle, A/D steer) or the touch stick (desired direction)
+    // Input: PC keys (W/S throttle, A/D steer, Space handbrake) or the touch stick + drift button
     const keys = inputState.keys;
-    let throttle = (keys.has('w') || keys.has('arrowup') ? 1 : 0) - (keys.has('s') || keys.has('arrowdown') ? 1 : 0);
+    const gasKey = keys.has('w') || keys.has('arrowup');
+    const brakeKey = keys.has('s') || keys.has('arrowdown');
+    let throttle = (gasKey ? 1 : 0) - (brakeKey ? 1 : 0);
     let steer = (keys.has('a') || keys.has('arrowleft') ? 1 : 0) - (keys.has('d') || keys.has('arrowright') ? 1 : 0);
-    if (throttle === 0 && steer === 0 && (inputState.stickX !== 0 || inputState.stickY !== 0)) {
+    const handbrake = keys.has(' ') || inputState.driftHeld;
+    if (!gasKey && !brakeKey && steer === 0 && (inputState.stickX !== 0 || inputState.stickY !== 0)) {
       const want = screenToWorld(inputState.stickX, inputState.stickY);
       const d = stickToDrive(want.x, want.z, fwd.x, fwd.z);
       throttle = d.throttle;
       steer = d.steer;
     }
 
+    // Arcade handling from the Vehicle Definition (physics/handling.ts). The result is written as
+    // velocity directly: never mix an impulse with a later setLinvel from a stale velocity read.
     const h = def.handling;
     const lv = b.linvel();
     const speed = Math.hypot(lv.x, lv.z);
-    const forwardSpeed = lv.x * fwd.x + lv.z * fwd.z;
-    // Throttle along the van's forward vector. Folded into the velocity written below: applying an
-    // impulse and then calling setLinvel with the stale pre-impulse velocity erased all acceleration.
-    const accel = h.acceleration * throttle * dt;
-    // Loose steering: only part of the sideways velocity is removed, so the van drifts
-    const latX = lv.x - fwd.x * forwardSpeed;
-    const latZ = lv.z - fwd.z * forwardSpeed;
-    const grip = (1 - h.steeringLooseness) * 0.35;
-    let nvx = lv.x - latX * grip + fwd.x * accel;
-    let nvz = lv.z - latZ * grip + fwd.z * accel;
-    if (throttle === 0) {
-      nvx *= 0.94; // roll to a stop so Load/Unload/Exit become available
-      nvz *= 0.94;
-    }
-    const capped = clampManualVelocity(nvx, nvz, def.speed, lp.sim.reg.config.manualSpeedBonus);
-    b.setLinvel({ x: capped.vx, y: lv.y, z: capped.vz }, true);
-    const turn = steer * h.turnRate * Math.min(1, speed / 3) * Math.sign(forwardSpeed || 1);
+    const out = driveStep(h, lv.x, lv.z, fwd.x, fwd.z, { throttle, steer, gasAndBrake: gasKey && brakeKey, handbrake }, dt);
+    b.setLinvel({ x: out.vx, y: lv.y, z: out.vz }, true);
     const av = b.angvel();
-    b.setAngvel({ x: av.x, y: turn, z: av.z }, true);
+    b.setAngvel({ x: av.x, y: out.yawRate, z: av.z }, true);
+    if (out.mode !== 'drive') {
+      const tp = b.translation();
+      for (const side of [-1, 1]) {
+        wheelPt.set(side * 0.85 * size, 0, 1.0 * size).applyQuaternion(quat); // rear wheels
+        addSkidMark(tp.x + wheelPt.x, tp.z + wheelPt.z, euler.y, side);
+      }
+    }
 
-    // Body roll (visual spring) and collision squash
+    // Body roll (visual spring, stronger while sliding) and collision squash
     if (wobble.current) {
-      const roll = -steer * h.bodyRoll * Math.min(1, speed / def.speed);
+      const slide = out.mode === 'drive' ? 1 : 1.8;
+      const roll = -Math.sign(out.yawRate) * Math.min(1, Math.abs(out.yawRate) / h.turnRate) * h.bodyRoll * slide * Math.min(1, speed / h.manualTopSpeed + (out.mode === 'donut' ? 0.6 : 0));
       wobble.current.rotation.z += (roll - wobble.current.rotation.z) * 0.15;
       squash.current *= 0.9;
       const sq = Math.sin(performance.now() / 40) * squash.current;
@@ -218,9 +280,9 @@ function Van({ vehicleId }: { vehicleId: string }) {
         squash.current = Math.min(0.18, squash.current + 0.12);
       }}
     >
-      <CuboidCollider args={[0.9 * VS, 0.5 * VS, 1.6 * VS]} position={[0, CHASSIS_BOTTOM + 0.5 * VS, 0]} />
+      <CuboidCollider args={[0.9 * size, 0.5 * size, 1.6 * size]} position={[0, CHASSIS_BOTTOM + 0.5 * size, 0]} />
       <group scale={theme.vehicleScale}>
-        <VanBody color={color} crates={crateCount(v)} wobble={wobble} />
+        <VehicleBody modelKey={def.modelKey} owner={v.owner} color={color} crates={crateCount(v)} wobble={wobble} />
       </group>
     </RigidBody>
   );
@@ -241,13 +303,16 @@ function OtherVehicles({ exclude }: { exclude: string }) {
 
 function KinematicVan({ id }: { id: string }) {
   const body = useRef<RapierRigidBody>(null);
+  const v = bridge.loop?.sim.state.vehicles[id];
+  const def = v ? bridge.loop?.sim.reg.vehicles[v.defId] : undefined;
+  const size = v && def ? vehicleSize(def.modelKey, v.owner) : VS;
   useFrame(() => {
     const p = bridge.loop?.pose(id);
     if (p && body.current) body.current.setNextKinematicTranslation({ x: p.x, y: 0.8, z: p.z });
   });
   return (
     <RigidBody ref={body} type="kinematicPosition" colliders={false}>
-      <CuboidCollider args={[1.1, 0.8, 2]} />
+      <CuboidCollider args={[0.9 * size, 0.7 * size, 1.6 * size]} position={[0, 0.7 * size - 0.8, 0]} />
     </RigidBody>
   );
 }
@@ -275,6 +340,18 @@ function StaticWorld() {
         return (
           <CuboidCollider
             key={`${biz.id}:${footprintVersion()}`}
+            args={[(box.maxX - box.minX) / 2, hh, (box.maxZ - box.minZ) / 2]}
+            position={[(box.minX + box.maxX) / 2, hh, (box.minZ + box.maxZ) / 2]}
+            restitution={0.7}
+          />
+        );
+      })}
+      {/* landmarks / filler buildings (render-only, hitbox from their model) */}
+      {[...allFootprints()].filter(([id]) => id.startsWith('landmark:')).map(([id, box]) => {
+        const hh = Math.max(1, box.height) / 2;
+        return (
+          <CuboidCollider
+            key={`${id}:${footprintVersion()}`}
             args={[(box.maxX - box.minX) / 2, hh, (box.maxZ - box.minZ) / 2]}
             position={[(box.minX + box.maxX) / 2, hh, (box.minZ + box.maxZ) / 2]}
             restitution={0.7}
@@ -314,6 +391,7 @@ export default function ManualDriving({ vehicleId }: { vehicleId: string }) {
         <OtherVehicles exclude={vehicleId} />
         <Van vehicleId={vehicleId} />
       </Physics>
+      <TyreMarks />
     </PhysicsBoundary>
   );
 }

@@ -57,6 +57,12 @@ export function installKeyboard(): () => void {
   const down = (e: KeyboardEvent) => {
     if (isTyping(e)) return;
     const key = e.key.toLowerCase();
+    // Space = handbrake while driving (34.5); otherwise it keeps its normal button behaviour.
+    if (key === ' ' && bridge.loop?.sim.state.ceo.drivingVehicleId) {
+      inputState.keys.add(' ');
+      e.preventDefault();
+      return;
+    }
     if (MOVE.has(key)) {
       inputState.keys.add(key);
       recomputeMove();

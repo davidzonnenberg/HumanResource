@@ -67,6 +67,9 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outl
 .alert.client { background: #ffe0e6; }
 .hud-right { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); display: grid; gap: 10px; justify-items: end; }
 .context-button { min-width: 96px; min-height: 96px; border-radius: 50%; border: 0; background: var(--gold); font-weight: 900; font-size: 1.05rem; box-shadow: 0 6px 0 #c98a00; }
+.drift-button { min-width: 80px; min-height: 80px; background: #8ecae6; box-shadow: 0 6px 0 #4f8fae; touch-action: none; user-select: none; -webkit-user-select: none; }
+/* PC drifts with Space; the on-screen button is for touch. */
+@media (pointer: fine) { .drift-button { display: none; } }
 .joystick-zone { position: absolute; left: 0; bottom: 0; width: 40vw; height: 70vh; touch-action: none; }
 /* Mouse/keyboard devices: no joystick zone, so clicks and drags reach the 3D view. */
 @media (pointer: fine) { .joystick-zone { display: none; } }

@@ -8,6 +8,21 @@ import type { SimState, Vehicle } from '@hr/sim';
 import { bridge } from '../store/simBridge';
 import { useUi } from '../store/stores';
 import { ownerColor, palette, theme } from './theme';
+import { MODEL_MAP, type GltfEntry } from './assets/modelMap';
+import { GltfVehicle } from './assets/GltfVehicle';
+
+/** GLB for a vehicle model key, preferring an owner variant (e.g. `vehicle_van_player`). */
+export function vehicleGltf(modelKey: string, owner: string): GltfEntry | null {
+  const m = MODEL_MAP[`${modelKey}_${owner}`] ?? MODEL_MAP[modelKey];
+  return m?.kind === 'gltf' ? m : null;
+}
+
+/** The drawn vehicle: generated GLB when mapped, else the placeholder van. */
+export function VehicleBody({ modelKey, owner, color, crates, wobble }: { modelKey: string; owner: string; color: string; crates: number; wobble?: RefObject<THREE.Group | null> }) {
+  const gltf = vehicleGltf(modelKey, owner);
+  const box = <VanBody color={color} crates={crates} {...(wobble ? { wobble } : {})} />;
+  return gltf ? <GltfVehicle entry={gltf} crates={crates} fallback={box} {...(wobble ? { wobble } : {})} /> : box;
+}
 
 export function VanBody({ color, crates, wobble }: { color: string; crates: number; wobble?: RefObject<THREE.Group | null> }) {
   const crateList = Array.from({ length: Math.min(8, crates) }, (_, i) => i);
@@ -56,7 +71,7 @@ export function crateCount(v: Vehicle): number {
   return n;
 }
 
-function VehicleMesh({ id, owner, colorToken }: { id: string; owner: string; colorToken: string | undefined }) {
+function VehicleMesh({ id, owner, colorToken, modelKey, cargoCrates }: { id: string; owner: string; colorToken: string | undefined; modelKey: string; cargoCrates: number }) {
   const group = useRef<THREE.Group>(null);
   const heading = useRef(0);
   const crates = useRef(-1);
@@ -94,10 +109,11 @@ function VehicleMesh({ id, owner, colorToken }: { id: string; owner: string; col
     useUi.getState().set({ selection: { kind: 'vehicle', id } });
   };
   const color = ownerColor(owner, colorToken);
+  const gltf = vehicleGltf(modelKey, owner);
   return (
     <group ref={group} onClick={onClick} scale={theme.vehicleScale}>
-      <VanBody color={color} crates={0} />
-      <group ref={crateGroup}>
+      {gltf ? <VehicleBody modelKey={modelKey} owner={owner} color={color} crates={cargoCrates} /> : <VanBody color={color} crates={0} />}
+      <group ref={crateGroup} visible={!gltf}>
         {Array.from({ length: 8 }, (_, i) => (
           <mesh key={i} visible={false} position={[(i % 2) * 0.6 - 0.3, 1.45 + Math.floor(i / 4) * 0.45, 0.9 - Math.floor((i % 4) / 2) * 0.6]}>
             <boxGeometry args={[0.55, 0.42, 0.55]} />
@@ -113,7 +129,7 @@ export function Vehicles({ state }: { state: SimState }) {
   return (
     <group>
       {Object.values(state.vehicles).map((v) => (
-        <VehicleMesh key={v.id} id={v.id} owner={v.owner} colorToken={state.competitors[v.owner]?.colorToken} />
+        <VehicleMesh key={v.id} id={v.id} owner={v.owner} colorToken={state.competitors[v.owner]?.colorToken} modelKey={bridge.reg?.vehicles[v.defId]?.modelKey ?? 'vehicle_van'} cargoCrates={crateCount(v)} />
       ))}
     </group>
   );

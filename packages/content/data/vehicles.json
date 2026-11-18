@@ -8,12 +8,19 @@
     "driverRequirement": { "jobId": "driver" },
     "allowedResources": ["beer", "hops", "malt"],
     "handling": {
-      "acceleration": 22,
+      "acceleration": 30,
       "steeringLooseness": 0.55,
       "bodyRoll": 0.35,
       "bounciness": 0.6,
       "mass": 1.2,
-      "turnRate": 2.6
+      "turnRate": 2.6,
+      "manualTopSpeed": 15.4,
+      "reverseTopSpeed": 6,
+      "brakeDecel": 32,
+      "driftGrip": 0.03,
+      "driftTurnBoost": 1.7,
+      "driftDrag": 0.35,
+      "donutTurnRate": 4.5
     },
     "modelKey": "vehicle_van"
   }

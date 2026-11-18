@@ -10,6 +10,18 @@ A single summary of what the game is, how it plays today, what is built, and wha
 - Resources never teleport. Beer moves as crates in little vans on real roads, so logistics bottlenecks are visible.
 - You are physically present as the CEO. You walk around, enter your buildings and jump into the van to drive it yourself with goofy arcade physics. Zooming out turns CEO mode into a management view of the city.
 - It is not an idle game. It pauses when closed, with no offline progress.
+- Planned start (idea, not built; see `docs/ideas.md`): the pub is about to open, but you have no staff and no bar yet. A "Grand Opening" checklist sends you around town:
+  - Municipality: liquor license and opening time.
+  - Bank: a starter loan, "Sensible", "Ambitious" or "Visionary™".
+  - Supplier: the first deal, and you load the first crates yourself.
+  - Job centre: interview Jan, Julia and Thomas, each with a visible quirk.
+  - Back at the pub: unload and cut the ribbon, then customers start arriving.
+- Every unlock is listed in a menu with only a vague teaser, so you can sometimes guess the trigger and sometimes not.
+- Planned CEO role after opening: staff run the pub while you do what nobody else can.
+  - Emergency supply runs, until you hire a driver.
+  - Municipality requests, such as complaints and permits, and bank meetings for loans and money to buy plots.
+  - Scouting rivals and plots, and side deliveries.
+  - Hiring a driver frees your time for deals. Later, a "Head of Errands" turns even the CEO's chores into headcount.
 - The players are the developer and his girlfriend. Each has a profile and save slots, and saves sync across PC and phone over a private Tailscale network.
 
 ## 2. Tech and hard constraints (anything new must respect these)
@@ -44,7 +56,8 @@ A single summary of what the game is, how it plays today, what is built, and wha
   - `V` toggles the CEO and Management views.
   - +/- zoom, Tab cycles the selection and Esc closes.
   - P pauses, 1/2/3 set speed, [ ] step speed and 0 is speed pause.
-- Phone: a virtual joystick, a context-action button, pinch zoom and tap to select.
+  - While driving: W/S gas and brake-then-reverse, A/D steer, Space handbrake drift, W + S together at low speed spins donuts.
+- Phone: a virtual joystick, a context-action button, pinch zoom and tap to select. While driving, a held "Drift" button does the handbrake.
 
 ### Walking and buildings
 - The CEO walks on the street.
@@ -146,11 +159,13 @@ Verified with typecheck, lint, unit and property tests and `vite build`. "Playab
 - Task 23: the Phase 1 complete checkpoint.
 
 ### Polish and fun (task 34)
-- 34.5 Driving overhaul:
-  - Faster driving.
-  - Spacebar handbrake drift, with a touch button for mobile.
-  - Donuts with gas + brake, or gas + space.
-  - Optional tyre marks or dust, and style tips.
+- 34.5 Driving overhaul: built, needs an in-game feel check.
+  - About 2x faster manual driving. The manual top speed is separate from the route speed.
+  - Space (or a held "Drift" button on touch) is the handbrake drift. Gas + brake, or gas + handbrake, at low speed spins donuts.
+  - Fading tyre marks.
+  - All tuning is per vehicle type in `vehicles.json`, because more vehicle types are planned.
+  - Not yet: dust puffs, looser camera while sliding.
+  - Later: fuel/range, crash damage, style points (see wishlist).
 - 34.6 Solid furniture inside (bar, tables).
 - Remove the temporary `[drive]` debug logging once driving is confirmed.
 
@@ -191,6 +206,33 @@ Verified with typecheck, lint, unit and property tests and `vite build`. "Playab
 - Automatic vans and NPC Humans ignore physics. They follow road paths.
 - Customer and staff positions inside a pub are derived by the renderer from sim state. The sim has no coordinates for them.
 
+## 7b. Idea backlog to replan (docs/ideas.md)
+
+Near-term ideas waiting for a review and replan into tasks:
+- The Grand Opening checklist start, with new office buildings (Municipality, Bank, Job centre). These are plain npc Business definitions with an `office.services` marker, and interactions are door Commands.
+- An unlock menu with vague teasers.
+- The CEO's outside jobs after opening.
+- Loans, which need a v3 save migration.
+- "Make it feel alive": customer thought bubbles, coin pops with sound, Human quirks and speech bubbles (none for headcount), street life outside busy pubs, and a periodic summary card with an "employee of the month".
+- Satire hooks on existing systems: consultant visit, team-building day, rival poaching staff, health inspector, loyalty card, happy hour, LinkedIn-style news feed.
+- Bar system redesign:
+  - one `bar_worker` job replaces bartender and server (take order, pour, deliver, take payment, clean)
+  - the pub panel shows Seats / Taps / Hands
+  - tabs paid on leaving, with walkouts at low vibe
+  - at the start you hire one Bar Worker (Jan or Julia)
+  - the Grand Opening checklist sets these numbers: license tier, loan, a new pub fit-out stop, keg deal
+  - needs a v3 save migration
+- UI revamp around the CEO's phone, in three layers:
+  - HUD: money pill with Gold/hour, loan chip, quest tracker, alert bell with "Fix" buttons
+  - Phone: reveal-gated apps (To-Do™, Wayfindr, Pintly, Ledgr, Staffly, Vanly, LinkedOut, MijnGemeente) with remote settings
+  - Desk: in-person counter screens with hold-to-stamp
+  - the rule: looking is free, small changes are remote, big decisions need you there ("Drive there")
+- Foundation upgrades to do before more content:
+  - one generic Modifier system with `getStat` and a "why this number" tooltip
+  - data-defined building Services with one `useService` Command
+  - a shared conditions/effects mini-DSL
+  - a command log with replay, a golden-playthrough hash test in CI, and a state hash for desync checks
+
 ## 8. Far-future ideas already parked (docs/wishlist.md)
 
 - Time of day, weather, multiple cities.
@@ -200,6 +242,7 @@ Verified with typecheck, lint, unit and property tests and `vite build`. "Playab
 - Self-built and electric vehicles, autonomous delivery.
 - Traffic and congestion, satirical logistics R&D.
 - Multiplayer, other languages, proper accounts.
+- Town and politics: a permit board, council votes with lobbying, road works that force van detours.
 
 ## 9. Prompt ideas for brainstorming
 

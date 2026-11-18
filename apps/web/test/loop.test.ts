@@ -72,11 +72,11 @@ describe('Rendering and physics helpers', () => {
   });
 
   // Feature: human-resource-mvp, Property 20: Manual speed cap
-  it('Property 20: manual velocity never exceeds speed x (1 + bonus)', () => {
+  it('Property 20: manual velocity never exceeds the Vehicle manual top speed', () => {
     fc.assert(
-      fc.property(fc.double({ min: -100, max: 100, noNaN: true }), fc.double({ min: -100, max: 100, noNaN: true }), fc.double({ min: 0.1, max: 20, noNaN: true }), (vx, vz, speed) => {
-        const c = clampManualVelocity(vx, vz, speed, 0.1);
-        expect(Math.hypot(c.vx, c.vz)).toBeLessThanOrEqual(speed * 1.1 + 1e-9);
+      fc.property(fc.double({ min: -100, max: 100, noNaN: true }), fc.double({ min: -100, max: 100, noNaN: true }), fc.double({ min: 0.1, max: 40, noNaN: true }), (vx, vz, top) => {
+        const c = clampManualVelocity(vx, vz, top);
+        expect(Math.hypot(c.vx, c.vz)).toBeLessThanOrEqual(top + 1e-9);
       }),
     );
   });

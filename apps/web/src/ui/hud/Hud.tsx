@@ -3,8 +3,9 @@
 import { useEffect } from 'react';
 import { goldToWholeFloor } from '@hr/sim';
 import { t, tDynamic } from '../../text/t';
-import { useHud, useSession, useUi } from '../../store/stores';
-import { onDomainEvents } from '../../store/simBridge';
+import { useHud, useSession, useSimVersion, useUi } from '../../store/stores';
+import { bridge, onDomainEvents } from '../../store/simBridge';
+import { inputState } from '../../input/inputState';
 import { Joystick } from '../../input/Joystick';
 import { runContextAction, setPauseMenu, setSpeed, speedsAvailable, toggleSpeedPause, toggleViewMode, zoomIn, zoomOut } from '../../input/actions';
 import { alertRows } from './alertText';
@@ -39,6 +40,30 @@ function SpeedControl() {
         </button>
       ))}
     </div>
+  );
+}
+
+/** Held handbrake for touch while driving (34.5): drift, or donuts with the joystick at low speed. */
+function DriftButton() {
+  useSimVersion((v) => v.v);
+  if (!bridge.loop?.sim.state.ceo.drivingVehicleId) return null;
+  const hold = (on: boolean) => () => {
+    inputState.driftHeld = on;
+  };
+  return (
+    <button
+      className="context-button drift-button"
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        inputState.driftHeld = true;
+      }}
+      onPointerUp={hold(false)}
+      onPointerCancel={hold(false)}
+      onLostPointerCapture={hold(false)}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {t('action.drift')}
+    </button>
   );
 }
 
@@ -122,6 +147,7 @@ export function Hud() {
         <button className="icon-button" onClick={zoomOut} aria-label={t('hud.zoomOut')}>
           −
         </button>
+        <DriftButton />
         {ca && (
           <button className="context-button" onClick={() => runContextAction(ca)}>
             {t(ACTION_KEYS[ca.kind])}

@@ -156,6 +156,16 @@ export const vehicleDefSchema = z.object({
     bounciness: z.number().min(0).max(1),
     mass: z.number().positive(),
     turnRate: z.number().positive(),
+    /** Manual-driving feel (Physics_Layer only; route timing keeps using `speed`). */
+    manualTopSpeed: z.number().positive(),
+    reverseTopSpeed: z.number().positive(),
+    brakeDecel: z.number().positive(),
+    /** Handbrake drift: sideways grip while held (0 = ice), turn multiplier, speed lost per second. */
+    driftGrip: z.number().min(0).max(1),
+    driftTurnBoost: z.number().positive(),
+    driftDrag: z.number().min(0).max(1),
+    /** Donuts (gas + brake, or gas + handbrake, at low speed): spin rate in rad/s. */
+    donutTurnRate: z.number().positive(),
   }),
   modelKey: id,
 });
@@ -265,7 +275,6 @@ export const simConfigSchema = z.object({
   maxTicksPerFrame: z.number().int().positive(),
   gameSpeeds: z.array(z.number().int().positive()).min(1),
   interactionRange: z.number().positive(),
-  manualSpeedBonus: z.number().nonnegative(),
   manualTipFactor: z.number().nonnegative(),
   stoppedSpeed: z.number().nonnegative(),
   lostAlertPct: z.number().nonnegative(),

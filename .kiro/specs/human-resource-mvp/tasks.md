@@ -719,12 +719,16 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - `render/footprints.ts` holds each building's world bounding box (fitted, scaled GLB; plot rectangle for placeholder boxes), so changing `scale` / `offset` in `modelMap.ts` moves the hitbox. Walking is shaped in `input/walkCollision.ts` before `ceoMove` is submitted; driving uses the same boxes as Rapier colliders. `ceoEnter` / `ceoExit` accept the model's door point (validated against the plot entrance).
   - [x] 34.4 Raised sidewalks are physical
     - Figures step up onto the curb (render only); curbs are Rapier colliders and the van has per-wheel ray-cast suspension, so one wheel on a curb lifts that corner.
-  - [ ] 34.5 Driving overhaul (open)
-    - Drive faster (raise top speed / acceleration for manual driving; tune in `vehicles` handling + `manualSpeedBonus`, not in code)
-    - Spacebar = handbrake drift: grip drops while held so the rear slides, with a touch button for mobile
-    - Donuts: gas + brake at the same time (or gas + spacebar) spins the van in place / tight circles
-    - Keep the speed cap property test (Property 20) meaningful: the cap moves to data, the rule stays
-    - Optional: tyre marks / dust puffs while drifting, small Gold tip bonus for stylish deliveries
+  - [x] 34.5 Driving overhaul (built Nov 2026; needs an in-game feel check)
+    - Design rule: everything is per Vehicle Definition in `packages/content/data/vehicles.json`, never hard-coded, because more vehicle types are coming (bigger capacity, faster, longer range on fuel). A new type feels different just by its JSON.
+    - User answers: about 2x as fast; fast driving is free fun for now (no penalties); no style tip yet; separate touch drift button is fine; S keeps brake-then-reverse.
+    - Handling fields (schema `vehicleDefSchema.handling`): `manualTopSpeed` (15.4, about 2x the route `speed` of 7; routes and delivery timing are unchanged), `reverseTopSpeed`, `brakeDecel`, `driftGrip`, `driftTurnBoost`, `driftDrag`, `donutTurnRate`; `acceleration` raised to 30. The global `config.manualSpeedBonus` was removed: Property 20 now caps manual velocity at `handling.manualTopSpeed`.
+    - Pure handling in `apps/web/src/physics/handling.ts` (`driveStep`), tested in `apps/web/test/handling.test.ts` (top speed, Property 20 cap, brake then reverse, drift grip/turn, donuts, coasting stop).
+    - Controls: Space = handbrake drift (only while driving, so Space keeps working for buttons otherwise); touch "Drift" button (hold) next to the context button, hidden on mouse/keyboard devices. Donuts: W + S together, or gas + handbrake, below 4 u/s; A/D (or the stick) picks the direction.
+    - Feedback: fading tyre marks from the rear wheels while drifting or spinning, stronger body roll while sliding.
+    - Not built yet: dust puffs, a looser camera while sliding.
+    - Rules that stay: physics is web-only; the sim only receives `manualVehicleUpdate` poses. Cargo is never lost. Upright/out-of-bounds resets still apply.
+    - Later (wishlist): fuel/range per vehicle type, crash damage that breaks load, style points for a perfect drift.
   - [ ] 34.6 Furniture collision inside (bar, tables) — open, not requested yet
 
 ## Notes

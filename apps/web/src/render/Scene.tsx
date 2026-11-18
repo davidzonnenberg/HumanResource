@@ -5,7 +5,8 @@ import { lazy, Suspense } from 'react';
 import { bridge } from '../store/simBridge';
 import { useSession, useSimVersion, useUi } from '../store/stores';
 import { CameraController } from './CameraController';
-import { Building, BuildingShadows, Ground, Plots, Roads, Sidewalks, UnloadingZones } from './World';
+import { Building, BuildingShadows, Ground, Landmarks, Plots, Roads, Sidewalks, UnloadingZones, type LandmarkDef } from './World';
+import { landmarks } from '@hr/content';
 import { Figures } from './Figures';
 import { Vehicles } from './Vehicles';
 import { HumanLabels, ManagementOverlay } from './Overlays';
@@ -36,6 +37,7 @@ function WorldContent() {
       <Sidewalks reg={reg} />
       <Plots reg={reg} state={s} />
       <BuildingShadows reg={reg} state={s} />
+      <Landmarks list={landmarks as LandmarkDef[]} districts={s.districts} />
       <UnloadingZones reg={reg} state={s} />
       {Object.values(s.businesses).map((b) => (
         <Building key={b.id} reg={reg} state={s} b={b} open={false} />

@@ -8,7 +8,7 @@ import type { Business, DefinitionRegistry, SimState } from '@hr/sim';
 import { frontSign } from '@hr/sim';
 import { ownerColor, palette } from './theme';
 import { pubLayout } from './layout';
-import { modelFor } from './assets/modelMap';
+import { MODEL_MAP, modelFor } from './assets/modelMap';
 import { roadBrickTexture } from './assets/brickTexture';
 import { makeRoadField, roadFieldGlsl } from './assets/roadField';
 import type { RoadField } from './assets/roadField';
@@ -342,6 +342,57 @@ export function Building({ reg, state, b, open }: { reg: DefinitionRegistry; sta
           {b.name}
         </div>
       </Html>
+    </group>
+  );
+}
+
+// ---- Landmarks / filler buildings (render-only, no sim Business yet) ---------------------------
+export interface LandmarkDef {
+  id: string;
+  district: string;
+  modelKey: string;
+  x: number;
+  z: number;
+  w: number;
+  d: number;
+  /** +1: front door faces +z (towards the camera), -1: faces -z. */
+  facing: number;
+}
+
+/** Footprint id for a landmark, kept apart from Business ids. */
+export const landmarkFootprintId = (id: string): string => `landmark:${id}`;
+
+export function Landmarks({ list, districts }: { list: readonly LandmarkDef[]; districts: SimState['districts'] }) {
+  const shadow = useMemo(() => gradientTexture('radial'), []);
+  return (
+    <group>
+      {list.map((l) => {
+        if (!districts[l.district]?.unlocked) return null;
+        const model = MODEL_MAP[l.modelKey];
+        const plot = { x: l.x, z: l.z, w: l.w, d: l.d };
+        const fid = landmarkFootprintId(l.id);
+        const h = model?.kind === 'gltf' ? (model.maxHeight ?? 14) * 0.6 : 6;
+        const box = (
+          <>
+            <PlotFootprint id={fid} x={l.x} z={l.z} w={l.w * 0.8} d={l.d * 0.8} h={h} />
+            <mesh position={[l.x, h / 2, l.z]}>
+              <boxGeometry args={[l.w * 0.8, h, l.d * 0.8]} />
+              <meshStandardMaterial color={palette.wallInside} />
+            </mesh>
+          </>
+        );
+        const f = footprint(fid);
+        const sb = f ? { x: (f.minX + f.maxX) / 2, z: (f.minZ + f.maxZ) / 2, w: f.maxX - f.minX, d: f.maxZ - f.minZ } : plot;
+        return (
+          <group key={l.id}>
+            <mesh position={[sb.x, 0.075, sb.z]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
+              <planeGeometry args={[sb.w + 4, sb.d + 4]} />
+              <meshBasicMaterial map={shadow} transparent depthWrite={false} polygonOffset polygonOffsetFactor={-2} />
+            </mesh>
+            {model?.kind === 'gltf' ? <GltfBuilding entry={model} plot={plot} frontSign={l.facing} fallback={box} onFootprint={(fp) => setFootprint(fid, fp)} /> : box}
+          </group>
+        );
+      })}
     </group>
   );
 }

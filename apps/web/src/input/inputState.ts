@@ -9,8 +9,10 @@ export interface InputState {
   stickX: number;
   stickY: number;
   keys: Set<string>;
+  /** Handbrake held via the touch drift button (Space on PC goes into keys as ' '). */
+  driftHeld: boolean;
   /** Set by the Physics_Layer while mounted; submits manualVehicleUpdate once per Tick. */
   physicsBeforeTick: ((sim: Simulation) => void) | null;
 }
 
-export const inputState: InputState = { mx: 0, mz: 0, stickX: 0, stickY: 0, keys: new Set(), physicsBeforeTick: null };
+export const inputState: InputState = { mx: 0, mz: 0, stickX: 0, stickY: 0, keys: new Set(), driftHeld: false, physicsBeforeTick: null };

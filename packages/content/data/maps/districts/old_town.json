@@ -1,7 +1,7 @@
 {
   "id": "old_town",
   "nameKey": "district.oldTown",
-  "bounds": [[-66, -40], [66, -40], [66, 40], [-66, 40]],
+  "bounds": [[-66, -54], [66, -54], [66, 40], [-66, 40]],
   "nodes": [
     { "id": "w_end", "x": -60, "z": 0 },
     { "id": "west_lot", "x": -46, "z": 0 },
@@ -65,6 +65,6 @@
       "accessNode": "rival", "unloadingZone": { "x": 14, "z": 2, "w": 12, "d": 6 }, "initial": { "kind": "for_sale", "price": 600000 }
     }
   ],
-  "drivableBounds": [[-66, -40], [66, -40], [66, 40], [-66, 40]],
-  "walkableBounds": [[-66, -40], [66, -40], [66, 40], [-66, 40]]
+  "drivableBounds": [[-66, -54], [66, -54], [66, 40], [-66, 40]],
+  "walkableBounds": [[-66, -54], [66, -54], [66, 40], [-66, 40]]
 }

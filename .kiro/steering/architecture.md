@@ -77,4 +77,4 @@ These rules keep the foundation stable so new features are additive. Follow them
 
 ## Scope
 
-- Build only what the current task needs. Far-future ideas belong in `docs/wishlist.md`, not in code.
+- Build only what the current task needs. Near-term ideas belong in `docs/ideas.md`, far-future ideas in `docs/wishlist.md`, not in code (see `planning-docs.md`).
