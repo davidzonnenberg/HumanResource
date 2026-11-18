@@ -24,6 +24,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "clean": "node scripts/clean.mjs",
+    "models:optimize": "node scripts/optimizeModels.mjs",
     "smoke:docker": "node scripts/docker-smoke.mjs"
   },
   "devDependencies": {

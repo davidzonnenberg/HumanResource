@@ -18,3 +18,6 @@ Thumbs.db
 # Graphify knowledge graph: generated from the code, regenerate with `graphify update .`.
 # Large machine-written files that would cause constant merge conflicts.
 graphify-out/
+
+# Raw ComfyUI/Trellis GLB exports (tens of MB each). Only optimized copies in apps/web/public/models are committed.
+assets-src/models-raw/

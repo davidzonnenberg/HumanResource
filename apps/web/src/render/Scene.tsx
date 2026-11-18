@@ -4,7 +4,7 @@ import { lazy, Suspense } from 'react';
 import { bridge } from '../store/simBridge';
 import { useSession, useSimVersion, useUi } from '../store/stores';
 import { CameraController } from './CameraController';
-import { Building, Ground, Plots, Roads, UnloadingZones } from './World';
+import { Building, BuildingShadows, Ground, Plots, Roads, Sidewalks, UnloadingZones } from './World';
 import { Figures } from './Figures';
 import { Vehicles } from './Vehicles';
 import { HumanLabels, ManagementOverlay } from './Overlays';
@@ -24,7 +24,9 @@ function WorldContent() {
     <>
       <Ground reg={reg} districts={s.districts} />
       <Roads reg={reg} />
+      <Sidewalks reg={reg} />
       <Plots reg={reg} state={s} />
+      <BuildingShadows reg={reg} state={s} />
       <UnloadingZones reg={reg} state={s} />
       {Object.values(s.businesses).map((b) => (
         <Building key={b.id} reg={reg} state={s} b={b} open={s.ceo.insideBusinessId === b.id} />
