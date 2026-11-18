@@ -1,9 +1,11 @@
 // Holds the running Simulation and GameLoop; publishes throttled snapshots to the stores.
-import { contextActionFor, type DefinitionRegistry, type DomainEvent, type Simulation, type TickOutput } from '@hr/sim';
+import { contextActionFor, frontSign, type DefinitionRegistry, type DomainEvent, type Simulation, type TickOutput } from '@hr/sim';
 import { useEffect, useState } from 'react';
 import { GameLoop, type LoopHooks } from '../loop/GameLoop';
 import { useHud, useSimVersion, useUi } from './stores';
 import { inputState } from '../input/inputState';
+import { shapeMove } from '../input/walkCollision';
+import { allFootprints, clearFootprints, exteriorDoorPoint } from '../render/footprints';
 
 interface Bridge {
   reg: DefinitionRegistry | null;
@@ -31,6 +33,7 @@ export function attachSimulation(sim: Simulation, extraHooks: LoopHooks = {}, de
   );
   bridge.loop = loop;
   bridge.reg = sim.reg;
+  clearFootprints();
   publish(true);
   return loop;
 }
@@ -47,7 +50,13 @@ function submitPerTickInput(sim: Simulation): void {
   }
   if (useUi.getState().viewMode !== 'ceo') return;
   const { mx, mz } = inputState;
-  if (mx !== 0 || mz !== 0) sim.submit({ type: 'ceoMove', dx: mx, dz: mz });
+  if (mx === 0 && mz === 0) return;
+  const ceo = sim.state.ceo;
+  // Building hitboxes only apply outside; inside, the sim keeps the CEO within the room walls.
+  const move = ceo.insideBusinessId
+    ? { dx: mx, dz: mz }
+    : shapeMove(ceo.x, ceo.z, mx, mz, (sim.reg.config.ceoWalkingSpeed * sim.reg.config.tickMs) / 1000, sim.reg.config.ceoRadius, allFootprints().values());
+  if (move.dx !== 0 || move.dz !== 0) sim.submit({ type: 'ceoMove', dx: move.dx, dz: move.dz });
 }
 
 function onTicks(outs: TickOutput[]): void {
@@ -71,7 +80,11 @@ export function publish(force: boolean): void {
   const hud = useHud.getState();
   const alerts = Object.values(s.alerts);
   const changedAlerts = alerts.length !== hud.alerts.length || alerts.some((a, i) => a.key !== hud.alerts[i]?.key || a.variant !== hud.alerts[i]?.variant);
-  const ca = contextActionFor(s, loop.sim.reg);
+  const reg = loop.sim.reg;
+  const ca = contextActionFor(s, reg, (id) => {
+    const b = s.businesses[id];
+    return b ? exteriorDoorPoint(id, frontSign(reg, b.plotId)) : undefined;
+  });
   const caChanged = ca?.kind !== hud.contextAction?.kind || ca?.targetId !== hud.contextAction?.targetId;
   const revealed = s.reveals.fired.flatMap((id) => loop.sim.reg.revealTriggers[id]?.reveals ?? []);
   const patch: Parameters<typeof hud.set>[0] = {};

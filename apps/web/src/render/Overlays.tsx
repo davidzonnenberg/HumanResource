@@ -72,9 +72,10 @@ export function HumanLabels() {
     const s = loop.sim.state;
     const show = useUi.getState().viewMode === 'ceo' && useUi.getState().cameraDistance <= camCfg.labelMaxDistance;
     const ceo = loop.pose('ceo') ?? { x: 0, z: 0 };
+    const room = s.ceo.insideBusinessId; // same rule as Figures: labels follow the interior view
     const near = show
       ? Object.values(s.humans)
-          .filter((h) => h.owner === 'player' && h.location.kind !== 'onVehicle')
+          .filter((h) => h.owner === 'player' && h.location.kind !== 'onVehicle' && (h.location.kind === 'at' ? h.location.insideBusinessId : null) === room)
           .map((h) => ({ h, p: loop.pose(h.id) }))
           .filter((x): x is { h: (typeof x)['h']; p: NonNullable<(typeof x)['p']> } => x.p !== undefined)
           .sort((a, b) => Math.hypot(a.p.x - ceo.x, a.p.z - ceo.z) - Math.hypot(b.p.x - ceo.x, b.p.z - ceo.z))

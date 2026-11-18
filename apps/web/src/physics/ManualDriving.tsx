@@ -1,6 +1,6 @@
 // Physics_Layer (13): lazy-loaded Rapier world mounted only during Manual_Driving. Arcade
 // handling from the Vehicle Definition; cargo is simulation data and is never touched here.
-import { CuboidCollider, Physics, RigidBody, type RapierRigidBody } from '@react-three/rapier';
+import { CuboidCollider, Physics, RigidBody, useBeforePhysicsStep, useRapier, type RapierRigidBody } from '@react-three/rapier';
 import { useFrame } from '@react-three/fiber';
 import { Component, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
@@ -10,13 +10,34 @@ import { inputState } from '../input/inputState';
 import { camState } from '../render/cameraState';
 import { ownerColor, screenToWorld, theme } from '../render/theme';
 import { VanBody, crateCount, renderHeadings } from '../render/Vehicles';
+import { sidewalkBoxes } from '../render/World';
+import { footprint, footprintVersion } from '../render/footprints';
 import { clampManualVelocity, newUprightState, stickToDrive, updateUpright } from './uprightMonitor';
 
 const up = new THREE.Vector3();
 const fwd = new THREE.Vector3();
 const quat = new THREE.Quaternion();
 const euler = new THREE.Euler(0, 0, 0, 'YXZ');
+const suspQuat = new THREE.Quaternion();
+const wheelPt = new THREE.Vector3();
 
+// Ray-cast suspension: one spring per wheel, so each wheel follows the surface under it (one
+// wheel on a curb lifts that corner, both wheels lift the side). The chassis collider floats
+// above the springs, so it only touches walls and buildings, never the curb edge.
+const GRAVITY = 20;
+const VS = theme.vehicleScale;
+const WHEELS: readonly (readonly [number, number])[] = [
+  [-0.85 * VS, -1.0 * VS],
+  [0.85 * VS, -1.0 * VS],
+  [-0.85 * VS, 1.0 * VS],
+  [0.85 * VS, 1.0 * VS],
+];
+const RAY_TOP = 0.9; // ray origin above the body origin (the van's ground contact)
+const SPRING = 260; // per-wheel stiffness, as acceleration per metre of compression
+const DAMPER = 22; // per-wheel damping, as acceleration per m/s along the spring
+const REST = RAY_TOP + GRAVITY / SPRING; // rest length: at equilibrium the body origin sits on the surface
+const MAX_RAY = REST + 0.45;
+const CHASSIS_BOTTOM = 0.45; // above the curb height, so curbs are driven over, not crashed into
 // TEMP driving diagnostics (dev builds only, about once a second). Remove once driving is fixed.
 let debugElapsed = 0;
 function driveDebug(dt: number, data: () => Record<string, unknown>): void {
@@ -35,7 +56,31 @@ function Van({ vehicleId }: { vehicleId: string }) {
   // calling Rapier, because the physics world may already be freed by then (crash fix).
   const lastHeading = useRef<number | null>(null);
   const monitor = useRef(newUprightState());
+  const { rapier } = useRapier();
+  const ray = useMemo(() => new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 }), [rapier]);
   const loop = bridge.loop;
+
+  useBeforePhysicsStep((world) => {
+    const b = body.current;
+    if (!b) return;
+    const dt = Math.min(0.05, Math.max(1 / 240, world.timestep));
+    const r = b.rotation();
+    suspQuat.set(r.x, r.y, r.z, r.w);
+    const t = b.translation();
+    const share = b.mass() / WHEELS.length;
+    for (const [wx, wz] of WHEELS) {
+      wheelPt.set(wx, RAY_TOP, wz).applyQuaternion(suspQuat);
+      ray.origin = { x: t.x + wheelPt.x, y: t.y + wheelPt.y, z: t.z + wheelPt.z };
+      const hit = world.castRay(ray, MAX_RAY, true, undefined, undefined, undefined, b);
+      if (!hit) continue; // wheel in the air
+      const compression = REST - hit.timeOfImpact;
+      if (compression <= 0) continue;
+      const contact = { x: ray.origin.x, y: ray.origin.y - hit.timeOfImpact, z: ray.origin.z };
+      const vy = b.velocityAtPoint(contact).y;
+      const accel = Math.max(0, SPRING * compression - DAMPER * vy);
+      b.applyImpulseAtPoint({ x: 0, y: accel * share * dt, z: 0 }, contact, true);
+    }
+  });
   const v = loop?.sim.state.vehicles[vehicleId];
   const def = v ? loop?.sim.reg.vehicles[v.defId] : undefined;
   // Start pose is captured once per takeover; later sim updates come from the body itself.
@@ -90,15 +135,15 @@ function Van({ vehicleId }: { vehicleId: string }) {
     const lv = b.linvel();
     const speed = Math.hypot(lv.x, lv.z);
     const forwardSpeed = lv.x * fwd.x + lv.z * fwd.z;
-    // Throttle impulse along the van's forward vector
-    const accel = h.acceleration * throttle * dt * b.mass();
-    b.applyImpulse({ x: fwd.x * accel, y: 0, z: fwd.z * accel }, true);
+    // Throttle along the van's forward vector. Folded into the velocity written below: applying an
+    // impulse and then calling setLinvel with the stale pre-impulse velocity erased all acceleration.
+    const accel = h.acceleration * throttle * dt;
     // Loose steering: only part of the sideways velocity is removed, so the van drifts
     const latX = lv.x - fwd.x * forwardSpeed;
     const latZ = lv.z - fwd.z * forwardSpeed;
     const grip = (1 - h.steeringLooseness) * 0.35;
-    let nvx = lv.x - latX * grip;
-    let nvz = lv.z - latZ * grip;
+    let nvx = lv.x - latX * grip + fwd.x * accel;
+    let nvz = lv.z - latZ * grip + fwd.z * accel;
     if (throttle === 0) {
       nvx *= 0.94; // roll to a stop so Load/Unload/Exit become available
       nvz *= 0.94;
@@ -173,7 +218,7 @@ function Van({ vehicleId }: { vehicleId: string }) {
         squash.current = Math.min(0.18, squash.current + 0.12);
       }}
     >
-      <CuboidCollider args={[0.9 * theme.vehicleScale, 0.7 * theme.vehicleScale, 1.6 * theme.vehicleScale]} position={[0, 0.8, 0]} />
+      <CuboidCollider args={[0.9 * VS, 0.5 * VS, 1.6 * VS]} position={[0, CHASSIS_BOTTOM + 0.5 * VS, 0]} />
       <group scale={theme.vehicleScale}>
         <VanBody color={color} crates={crateCount(v)} wobble={wobble} />
       </group>
@@ -221,9 +266,25 @@ function StaticWorld() {
     <RigidBody type="fixed" colliders={false}>
       <CuboidCollider args={[w / 2 + 20, 0.5, d / 2 + 20]} position={[cx, -0.5, cz]} friction={0.6} />
       {Object.values(s.businesses).map((biz) => {
+        // Hitbox of the drawn model (scaled GLB bounds), or the plot for placeholder boxes
+        const f = footprint(biz.id);
         const p = reg.world.plots[biz.plotId]?.def;
-        return p ? <CuboidCollider key={biz.id} args={[p.w / 2, 2, p.d / 2]} position={[p.x, 2, p.z]} restitution={0.7} /> : null;
+        const box = f ?? (p ? { minX: p.x - p.w / 2, maxX: p.x + p.w / 2, minZ: p.z - p.d / 2, maxZ: p.z + p.d / 2, height: 4 } : null);
+        if (!box) return null;
+        const hh = Math.max(1, box.height) / 2;
+        return (
+          <CuboidCollider
+            key={`${biz.id}:${footprintVersion()}`}
+            args={[(box.maxX - box.minX) / 2, hh, (box.maxZ - box.minZ) / 2]}
+            position={[(box.minX + box.maxX) / 2, hh, (box.minZ + box.maxZ) / 2]}
+            restitution={0.7}
+          />
+        );
       })}
+      {/* raised sidewalks: the wheel rays ride up onto them */}
+      {sidewalkBoxes(reg).map((sw, i) => (
+        <CuboidCollider key={`sw${i}`} args={[sw.w / 2, sw.h / 2, sw.d / 2]} position={[sw.x, sw.h / 2, sw.z]} />
+      ))}
     </RigidBody>
   );
 }
@@ -248,7 +309,7 @@ export default function ManualDriving({ vehicleId }: { vehicleId: string }) {
   const paused = bridge.loop?.paused ?? false;
   return (
     <PhysicsBoundary vehicleId={vehicleId}>
-      <Physics gravity={[0, -20, 0]} paused={paused} timeStep="vary">
+      <Physics gravity={[0, -GRAVITY, 0]} paused={paused} timeStep="vary">
         <StaticWorld />
         <OtherVehicles exclude={vehicleId} />
         <Van vehicleId={vehicleId} />

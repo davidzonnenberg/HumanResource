@@ -710,6 +710,23 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
   - Run `npm.cmd test`, `npm.cmd run typecheck`, `npm.cmd run lint` and `npm.cmd run build`. Ensure all tests pass, ask the user if questions arise.
   - Optional, user-triggered only: on the user's explicit request, commit and push. Do not do this automatically.
 
+- [ ] 34. Playability polish (user requests, Nov 2026)
+  - [x] 34.1 Fix manual driving not moving
+    - Throttle was applied as an impulse and then erased by a `setLinvel` built from the stale velocity; it is now part of the written velocity (`physics/ManualDriving.tsx`). Remove the TEMP `driveDebug` logging once the user confirms in-game.
+  - [x] 34.2 Stardew-style building interiors
+    - E / "Enter" at the drawn model's front door teleports the CEO inside; only that interior is drawn (dark backdrop, camera clamped to the room, zoom unchanged); "Leave" only at the interior door mat. Interior walls (incl. the front wall) are solid. Staff, Customers, crates and labels inside a building are only drawn in its interior view; Customers walk up to the door outside and "teleport" in, and the other way round when leaving.
+  - [x] 34.3 Building hitboxes from the drawn models
+    - `render/footprints.ts` holds each building's world bounding box (fitted, scaled GLB; plot rectangle for placeholder boxes), so changing `scale` / `offset` in `modelMap.ts` moves the hitbox. Walking is shaped in `input/walkCollision.ts` before `ceoMove` is submitted; driving uses the same boxes as Rapier colliders. `ceoEnter` / `ceoExit` accept the model's door point (validated against the plot entrance).
+  - [x] 34.4 Raised sidewalks are physical
+    - Figures step up onto the curb (render only); curbs are Rapier colliders and the van has per-wheel ray-cast suspension, so one wheel on a curb lifts that corner.
+  - [ ] 34.5 Driving overhaul (open)
+    - Drive faster (raise top speed / acceleration for manual driving; tune in `vehicles` handling + `manualSpeedBonus`, not in code)
+    - Spacebar = handbrake drift: grip drops while held so the rear slides, with a touch button for mobile
+    - Donuts: gas + brake at the same time (or gas + spacebar) spins the van in place / tight circles
+    - Keep the speed cap property test (Property 20) meaningful: the cap moves to data, the rule stays
+    - Optional: tyre marks / dust puffs while drifting, small Gold tip bonus for stylish deliveries
+  - [ ] 34.6 Furniture collision inside (bar, tables) — open, not requested yet
+
 ## Notes
 
 - Tasks marked with `*` are optional and can be skipped for a faster MVP. The property tests mandated by Requirement 44.2 (tasks 4.2, 5.2, 6.3, 8.1, 8.2, 8.3, 16.3, 16.4, 16.7, 24.3, 25.2, 30.4) are deliberately not optional, and neither are the Gold-limit test (3.14) and the Text_Key coverage test (10.8).

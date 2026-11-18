@@ -15,6 +15,8 @@
   "reputationStart": 50,
   "popularityBands": { "low": 4, "high": 9 },
   "ceoWalkingSpeed": 5,
+  "ceoRadius": 0.4,
+  "interiorWallThickness": 0.25,
   "boardingDistance": 2,
   "pubWindowSeconds": 60,
   "vehicleWindowSeconds": 300,

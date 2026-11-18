@@ -71,7 +71,7 @@ function dispatch(ctx: TickContext, env: CommandEnvelope): Rejection | null {
     case 'ceoEnter':
       return handleCeoEnter(ctx, cmd);
     case 'ceoExit':
-      return handleCeoExit(ctx);
+      return handleCeoExit(ctx, cmd);
     case 'uiEvent':
       ctx.events.push({ type: 'uiManagementViewOpened' });
       return null;

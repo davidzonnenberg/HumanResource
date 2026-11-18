@@ -1,5 +1,6 @@
 // Turns intents into Commands/UI changes. Shared by the Context_Action button, keys and panels.
-import type { ContextAction } from '@hr/sim';
+import { frontSign, type ContextAction } from '@hr/sim';
+import { exteriorDoorPoint } from '../render/footprints';
 import { bridge } from '../store/simBridge';
 import { useSession, useUi } from '../store/stores';
 import { availableSpeeds, stepSpeed, type GameSpeed } from '../loop/gameSpeed';
@@ -12,12 +13,22 @@ export function runContextAction(ca: ContextAction | null): void {
   if (!sim || !ca) return;
   switch (ca.kind) {
     case 'enter':
-      sim.submit({ type: 'ceoEnter', businessId: ca.targetId });
-      camState.targetDistance = Math.min(camState.targetDistance, 12);
+      {
+        const b = sim.state.businesses[ca.targetId];
+        const door = b ? exteriorDoorPoint(b.id, frontSign(sim.reg, b.plotId)) : undefined;
+        sim.submit(door ? { type: 'ceoEnter', businessId: ca.targetId, doorX: door.x, doorZ: door.z } : { type: 'ceoEnter', businessId: ca.targetId });
+      }
+      useUi.getState().set({ viewMode: 'ceo' }); // the interior follows the CEO; zoom is left as it was
       break;
-    case 'exitBuilding':
-      sim.submit({ type: 'ceoExit' });
+    case 'exitBuilding': {
+      // Step out in front of the drawn model's door, not the (bigger) plot edge.
+      const b = sim.state.businesses[ca.targetId];
+      const s = b ? frontSign(sim.reg, b.plotId) : 1;
+      const door = b ? exteriorDoorPoint(b.id, s) : undefined;
+      if (door) sim.submit({ type: 'ceoExit', x: door.x, z: door.z + s * (sim.reg.config.ceoRadius + 0.6) });
+      else sim.submit({ type: 'ceoExit' });
       break;
+    }
     case 'inspect':
       useUi.getState().set({ selection: { kind: ca.targetKind, id: ca.targetId } });
       break;

@@ -1,4 +1,5 @@
 // The 3D scene. No scene changes or loading screens between CEO_Mode and Management_View (15.1).
+// Inside a Business (14.3) only that interior is drawn, Stardew-style, on a dark backdrop.
 import { Canvas } from '@react-three/fiber';
 import { lazy, Suspense } from 'react';
 import { bridge } from '../store/simBridge';
@@ -13,6 +14,12 @@ import { camCfg, palette } from './theme';
 
 const ManualDriving = lazy(() => import('../physics/ManualDriving'));
 
+function Backdrop() {
+  useSimVersion((v) => v.v);
+  const inside = bridge.loop?.sim.state.ceo.insideBusinessId ?? null;
+  return <color attach="background" args={[inside ? palette.interiorBackdrop : (palette.sky ?? '#bde3ff')]} />;
+}
+
 function WorldContent() {
   useSimVersion((v) => v.v); // refresh static-ish content at <= 5 Hz
   const loop = bridge.loop;
@@ -20,6 +27,8 @@ function WorldContent() {
   if (!loop) return null;
   const reg = loop.sim.reg;
   const s = loop.sim.state;
+  const inside = s.ceo.insideBusinessId ? s.businesses[s.ceo.insideBusinessId] : undefined;
+  if (inside) return <Building reg={reg} state={s} b={inside} open />;
   return (
     <>
       <Ground reg={reg} districts={s.districts} />
@@ -29,7 +38,7 @@ function WorldContent() {
       <BuildingShadows reg={reg} state={s} />
       <UnloadingZones reg={reg} state={s} />
       {Object.values(s.businesses).map((b) => (
-        <Building key={b.id} reg={reg} state={s} b={b} open={s.ceo.insideBusinessId === b.id} />
+        <Building key={b.id} reg={reg} state={s} b={b} open={false} />
       ))}
       <Vehicles state={s} />
       <ManagementOverlay reg={reg} state={s} />
@@ -51,7 +60,7 @@ export function Scene() {
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       onPointerMissed={() => useUi.getState().set({ selection: null })}
     >
-      <color attach="background" args={[palette.sky ?? '#bde3ff']} />
+      <Backdrop />
       <hemisphereLight args={['#ffffff', '#6b8f4e', 0.9]} />
       <directionalLight position={[30, 60, 20]} intensity={1.2} />
       <CameraController />

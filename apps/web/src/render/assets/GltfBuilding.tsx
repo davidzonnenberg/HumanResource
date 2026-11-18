@@ -5,8 +5,9 @@
 // While loading, or if the file is missing/broken, `fallback` (the placeholder building) is shown.
 import { useGLTF } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
-import { Component, Suspense, useMemo, type ReactNode } from 'react';
-import { Box3, Material, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+import { Component, Suspense, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react';
+import { Box3, Group, Material, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+import type { Footprint } from '../footprints';
 import type { GltfEntry } from './modelMap';
 
 export const DEFAULT_MAX_HEIGHT = 14;
@@ -53,7 +54,8 @@ function tuned(m: Material, brightness: number, anisotropy: number): Material {
   return c;
 }
 
-function GltfModel({ entry, plot, frontSign }: { entry: GltfEntry; plot: PlotBox; frontSign: number }) {
+function GltfModel({ entry, plot, frontSign, onFootprint }: { entry: GltfEntry; plot: PlotBox; frontSign: number; onFootprint?: (f: Footprint) => void }) {
+  const root = useRef<Group>(null);
   // Draco off (our files use meshopt; Draco would download a decoder from the internet).
   const { scene } = useGLTF(entry.url, false, true);
   const maxAnisotropy = useThree((s) => s.gl.capabilities.getMaxAnisotropy());
@@ -89,14 +91,23 @@ function GltfModel({ entry, plot, frontSign }: { entry: GltfEntry; plot: PlotBox
     };
   }, [scene, entry, plot.x, plot.z, plot.w, plot.d, frontSign, maxAnisotropy]);
 
+  // Hitbox = the placed model's world bounding box, so scale/offset changes move it too.
+  useLayoutEffect(() => {
+    const g = root.current;
+    if (!g || !onFootprint) return;
+    g.updateWorldMatrix(true, true);
+    const b = new Box3().setFromObject(g);
+    if (!b.isEmpty()) onFootprint({ minX: b.min.x, maxX: b.max.x, minZ: b.min.z, maxZ: b.max.z, height: b.max.y });
+  }, [placed, onFootprint]);
+
   return (
-    <group position={placed.pos} rotation={[0, placed.rotationY, 0]} scale={placed.k}>
+    <group ref={root} position={placed.pos} rotation={[0, placed.rotationY, 0]} scale={placed.k}>
       <primitive object={placed.obj} position={placed.inner} />
     </group>
   );
 }
 
-export function GltfBuilding(props: { entry: GltfEntry; plot: PlotBox; frontSign: number; fallback: ReactNode }) {
+export function GltfBuilding(props: { entry: GltfEntry; plot: PlotBox; frontSign: number; fallback: ReactNode; onFootprint?: (f: Footprint) => void }) {
   const { fallback, ...rest } = props;
   return (
     <ModelBoundary url={props.entry.url} fallback={fallback}>

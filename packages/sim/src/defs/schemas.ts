@@ -276,6 +276,10 @@ export const simConfigSchema = z.object({
   reputationStart: z.number().int().min(0).max(100),
   popularityBands: z.object({ low: z.number(), high: z.number() }),
   ceoWalkingSpeed: z.number().positive(),
+  /** CEO collision radius against building footprints and interior walls. */
+  ceoRadius: z.number().positive().default(0.4),
+  /** Thickness of a building's interior walls (the CEO cannot walk into them). */
+  interiorWallThickness: z.number().nonnegative().default(0.25),
   boardingDistance: z.number().positive(),
   pubWindowSeconds: z.number().int().positive(),
   vehicleWindowSeconds: z.number().int().positive(),

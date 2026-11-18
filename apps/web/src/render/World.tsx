@@ -1,8 +1,8 @@
-﻿// Static world: ground per District, roads, plots, buildings with removable roof/front wall for
+// Static world: ground per District, roads, plots, buildings with removable roof/front wall for
 // the interior view (14.3), owner colours and names (16.1–16.3, 17.2, 48.9).
 import { Html, useTexture } from '@react-three/drei';
 import type { ThreeEvent } from '@react-three/fiber';
-import { Suspense, useMemo } from 'react';
+import { Suspense, useLayoutEffect, useMemo } from 'react';
 import { BoxGeometry, CanvasTexture, Color, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
 import type { Business, DefinitionRegistry, SimState } from '@hr/sim';
 import { frontSign } from '@hr/sim';
@@ -14,6 +14,7 @@ import { makeRoadField, roadFieldGlsl } from './assets/roadField';
 import type { RoadField } from './assets/roadField';
 import { GltfBuilding, gltfMaxHeight, ModelBoundary } from './assets/GltfBuilding';
 import { useUi } from '../store/stores';
+import { footprint, setFootprint } from './footprints';
 
 const ROAD_W = 6;
 
@@ -251,6 +252,12 @@ export function Plots({ reg, state }: { reg: DefinitionRegistry; state: SimState
 
 const WALL = 0.25;
 
+/** Placeholder buildings fill their plot, so their hitbox is the plot rectangle. */
+function PlotFootprint({ id, x, z, w, d, h }: { id: string; x: number; z: number; w: number; d: number; h: number }) {
+  useLayoutEffect(() => setFootprint(id, { minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2, height: h }), [id, x, z, w, d, h]);
+  return null;
+}
+
 export function Building({ reg, state, b, open }: { reg: DefinitionRegistry; state: SimState; b: Business; open: boolean }) {
   const def = reg.businesses[b.defId];
   const plot = reg.world.plots[b.plotId]?.def;
@@ -267,6 +274,7 @@ export function Building({ reg, state, b, open }: { reg: DefinitionRegistry; sta
   const layout = pub ? pubLayout(reg, b.plotId, pub.seats) : null;
   const shell = (
     <>
+      {!open && <PlotFootprint id={b.id} x={plot.x} z={plot.z} w={w} d={d} h={height} />}
       <group position={[plot.x, 0, plot.z]}>
         {/* floor */}
         <mesh position={[0, 0.06, 0]}>
@@ -285,14 +293,23 @@ export function Building({ reg, state, b, open }: { reg: DefinitionRegistry; sta
             <meshStandardMaterial color={color} />
           </mesh>
         ))}
-        {/* front wall with a door gap; hidden in the interior view */}
-        {!open &&
-          [-1, 1].map((side) => (
-            <mesh key={`f${side}`} position={[side * (w / 4 + 0.6), height / 2, (s * d) / 2 - (s * WALL) / 2]}>
-              <boxGeometry args={[w / 2 - 1.2, height, WALL]} />
+        {/* front wall with a door gap; a low knee wall in the interior view so the camera sees in */}
+        {[-1, 1].map((side) => {
+          const fh = open ? 0.45 : height;
+          return (
+            <mesh key={`f${side}`} position={[side * (w / 4 + 0.6), fh / 2, (s * d) / 2 - (s * WALL) / 2]}>
+              <boxGeometry args={[w / 2 - 1.2, fh, WALL]} />
               <meshStandardMaterial color={color} />
             </mesh>
-          ))}
+          );
+        })}
+        {/* interior door: a mat marks where to stand to Leave */}
+        {open && (
+          <mesh position={[0, 0.12, (s * d) / 2 - s * (WALL + 0.6)]}>
+            <boxGeometry args={[2.2, 0.03, 1.2]} />
+            <meshStandardMaterial color={palette.doormat} />
+          </mesh>
+        )}
         {/* roof; removed when the CEO is inside (14.3) */}
         {!open && (
           <mesh position={[0, height + 0.15, 0]}>
@@ -319,7 +336,7 @@ export function Building({ reg, state, b, open }: { reg: DefinitionRegistry; sta
   );
   return (
     <group onClick={select('business', b.id)}>
-      {gltf ? <GltfBuilding entry={gltf} plot={plot} frontSign={s} fallback={shell} /> : shell}
+      {gltf ? <GltfBuilding entry={gltf} plot={plot} frontSign={s} fallback={shell} onFootprint={(f) => setFootprint(b.id, f)} /> : shell}
       <Html position={[plot.x, labelHeight + 1.4, plot.z]} center distanceFactor={40} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <div className="world-label" style={{ borderColor: color }}>
           {b.name}
@@ -362,7 +379,7 @@ export function UnloadingZones({ reg, state }: { reg: DefinitionRegistry; state:
 
 
 // ---- Raised sidewalks + fake contact shadows (no shadow maps) ----------------------------------
-const CURB_H = 0.13;
+const CURB_H = 0.24;
 const SIDEWALK_W = 1.5; // narrow strip hugging the road edge
 const CURB_COLOR = new Color('#c89b88');
 const SIDEWALK_TINT = new Color(1.55, 1.45, 1.4); // same bricks as the road, a bit lighter
@@ -469,6 +486,17 @@ function buildStrips(reg: DefinitionRegistry): Strip[] {
   stripCache.set(reg, strips);
   return strips;
 }
+/** Raised sidewalk boxes (centre + size) for colliders and walking height. Render-only data. */
+export function sidewalkBoxes(reg: DefinitionRegistry): readonly { x: number; z: number; w: number; d: number; h: number }[] {
+  return buildStrips(reg).map((r) => ({ x: r.x, z: r.z, w: r.w, d: r.d, h: CURB_H }));
+}
+
+/** Height of the walking surface at (x, z): the curb height on a sidewalk, else 0. */
+export function groundHeightAt(reg: DefinitionRegistry, x: number, z: number): number {
+  for (const r of buildStrips(reg)) if (Math.abs(x - r.x) <= r.w / 2 && Math.abs(z - r.z) <= r.d / 2) return CURB_H;
+  return 0;
+}
+
 function sidewalkGeometry(r: Strip) {
   const g = new BoxGeometry(r.w, CURB_H, r.d);
   const pos = g.attributes.position;
@@ -540,9 +568,11 @@ export function BuildingShadows({ reg, state }: { reg: DefinitionRegistry; state
       {Object.values(state.businesses).map((b) => {
         const p = reg.world.plots[b.plotId]?.def;
         if (!p) return null;
+        const f = footprint(b.id); // hug the drawn model, not the whole plot
+        const box = f ? { x: (f.minX + f.maxX) / 2, z: (f.minZ + f.maxZ) / 2, w: f.maxX - f.minX, d: f.maxZ - f.minZ } : p;
         return (
-          <mesh key={b.id} position={[p.x, 0.075, p.z]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
-            <planeGeometry args={[p.w + 5, p.d + 5]} />
+          <mesh key={b.id} position={[box.x, 0.075, box.z]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
+            <planeGeometry args={[box.w + 4, box.d + 4]} />
             <meshBasicMaterial map={tex} transparent depthWrite={false} polygonOffset polygonOffsetFactor={-2} />
           </mesh>
         );

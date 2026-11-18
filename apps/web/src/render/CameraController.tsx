@@ -9,6 +9,7 @@ import { useUi } from '../store/stores';
 import { inputState } from '../input/inputState';
 import { camState } from './cameraState';
 import { businessBandMax, camCfg, screenToWorld, tiltFor, YAW } from './theme';
+import { interiorRect } from './interiorView';
 
 export function CameraController() {
   const { camera, size } = useThree();
@@ -52,6 +53,12 @@ export function CameraController() {
     const b = pathCacheFor(loop.sim.reg, unlockedDistricts(s.districts)).bounds();
     camState.target.x = Math.min(b.maxX, Math.max(b.minX, camState.target.x));
     camState.target.z = Math.min(b.maxZ, Math.max(b.minZ, camState.target.z));
+    // Inside a Business the camera stays over that room (14.3)
+    const room = interiorRect(loop.sim.reg, s);
+    if (room) {
+      camState.target.x = Math.min(room.x + room.w / 2, Math.max(room.x - room.w / 2, camState.target.x));
+      camState.target.z = Math.min(room.z + room.d / 2, Math.max(room.z - room.d / 2, camState.target.z));
+    }
 
     // Place the camera: fixed yaw, tilt grows with distance (no rotation input exists, 15.12)
     const tilt = tiltFor(camState.distance);

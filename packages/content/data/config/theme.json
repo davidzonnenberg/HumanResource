@@ -15,6 +15,8 @@
     "ceo": "#ffb703",
     "roof": "#e76f51",
     "wallInside": "#f6e7cb",
+    "interiorBackdrop": "#1d1712",
+    "doormat": "#7a5230",
     "bar": "#8d5524",
     "table": "#b5835a",
     "highlight": "#ffe066",

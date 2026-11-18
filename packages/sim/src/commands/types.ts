@@ -32,8 +32,8 @@ export type Command =
   | { type: 'resetVehicle'; vehicleId: Id; x: number; z: number; heading: number }
   // CEO (Requirements 14, 15)
   | { type: 'ceoMove'; dx: number; dz: number }
-  | { type: 'ceoEnter'; businessId: Id }
-  | { type: 'ceoExit' }
+  | { type: 'ceoEnter'; businessId: Id; doorX?: number; doorZ?: number }
+  | { type: 'ceoExit'; x?: number; z?: number }
   | { type: 'uiEvent'; event: 'managementViewOpened' }
   // Districts (Requirement 48) - system issuer only
   | { type: 'unlockDistrict'; districtId: string }
