@@ -1,6 +1,6 @@
 // GameLoop: real-time accumulator driving the Simulation (2.1–2.3, 21, 47). Driven by the R3F
 // frame callback so rendering and Ticks stay in step. Speed never enters SimState.
-import { checkInvariants, humanPosition, type Simulation, type TickOutput } from '@hr/sim';
+import { checkInvariants, humanPosition, stateHash, type Simulation, type TickOutput } from '@hr/sim';
 import { ticksToRun, TICK_MS } from './ticks';
 import { effectiveSpeed, type GameSpeed } from './gameSpeed';
 
@@ -36,6 +36,8 @@ export class GameLoop {
   /** Fraction of the next Tick already elapsed, for render interpolation. */
   alpha = 0;
   frames = 0;
+  /** The State_Hash of the newest hashed Tick (every stateHashEveryTicks), for the overlay and uploads (53.7). */
+  latestHash: { tick: number; hash: string } | null = null;
 
   constructor(sim: Simulation, hooks: LoopHooks = {}, opts: { dev: boolean } = { dev: false }) {
     this.sim = sim;
@@ -95,6 +97,7 @@ export class GameLoop {
     const out = this.sim.tick();
     this.prevPoses = this.currPoses;
     this.capturePoses();
+    if (this.sim.state.tick % this.sim.reg.config.stateHashEveryTicks === 0) this.latestHash = { tick: this.sim.state.tick, hash: stateHash(this.sim.state) };
     if (this.sim.state.tick % this.checkEvery === 0) {
       const v = checkInvariants(this.sim.state, this.sim.reg);
       if (v.length > 0) {

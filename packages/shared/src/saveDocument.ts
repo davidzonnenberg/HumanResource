@@ -7,6 +7,14 @@ export const CURRENT_SCHEMA_VERSION = 3;
 export const MIN_SUPPORTED_SCHEMA_VERSION = 1;
 export const MAX_SAVE_BYTES = 5 * 1024 * 1024;
 
+/** One Command_Log entry. The server and the envelope never look inside cmd (it is game data). */
+export const commandLogEntrySchema = z.object({
+  tick: z.number().int().nonnegative(),
+  cmd: z.record(z.string(), z.unknown()),
+  issuer: z.enum(['player', 'physics', 'ui', 'system']).optional(),
+  repeat: z.number().int().positive().optional(),
+});
+export type CommandLogEntry = z.infer<typeof commandLogEntrySchema>;
 export const saveEnvelopeSchema = z.object({
   schemaVersion: z.number().int().positive(),
   revision: z.number().int().nonnegative(),
@@ -15,6 +23,8 @@ export const saveEnvelopeSchema = z.object({
   profileId: z.string().min(1),
   slotId: z.string().min(1),
   state: z.unknown(),
+  /** Rolling tail of the Command_Log (Requirement 53.2). Optional: older documents have none. */
+  commandLog: z.object({ entries: z.array(commandLogEntrySchema) }).optional(),
 });
 
 export interface SaveDocument<S = unknown> {
@@ -29,6 +39,8 @@ export interface SaveDocument<S = unknown> {
   /** UUID generated client-side. */
   slotId: string;
   state: S;
+  /** Rolling tail of the Command_Log; absent when none was recorded. */
+  commandLog?: { entries: CommandLogEntry[] };
 }
 
 export const saveSizeBytes = (doc: SaveDocument): number => new TextEncoder().encode(JSON.stringify(doc)).length;

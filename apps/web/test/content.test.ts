@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { rawContent, text } from '@hr/content';
-import { loadRegistry } from '@hr/sim';
+import { loadRegistry, REASON_CODES, STAT_IDS } from '@hr/sim';
 import { MODEL_MAP } from '../src/render/assets/modelMap';
 
 function files(dir: string): string[] {
@@ -33,6 +33,11 @@ describe('content coverage', () => {
     for (const trig of Object.values(res.value.revealTriggers)) for (const r of trig.reveals) expect(typeof table[`toast.reveal.${r}`]).toBe('string');
   });
 
+  it('every Reason_Code and every StatId has text', () => {
+    const table = text as Record<string, unknown>;
+    for (const r of REASON_CODES) expect(typeof table[`reason.${r}`], r).toBe('string');
+    for (const s of STAT_IDS) expect(typeof table[`panel.stat.${s}`], s).toBe('string');
+  });
   it('every model key in the registry has a mapping', () => {
     const res = loadRegistry(rawContent);
     if (!res.ok) throw new Error('content');

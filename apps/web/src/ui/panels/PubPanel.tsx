@@ -6,6 +6,8 @@ import { t, tDynamic } from '../../text/t';
 import { bridge } from '../../store/simBridge';
 import { useUi } from '../../store/stores';
 import { Bar, Card, Panel, PanelButton, Row } from '../components/Card';
+import { ServicesCard } from '../components/ServicesCard';
+import { StatBreakdownCard } from '../components/StatBreakdown';
 import { hire, placeOrder, setAutoReorder, setDrinkPrice } from './panelActions';
 
 export function PubPanel({ reg, state, b, onClose }: { reg: DefinitionRegistry; state: SimState; b: Business; onClose: () => void }) {
@@ -38,6 +40,9 @@ export function PubPanel({ reg, state, b, onClose }: { reg: DefinitionRegistry; 
         </Card>
       )}
 
+      <ServicesCard reg={reg} state={state} b={b} />
+      {owned && <StatBreakdownCard reg={reg} state={state} stat="demand" businessId={b.id} />}
+      {owned && <StatBreakdownCard reg={reg} state={state} stat="repeatOrderChance" businessId={b.id} />}
       {owned && (
         <Card title={t('panel.price')}>
           <Row label={t('panel.price')} value={t('panel.price.value', { amount: goldToWholeFloor(b.pub.drinkPrice) })} />

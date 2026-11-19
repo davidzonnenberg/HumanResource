@@ -32,11 +32,13 @@ export const slotDtoSchema = z.object({
 export type SlotDto = z.infer<typeof slotDtoSchema>;
 
 export const putSlotBodySchema = z.object({ name: z.string() });
-export const saveMetaSchema = z.object({ revision: z.number().int(), schemaVersion: z.number().int(), updatedAt: z.string() });
+/** State_Hash and Tick of an uploaded state (53.8): two devices at the same Tick can show a divergence. */
+const stateProof = { stateHash: z.string().regex(/^[0-9a-f]{16}$/).optional(), tick: z.number().int().nonnegative().optional() };
+export const saveMetaSchema = z.object({ revision: z.number().int(), schemaVersion: z.number().int(), updatedAt: z.string(), ...stateProof });
 export type SaveMeta = z.infer<typeof saveMetaSchema>;
 
-export const putSaveBodySchema = z.object({ baseRevision: z.number().int().nonnegative(), document: saveEnvelopeSchema });
-export const overwriteSaveBodySchema = z.object({ replacedRevision: z.number().int().nonnegative(), document: saveEnvelopeSchema });
+export const putSaveBodySchema = z.object({ baseRevision: z.number().int().nonnegative(), document: saveEnvelopeSchema, ...stateProof });
+export const overwriteSaveBodySchema = z.object({ replacedRevision: z.number().int().nonnegative(), document: saveEnvelopeSchema, ...stateProof });
 
 export type ApiError =
   | { error: 'invalid_field'; field: string }

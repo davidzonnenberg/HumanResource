@@ -2,6 +2,7 @@
 import { contextActionFor, frontSign, type DefinitionRegistry, type DomainEvent, type Simulation, type TickOutput } from '@hr/sim';
 import { useEffect, useState } from 'react';
 import { GameLoop, type LoopHooks } from '../loop/GameLoop';
+import { SessionRecorder } from '../loop/commandRecorder';
 import { useHud, useSimVersion, useUi } from './stores';
 import { inputState } from '../input/inputState';
 import { shapeMove } from '../input/walkCollision';
@@ -13,9 +14,11 @@ interface Bridge {
   loop: GameLoop | null;
   lastPublish: number;
   eventListeners: Set<(e: DomainEvent[]) => void>;
+  /** Records every submitted Command of the running session (53.1). */
+  recorder: SessionRecorder | null;
 }
 
-export const bridge: Bridge = { reg: null, loop: null, lastPublish: 0, eventListeners: new Set() };
+export const bridge: Bridge = { reg: null, loop: null, lastPublish: 0, eventListeners: new Set(), recorder: null };
 
 /** Tracks the Business the CEO was inside last publish, to auto-open/close its Panel (14.3). */
 let lastInsideBusinessId: string | null = null;
@@ -34,6 +37,9 @@ export function attachSimulation(sim: Simulation, extraHooks: LoopHooks = {}, de
   );
   bridge.loop = loop;
   bridge.reg = sim.reg;
+  bridge.recorder?.detach();
+  bridge.recorder = new SessionRecorder(sim, sim.reg.config.commandLogTailLimit);
+  bridge.recorder.attach();
   clearFootprints();
   usePhone.getState().reset(); // phone navigation is session state per Save_Slot (ceo-phone 4.11)
   publish(true);
@@ -41,6 +47,8 @@ export function attachSimulation(sim: Simulation, extraHooks: LoopHooks = {}, de
 }
 
 export function detachSimulation(): void {
+  bridge.recorder?.detach();
+  bridge.recorder = null;
   bridge.loop = null;
 }
 

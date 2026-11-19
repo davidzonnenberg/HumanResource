@@ -3,6 +3,11 @@ import type { ApiError, ProfileDto, SaveDocument, SaveMeta, SlotDto } from '@hr/
 
 export type ApiResult<T> = { kind: 'ok'; status: number; data: T } | { kind: 'error'; status: number; error: ApiError } | { kind: 'offline' };
 
+/** State_Hash and Tick of the uploaded document (53.8). */
+export interface StateProof {
+  stateHash: string;
+  tick: number;
+}
 export interface ApiClient {
   health(): Promise<ApiResult<{ ok: boolean }>>;
   listProfiles(): Promise<ApiResult<ProfileDto[]>>;
@@ -14,8 +19,8 @@ export interface ApiClient {
   deleteSlot(profileId: string, slotId: string): Promise<ApiResult<null>>;
   saveMeta(profileId: string, slotId: string): Promise<ApiResult<SaveMeta>>;
   getSave(profileId: string, slotId: string): Promise<ApiResult<SaveDocument>>;
-  putSave(profileId: string, slotId: string, baseRevision: number, document: SaveDocument): Promise<ApiResult<{ revision: number }>>;
-  overwriteSave(profileId: string, slotId: string, replacedRevision: number, document: SaveDocument): Promise<ApiResult<{ revision: number }>>;
+  putSave(profileId: string, slotId: string, baseRevision: number, document: SaveDocument, proof?: StateProof): Promise<ApiResult<{ revision: number }>>;
+  overwriteSave(profileId: string, slotId: string, replacedRevision: number, document: SaveDocument, proof?: StateProof): Promise<ApiResult<{ revision: number }>>;
 }
 
 export function httpApiClient(base = '/api', timeoutMs = 8000, fetchImpl: typeof fetch = (...a) => fetch(...a)): ApiClient {
@@ -56,7 +61,7 @@ export function httpApiClient(base = '/api', timeoutMs = 8000, fetchImpl: typeof
     deleteSlot: (pid, sid) => call('DELETE', s(pid, sid)),
     saveMeta: (pid, sid) => call('GET', `${s(pid, sid)}/save/meta`),
     getSave: (pid, sid) => call('GET', `${s(pid, sid)}/save`),
-    putSave: (pid, sid, baseRevision, document) => call('PUT', `${s(pid, sid)}/save`, { baseRevision, document }),
-    overwriteSave: (pid, sid, replacedRevision, document) => call('POST', `${s(pid, sid)}/save/overwrite`, { replacedRevision, document }),
+    putSave: (pid, sid, baseRevision, document, proof) => call('PUT', `${s(pid, sid)}/save`, { baseRevision, document, ...proof }),
+    overwriteSave: (pid, sid, replacedRevision, document, proof) => call('POST', `${s(pid, sid)}/save/overwrite`, { replacedRevision, document, ...proof }),
   };
 }

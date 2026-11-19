@@ -1,10 +1,15 @@
 // Save_Serializer (24): SimState <-> Save_Document. Load = parse -> envelope -> version check ->
 // migrations -> state schema (first invalid field) -> semantic invariants.
-import { CURRENT_SCHEMA_VERSION, migrate, saveEnvelopeSchema, type Migration, type SaveDocument } from '@hr/shared';
+import { CURRENT_SCHEMA_VERSION, migrate, saveEnvelopeSchema, type CommandLogEntry, type Migration, type SaveDocument } from '@hr/shared';
 import { checkInvariants, simStateSchema, type DefinitionRegistry, type SimState } from '@hr/sim';
 
-export function buildSaveDocument(state: SimState, meta: { profileId: string; slotId: string; revision: number; syncedRevision: number }, now = new Date()): SaveDocument<SimState> {
-  return {
+export function buildSaveDocument(
+  state: SimState,
+  meta: { profileId: string; slotId: string; revision: number; syncedRevision: number },
+  now = new Date(),
+  commandLog?: CommandLogEntry[],
+): SaveDocument<SimState> {
+  const doc: SaveDocument<SimState> = {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     revision: meta.revision,
     syncedRevision: meta.syncedRevision,
@@ -13,6 +18,8 @@ export function buildSaveDocument(state: SimState, meta: { profileId: string; sl
     slotId: meta.slotId,
     state,
   };
+  if (commandLog && commandLog.length > 0) doc.commandLog = { entries: commandLog };
+  return doc;
 }
 
 export const serialize = (doc: SaveDocument): string => JSON.stringify(doc);

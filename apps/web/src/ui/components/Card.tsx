@@ -26,7 +26,7 @@ export function Card({ title, children }: { title?: string; children: ReactNode 
   );
 }
 
-export function Row({ label, value }: { label: string; value: ReactNode }) {
+export function Row({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <div className="row">
       <span className="row-label">{label}</span>

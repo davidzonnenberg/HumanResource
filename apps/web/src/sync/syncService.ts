@@ -1,8 +1,9 @@
 // Sync_Service (25): uploads after each local write, revision-based conflicts, offline retry
 // every 60 s, offline deletion queue, and the load flow from the pure decision table.
 import { MAX_SAVE_BYTES, saveSizeBytes, type SaveDocument } from '@hr/shared';
+import { stateHash, type SimState } from '@hr/sim';
 import type { SaveRepository } from '../persistence/saves';
-import type { ApiClient } from './apiClient';
+import type { ApiClient, StateProof } from './apiClient';
 import { decideLoad, type LoadDecision } from './loadDecision';
 
 export type SyncStatus = 'synced' | 'pending' | 'offline' | 'conflict' | 'tooLarge' | 'outdated' | 'deleted';
@@ -22,6 +23,13 @@ interface QueuedDelete {
 }
 
 export const RETRY_MS = 60_000;
+
+/** The State_Hash and Tick sent with an upload (53.8). Undefined when the document has no readable state. */
+export function proofOf(doc: SaveDocument): StateProof | undefined {
+  const s = doc.state as Partial<SimState> | null;
+  if (!s || typeof s !== 'object' || typeof s.tick !== 'number') return undefined;
+  return { stateHash: stateHash(doc.state as SimState), tick: s.tick };
+}
 
 export class SyncService {
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -75,7 +83,7 @@ export class SyncService {
     this.setStatus(profileId, slotId, 'pending');
     const slot = await this.repo.getSlot(profileId, slotId);
     if (slot) await this.api.putSlot(profileId, slotId, slot.name);
-    const res = await this.api.putSave(profileId, slotId, doc.syncedRevision, doc);
+    const res = await this.api.putSave(profileId, slotId, doc.syncedRevision, doc, proofOf(doc));
     if (res.kind === 'offline') {
       this.setStatus(profileId, slotId, 'offline'); // 25.10
       return 'offline';
@@ -151,7 +159,7 @@ export class SyncService {
     if (!local) return 'offline';
     const rebased = { ...local, revision: Math.max(local.revision, serverRevision) + 1, timestamp: new Date().toISOString() };
     await this.repo.putDocument(rebased);
-    const res = await this.api.overwriteSave(profileId, slotId, serverRevision, rebased);
+    const res = await this.api.overwriteSave(profileId, slotId, serverRevision, rebased, proofOf(rebased));
     if (res.kind === 'ok') {
       await this.repo.markSynced(profileId, slotId, rebased.revision);
       this.setStatus(profileId, slotId, 'synced');

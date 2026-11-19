@@ -645,131 +645,133 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
 - Strong model: 35.2, 35.3, 36.1, 36.2, 37.2, 38.1, 39.1 (contracts and refactors). Cheaper model: tests, content conversion, UI cards, docs, 38.2, 38.3, 39.2, 39.3. If a cheaper model fails the same test twice, escalate.
 - Verify: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd test`, `npm.cmd run build`.
 
-- [ ] 35. Implement the generic Modifier system and `getStat`
-  - [ ] 35.1 Record the baseline of the old direct stat computations
+- [x] 35. Implement the generic Modifier system and `getStat`
+  - [x] 35.1 Record the baseline of the old direct stat computations
     - Test fixture in `packages/sim/test/baseline/` that stores today's outputs of the brand multiplier, premium price, repeat-order chance, Recipe Trait modifiers, boosts and Reputation demand modifier for generated Traits, Brands and Recipes; it must pass before and after task 35.3
     - _Requirements: 50.6_
-  - [ ] 35.2 Add StatId, Modifier types, `getStat` and the `modifiers` system
+  - [x] 35.2 Add StatId, Modifier types, `getStat` and the `modifiers` system
     - `StatId` closed zod enum in `defs/schemas.ts` (only stats a system reads: `demand`, `premiumPrice`, `repeatOrderChance`); `Modifier`, `SourceRef`, `TargetSelector` types; optional `state.modifiers` (sorted by id) in `state/types.ts` and `state/schema.ts`
     - `stats/getStat.ts`: base + sum of `addFlat` + `mulDivFloor(base, sum of addBp, 10000)` (ceil variant per StatDef); `explainStat` returns base and entries; `modifiers` system in pipeline slot 0.5 removes entries with `untilTick` reached
     - _Requirements: 50.1, 50.2, 50.3, 50.5_
-  - [ ] 35.3 Port the existing stat reads to `getStat`
+  - [x] 35.3 Port the existing stat reads to `getStat`
     - Convert Trait `addPct` to `addBp` once at registry load; static Trait, Brand and Recipe Trait modifiers are derived from Definitions, not stored; `boosts` become `source.kind = 'boost'` Modifiers; Reputation demand modifier read through `getStat`; delete the duplicated direct computations in `defs/formulas.ts`
     - _Requirements: 50.2, 50.6, 80.1_
-  - [ ] 35.4 Write property test for getStat equivalence
+    - Built Nov 2026: before this task no system read Brand, Trait or Recipe modifiers at all, so the baseline (35.1) is a frozen reference (	est/baseline/legacyStats.ts) of the earlier direct computations and the grid in stat-baseline.json. The Phase 1 start state is bit-identical before and after (checked with an end-state hash over 8 scripted runs). The Reputation demand modifier is a derived Modifier (basis points, rounded once). state.boosts is read through BOOST_STAT; serviceSpeed has no StatId yet (task 43.1 adds workSpeed), so boosts convert to nothing until then.
+  - [x] 35.4 Write property test for getStat equivalence
     - **Property 49: getStat equivalence with the earlier direct computation**
     - Required: compares against the baseline of task 35.1
     - **Validates: Requirements 50.2, 50.6**
-  - [ ] 35.5 Add the "why this number" breakdown
+  - [x] 35.5 Add the "why this number" breakdown
     - Selector over `explainStat` and a `Card` in the Panel framework listing base value and each Modifier with source and value (moves into the Pintly and Staffly apps in Phase 4)
     - _Requirements: 50.7_
-  - [ ]* 35.6 Write property test for getStat confluence
+  - [x]* 35.6 Write property test for getStat confluence
     - **Property 50: getStat confluence**
     - **Validates: Requirements 50.1, 50.2, 50.9**
-  - [ ]* 35.7 Write property test for Modifier expiry
+  - [x]* 35.7 Write property test for Modifier expiry
     - **Property 51: Modifier expiry**
     - **Validates: Requirements 50.5**
-  - [ ] 35.8 Cover `modifiers` in the save round-trip generators
+  - [x] 35.8 Cover `modifiers` in the save round-trip generators
     - Extend `arbSimState()` and the serializer tests so Properties 25 and 26 include stored Modifiers; the version migration for old saves is part of task 52.1
     - _Requirements: 50.8, 24.3_
 
-- [ ] 36. Implement the shared Condition and Effect engine
-  - [ ] 36.1 Extend the Condition DSL and the evaluator
+- [x] 36. Implement the shared Condition and Effect engine
+  - [x] 36.1 Extend the Condition DSL and the evaluator
     - Add kinds `not`, `revealed`, `statAtLeast`, `statBelow`, `loanActive`, `licensed`, `pubOpen`, `humanCountAtLeast`, `serviceUsed`, `questStepDone` in `conditions/`; `evaluateCondition` reads state and the Tick's events only and never touches `state.rng`; `printCondition` and `parseCondition` use canonical key order
     - _Requirements: 52.1, 52.5, 52.7_
-  - [ ] 36.2 Implement Effects and `applyEffects`
+  - [x] 36.2 Implement Effects and `applyEffects`
     - Effect schema with `gold`, `addModifier`, `reveal`, `schedule`, `grantResource`, `news` and `domain`; `range` amounts draw from the RNG in effect order; `gold` always goes through `applyGold`
     - `DomainOp` closed enum with one stub file per op under `conditions/domainOps/` (`setLicense`, `startLoan`, `payOffLoan`, `applyFitOut`, `setSupplyDeal`, `buyTap`, `hireCandidate`, `fireRibbon`, `occupyStaff`) so later tasks fill separate files
     - _Requirements: 52.2, 52.4_
-  - [ ] 36.3 Validate vocabulary in the registry
+  - [x] 36.3 Validate vocabulary in the registry
     - Reject unknown Condition kinds, Effect kinds, StatIds and unregistered DomainOps with an error naming the Definition and the entry
     - _Requirements: 50.4, 52.3, 73.7_
-  - [ ] 36.4 Write property test for unknown entries
+  - [x] 36.4 Write property test for unknown entries
     - **Property 52: Unknown stat, condition, effect or domain op is rejected**
     - **Validates: Requirements 50.3, 50.4, 52.3, 73.7**
-  - [ ] 36.5 Move Reveal_Triggers and Achievements onto the shared evaluator
+  - [x] 36.5 Move Reveal_Triggers and Achievements onto the shared evaluator
     - `reveals` and `achievements` systems call `evaluateCondition`; no behaviour change (existing Property 36 stays green)
     - _Requirements: 52.1_
-  - [ ] 36.6 Write property test for condition purity
+  - [x] 36.6 Write property test for condition purity
     - **Property 53: Condition evaluation is pure**
     - Required: add `arbCondition` to the arbitraries
     - **Validates: Requirements 52.1, 52.5**
-  - [ ]* 36.7 Write property test for the Condition round trip
+  - [x]* 36.7 Write property test for the Condition round trip
     - **Property 54: Condition print and parse round trip**
     - **Validates: Requirements 52.7**
-  - [ ] 36.8 Write property test for Gold bounds of Effects
+  - [x] 36.8 Write property test for Gold bounds of Effects
     - **Property 55: Effects keep Gold within bounds**
     - Required: add `arbEffects` to the arbitraries
     - **Validates: Requirements 52.2, 52.4, 52.6, 79.2**
 
-- [ ] 37. Implement data-defined Services and `useService`
-  - [ ] 37.1 Define Service schemas and settings data
+- [x] 37. Implement data-defined Services and `useService`
+  - [x] 37.1 Define Service schemas and settings data
     - `ServiceDef` (id, cost, `access`, `conditions` with optional `reason`, `effects`, `once`, `params`) and `BusinessDef.services` / `office` marker in `defs/schemas.ts`; `settings.json` listing `commandType` and `access` per setting; registry checks for Conditions, Effects and text keys
     - _Requirements: 51.1, 51.2_
-  - [ ] 37.2 Implement the `useService` Command
+  - [x] 37.2 Implement the `useService` Command
     - `commands/useService.ts` with the validation order unknown entity, locked District, `requireAccess` (`not_present`), Conditions in order, `once` (`already_done`), `requireGold`, then cost, `applyEffects` and `state.servicesUsed`; invalid `params` give `conditions_not_met`; add the new Reason_Codes and their `reason.*` text keys
     - A `requireAccess` check for settings tagged `presence` is shared with the setting handlers
     - _Requirements: 51.3, 51.4, 51.5, 51.6, 51.7, 51.8, 51.12_
-  - [ ] 37.3 Show Services in the Business Panel
+  - [x] 37.3 Show Services in the Business Panel
     - List each Service with cost, a location icon for `presence` and a "Drive there" action (a hint only until the Waypoint exists in task 57.1); text via `t()`
     - _Requirements: 51.9_
-  - [ ]* 37.4 Write property test for `useService`
+  - [x]* 37.4 Write property test for `useService`
     - **Property 56: useService validation and atomic rejection**
     - **Validates: Requirements 51.3, 51.4, 51.5, 51.6, 51.7, 51.8**
-  - [ ]* 37.5 Write unit tests for Service edge cases
+  - [x]* 37.5 Write unit tests for Service edge cases
     - Reject order, `once`, bad `params`, locked District, `presence` without the CEO
     - _Requirements: 51.5, 51.7, 51.12_
 
-- [ ] 38. Implement the Command_Log, replay and State_Hash
-  - [ ] 38.1 Implement canonical JSON, `stateHash` and `runLog`
+- [x] 38. Implement the Command_Log, replay and State_Hash
+  - [x] 38.1 Implement canonical JSON, `stateHash` and `runLog`
     - `packages/sim/src/replay/`: `canonicalJson` (sorted keys), `stateHash` (FNV-1a 64 bit from two 32-bit halves, no BigInt), `CommandLog` with `repeat`, `runLog(reg, base, log, untilTick)`
     - _Requirements: 53.1, 53.3, 53.7_
-  - [ ] 38.2 Record Commands in the web loop
+  - [x] 38.2 Record Commands in the web loop
     - `apps/web/src/loop/commandRecorder.ts` wraps `simBridge.submit`; compresses runs of identical per-Tick Commands; keeps a rolling tail of `config.commandLogTailLimit`; optional `commandLog` in the Save_Document envelope
     - _Requirements: 53.1, 53.2, 53.4_
-  - [ ] 38.3 Compute the State_Hash in the loop and send it with uploads
+  - [x] 38.3 Compute the State_Hash in the loop and send it with uploads
     - Hash every `config.stateHashEveryTicks` Ticks; show Tick and hash in the debug overlay; optional `stateHash` and `tick` in the upload DTO (`packages/shared/src/api.ts`); the server stores and returns them in the save meta
     - _Requirements: 53.7, 53.8_
-  - [ ] 38.4 Add the golden playthrough test
+  - [x] 38.4 Add the golden playthrough test
     - Recorded ten-minute log of the dev start in `packages/sim/test/golden/`, a CI test that replays it and asserts the hash, and an `npm.cmd run golden:record` script that rewrites the hash on purpose
     - Required: runs in the normal `npm.cmd test`
     - _Requirements: 53.5, 53.6_
-  - [ ] 38.5 Write property test for replay
+  - [x] 38.5 Write property test for replay
     - **Property 57: Replay reproduces the recorded hash**
     - Required; includes runs with `manualVehicleUpdate` poses
     - **Validates: Requirements 53.1, 53.3, 53.4**
-  - [ ]* 38.6 Write property test for log compression
+  - [x]* 38.6 Write property test for log compression
     - **Property 58: Command_Log compression round trip**
     - **Validates: Requirements 53.2**
-  - [ ]* 38.7 Write property test for State_Hash
+  - [x]* 38.7 Write property test for State_Hash
     - **Property 59: State_Hash is canonical**
     - **Validates: Requirements 53.7, 53.8**
-  - [ ] 38.8 Add bug-report export
+  - [x] 38.8 Add bug-report export
     - Pause_Menu action that downloads the start snapshot, full Command_Log and latest hash as one JSON file
     - _Requirements: 53.1, 53.7_
 
-- [ ] 39. Implement Frontage_Slots street layout
-  - [ ] 39.1 Define street schemas and derivation
+- [x] 39. Implement Frontage_Slots street layout
+  - [x] 39.1 Define street schemas and derivation
     - `StreetDef` and `FrontageSlot` schemas; `defs/frontage.ts` derives Plots (id = `plotId ?? slot.id`), access node, Unloading_Zone on the road next to the slot, hitbox and walkable cut-out, and `fillers`; keep explicit `plots` valid; registry rejects overlapping or out-of-bounds slots naming the District and the slot
     - _Requirements: 54.1, 54.6, 54.11_
-  - [ ] 39.2 Convert Old Town to streets and migrate landmarks
+  - [x] 39.2 Convert Old Town to streets and migrate landmarks
     - Rewrite `maps/districts/old_town.json` as streets with `filler`, `business` and `plot` slots keeping every existing Plot id; turn the city hall in `maps/landmarks.json` into a double-width slot; keep `landmarks.json` for off-street landmarks only
     - _Requirements: 54.3, 54.4, 54.5, 54.7, 54.9, 16.7_
-  - [ ] 39.3 Render frontage slots
+    - Built Nov 2026: Old Town is now seven streets (both sides of the main road in three segments around the crossing roads, plus the north street with the town hall). Every old Plot keeps its id, rectangle, zone, tags and access node (	est/fixtures/plots-before-frontage.json); the only state difference is the insertion order of state.plots. New filler slots add generated houses along the main road. Not seen in a browser yet: please check the look and the hitboxes in game.
+  - [x] 39.3 Render frontage slots
     - Draw slots shoulder to shoulder, leave the curb strip free in front, fit each model to its slot width with `render/footprints.ts`, and feed hitboxes to the CEO collision and Rapier colliders
     - _Requirements: 54.2, 54.8, 16.5, 16.6_
-  - [ ] 39.4 Check Plot ids against existing saves
+  - [x] 39.4 Check Plot ids against existing saves
     - Test that every Plot id of the old layout still exists; if any id had to change, write the old to new mapping to a data file that the v3 migration (task 52.1) consumes
     - _Requirements: 54.10_
-  - [ ]* 39.5 Write property test for frontage layout
+  - [x]* 39.5 Write property test for frontage layout
     - **Property 60: Frontage layout validity**
     - **Validates: Requirements 54.1, 54.6, 54.9, 54.11**
-  - [ ] 39.6 Document street authoring
+  - [x] 39.6 Document street authoring
     - Extend `docs/content-authoring.md` with how to add a filler, business or plot slot and turn a filler into a business
     - _Requirements: 54.9_
 
-- [ ] 40. **Checkpoint - Phase 2 complete**
-  - [ ] 40.1 Update the steering files
+- [x] 40. **Checkpoint - Phase 2 complete**
+  - [x] 40.1 Update the steering files
     - Update `.kiro/steering/architecture.md` and `phase2-guide.md` (which describes the Phase 6 economy) to name `getStat`, Services, the effect engine and Frontage_Slots as the only way to add stats, actions and buildings
     - _Requirements: 46.6_
   - Run `npm.cmd test`, `npm.cmd run typecheck`, `npm.cmd run lint` and `npm.cmd run build`. Confirm the golden playthrough and Property 49 pass. Ensure all tests pass, ask the user if questions arise.

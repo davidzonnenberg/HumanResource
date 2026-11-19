@@ -67,6 +67,19 @@ describe('Save_API', () => {
     expect((await app.inject({ method: 'GET', url: `${url}/meta` })).json()).toMatchObject({ revision: 5 });
   });
 
+  it('stores the State_Hash and Tick of an upload and returns them in the save meta (53.8)', async () => {
+    const url = '/api/profiles/p1/slots/s3/save';
+    const proof = { stateHash: '0123456789abcdef', tick: 40 };
+    expect((await app.inject({ method: 'PUT', url, payload: { baseRevision: 0, document: doc('p1', 's3', 1), ...proof } })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: `${url}/meta` })).json()).toMatchObject({ revision: 1, ...proof });
+    // A later upload without a proof must not keep describing the old document.
+    expect((await app.inject({ method: 'PUT', url, payload: { baseRevision: 1, document: doc('p1', 's3', 2) } })).statusCode).toBe(200);
+    const meta = (await app.inject({ method: 'GET', url: `${url}/meta` })).json() as Record<string, unknown>;
+    expect(meta.revision).toBe(2);
+    expect(meta.stateHash).toBeUndefined();
+    const bad = await app.inject({ method: 'PUT', url, payload: { baseRevision: 2, document: doc('p1', 's3', 3), stateHash: 'not-a-hash', tick: 1 } });
+    expect(bad.statusCode).toBe(400);
+  });
   it('rejects oversized, unsupported and deleted-slot uploads', async () => {
     const url = '/api/profiles/p1/slots/s2/save';
     const big = await app.inject({ method: 'PUT', url, payload: { baseRevision: 0, document: doc('p1', 's2', 1, { pad: 'x'.repeat(5000) }) } });

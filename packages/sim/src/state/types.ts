@@ -1,6 +1,7 @@
 // State types inferred from the zod state schema (single source of truth).
 import type { z } from 'zod';
 import type * as S from './schema';
+import type { FinanceCategoryId } from '../defs/vocabulary';
 
 export type Id = string;
 export type Tick = number;
@@ -43,24 +44,13 @@ export type QuestionableState = z.infer<typeof S.questionableStateSchema>;
 export type CorporateChain = z.infer<typeof S.corporateChainSchema>;
 export type ChainsState = z.infer<typeof S.chainsStateSchema>;
 export type Boost = z.infer<typeof S.boostSchema>;
+export type Modifier = z.infer<typeof S.modifierSchema>;
+export type SourceRef = z.infer<typeof S.sourceRefSchema>;
+export type TargetSelector = z.infer<typeof S.targetSelectorSchema>;
 export type ReputationPending = z.infer<typeof S.reputationPendingSchema>;
 
 export type LostReason = 'no_seat' | 'out_of_beer' | 'patience_expired';
-export type FinanceCategory =
-  | 'sales'
-  | 'tip'
-  | 'salary'
-  | 'hiring'
-  | 'severance'
-  | 'purchase'
-  | 'rental'
-  | 'construction'
-  | 'acquisition'
-  | 'liability'
-  | 'fine'
-  | 'market_sale'
-  | 'other';
-
+export type FinanceCategory = FinanceCategoryId;
 export const PLAYER: OwnerId = 'player';
 export const NPC: OwnerId = 'npc';
 export const isCompetitor = (owner: OwnerId): boolean => owner.startsWith('cmp_');

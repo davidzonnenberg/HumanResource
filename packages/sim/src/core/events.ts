@@ -22,6 +22,7 @@ export type DomainEvent =
   | { type: 'news'; item: NewsItem }
   | { type: 'achievementAwarded'; achievementId: string }
   // Phase 2 (reveal conditions and UI banners read these by name)
+  | { type: 'serviceUsed'; businessId: Id; serviceId: string }
   | { type: 'chainRegistered'; length: number; routeIds: Id[] }
   | { type: 'reputationChanged'; delta: number; causeKey: string };
 

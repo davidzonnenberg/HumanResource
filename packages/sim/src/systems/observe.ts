@@ -120,6 +120,4 @@ export function revealsSystem(ctx: TickContext): void {
   if (unlockedAny) ctx.refreshPaths();
 }
 
-export function isRevealed(state: { reveals: { fired: string[] } }, reg: { revealTriggers: Record<string, { reveals: string[] }> }, feature: string): boolean {
-  return state.reveals.fired.some((id) => reg.revealTriggers[id]?.reveals.includes(feature));
-}
+export { isRevealed } from '../conditions/revealed';

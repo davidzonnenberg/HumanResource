@@ -9,6 +9,7 @@ import { installGestures } from '../../input/gestures';
 import { stopSlot } from '../../game/session';
 import { t } from '../../text/t';
 import { Phone } from '../phone/Phone';
+import { DebugOverlay } from '../DebugOverlay';
 import { usePhoneSettings } from '../phone/phoneSettings';
 
 export function GameScreen({ onExit, profileId }: { onExit: () => void; profileId: string }) {
@@ -28,6 +29,7 @@ export function GameScreen({ onExit, profileId }: { onExit: () => void; profileI
       <PauseMenu onExit={() => void exit()} />
       <GameDialogs />
       <Phone />
+      <DebugOverlay />
       <div className="rotate-prompt">{t('app.rotate')}</div>
     </div>
   );

@@ -1,7 +1,11 @@
 // Definition_Registry loader and validator (Requirement 1). Two passes collect ALL errors:
 // structural (zod per file) and referential/semantic. The result is frozen.
-import type { z } from 'zod';
+import { z } from 'zod';
 import { sq } from '../core/math';
+import { REASON_CODES } from '../commands/types';
+import type { StatId } from './vocabulary';
+import { checkRawCondition, checkRawService, checkRawStat } from './vocabularyCheck';
+import { deriveFrontage, frontageConflicts, rectInsidePolygon, type SlotInfo } from './frontage';
 import {
   acquisitionConfigSchema,
   achievementDefSchema,
@@ -21,6 +25,7 @@ import {
   recipeDefSchema,
   resourceDefSchema,
   revealTriggerDefSchema,
+  settingDefSchema,
   simConfigSchema,
   startStateDefSchema,
   traitDefSchema,
@@ -34,6 +39,7 @@ import {
   type CompetitorEventsConfig,
   type Condition,
   type DistrictDef,
+  type Effect,
   type HumanDef,
   type JobDef,
   type MarketConfig,
@@ -44,6 +50,8 @@ import {
   type RecipeDef,
   type ResourceDef,
   type RevealTriggerDef,
+  type ServiceDef,
+  type SettingDef,
   type SimConfig,
   type StartStateDef,
   type TraitDef,
@@ -84,6 +92,8 @@ export interface RawContentInput {
   competitorEvents: unknown;
   minigames: unknown;
   chains: unknown;
+  /** settings.json: which Commands are settings and whether they need the CEO present (51.5). */
+  settings: unknown;
 }
 
 export interface RoadNode {
@@ -114,6 +124,8 @@ export interface WorldInfo {
   nodes: Record<string, RoadNode>;
   edges: RoadEdge[];
   plots: Record<string, PlotInfo>;
+  /** Frontage_Slots of every street (Requirement 54), by slot id: derived rect, hitbox, door side. */
+  slots: Record<string, SlotInfo>;
 }
 
 export interface DefinitionRegistry {
@@ -143,6 +155,16 @@ export interface DefinitionRegistry {
   chains: ChainsConfig;
   /** Brand modifiers as integer basis points (10000 = x1.0), converted once at load: brandId -> venueType -> bp. */
   brandBp: Record<string, Record<string, { demandBp: number; priceBp: number }>>;
+  /** Trait modifiers as integer basis points (ddPct * 100), converted once at load (50.2): traitId -> { modifiers, penalty }. */
+  traitBp: Record<string, { modifiers: TraitBp[]; penalty: TraitBp[] }>;
+  /** Every data-defined Service by id (ids are unique across Business Definitions). */
+  services: Record<string, ServiceDef>;
+  /** Access tag per setting Command type (emote unless tagged presence). */
+  settings: Record<string, SettingDef['access']>;
+}
+export interface TraitBp {
+  stat: StatId;
+  addBp: number;
 }
 
 const nsNode = (district: string, node: string): string => `${district}:${node}`;
@@ -228,11 +250,12 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
   const competitorEvents = parseOne('phase2/competitor-events', raw.competitorEvents, competitorEventsSchema, errors);
   const minigames = parseArray('phase2/minigames', raw.minigames, minigameDefSchema, errors);
   const chains = parseOne('phase2/chains', raw.chains, chainsConfigSchema, errors);
+  const settingList = parseOne('settings', raw.settings, z.array(settingDefSchema), errors) ?? [];
   const text = raw.text;
   const modelKeys = new Set(models);
 
   // ---------- World / Districts ----------
-  const world: WorldInfo = { districts: {}, districtOrder: [], nodes: {}, edges: [], plots: {} };
+  const world: WorldInfo = { districts: {}, districtOrder: [], nodes: {}, edges: [], plots: {}, slots: {} };
   if (worldFile) {
     for (const entry of worldFile.districts) {
       const file = `maps/districts/${entry.file}`;
@@ -263,7 +286,24 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
         }
         world.edges.push({ id: nsNode(entry.id, e.id), a: a.id, b: b.id, length: Math.sqrt(sq(a.x - b.x) + sq(a.z - b.z)), districtId: entry.id });
       }
-      for (const p of d.plots) {
+      // Streets of Frontage_Slots: Plots, hitboxes and Unloading_Zones are derived from the slot list (54.6).
+      const frontage = deriveFrontage(entry.id, d, errors);
+      for (const s of frontage.slots) {
+        if (world.slots[s.id]) errors.push({ definition: file, field: `slots.${s.id}`, message: `District "${entry.id}": duplicate slot id "${s.id}"` });
+        if (s.modelKey !== null && !modelKeys.has(s.modelKey))
+          errors.push({ definition: file, field: `slots.${s.id}.modelKey`, message: `District "${entry.id}": slot "${s.id}" names unknown model key "${s.modelKey}"` });
+        if (!rectInsidePolygon(s.rect, (x, z) => pointInOrOnPolygon(x, z, d.bounds)))
+          errors.push({ definition: file, field: `slots.${s.id}`, message: `District "${entry.id}": slot "${s.id}" lies outside the District bounds` });
+        world.slots[s.id] = s;
+      }
+      const roads = d.edges.flatMap((e) => {
+        const ea = d.nodes.find((n) => n.id === e.a);
+        const eb = d.nodes.find((n) => n.id === e.b);
+        return ea && eb ? [{ ax: ea.x, az: ea.z, bx: eb.x, bz: eb.z }] : [];
+      });
+      for (const c of frontageConflicts(frontage.slots, d.plots, roads))
+        errors.push({ definition: file, field: `slots.${c.slotId}`, message: `District "${entry.id}": ${c.message}` });
+      for (const p of [...d.plots, ...frontage.plots]) {
         if (world.plots[p.id]) errors.push({ definition: `${file}#${p.id}`, field: 'id', message: 'duplicate Plot id' });
         const access = nsNode(entry.id, p.accessNode);
         if (!world.nodes[access]) errors.push({ definition: `${file}#${p.id}`, field: 'accessNode', message: `unknown node "${p.accessNode}"` });
@@ -283,6 +323,24 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
     }
   }
 
+  // ---------- Closed vocabularies: Conditions, Effects, StatIds, domain ops (50.4, 52.3, 73.7) ----------
+  const rawObjects = (v: unknown): Record<string, unknown>[] =>
+    Array.isArray(v) ? v.filter((x): x is Record<string, unknown> => typeof x === 'object' && x !== null) : [];
+  const rawName = (o: Record<string, unknown>, i: number): string => (typeof o.id === 'string' ? o.id : `[${i}]`);
+  rawObjects(raw.achievements).forEach((a, i) => checkRawCondition(`achievements#${rawName(a, i)}`, 'condition', a.condition, errors));
+  rawObjects(raw.revealTriggers).forEach((a, i) => checkRawCondition(`reveal-triggers#${rawName(a, i)}`, 'condition', a.condition, errors));
+  rawObjects((raw.world as { districts?: unknown } | null)?.districts).forEach((d, i) =>
+    checkRawCondition(`maps/world#${rawName(d, i)}`, 'unlockCondition', d.unlockCondition, errors),
+  );
+  rawObjects(raw.traits).forEach((tr, i) => {
+    const def = `traits#${rawName(tr, i)}`;
+    rawObjects(tr.modifiers).forEach((m, j) => checkRawStat(def, `modifiers.${j}.stat`, m.stat, errors));
+    const penalty = (tr.liability as { penalty?: unknown } | undefined)?.penalty;
+    rawObjects(penalty).forEach((m, j) => checkRawStat(def, `liability.penalty.${j}.stat`, m.stat, errors));
+  });
+  rawObjects(raw.businesses).forEach((b, i) =>
+    rawObjects(b.services).forEach((s, j) => checkRawService(`businesses#${rawName(b, i)}.services#${rawName(s, j)}`, 'service', s, errors)),
+  );
   // ---------- Referential and semantic checks ----------
   const ref = (definition: string, field: string, kind: string, idv: string, table: Record<string, unknown> | ReadonlySet<string>): void => {
     const exists = table instanceof Set ? table.has(idv) : Object.prototype.hasOwnProperty.call(table, idv);
@@ -379,7 +437,68 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
   }
   for (const d of Object.values(world.districts)) textRef(`maps/districts/${d.def.id}`, 'nameKey', d.def.nameKey);
 
-  validatePhase2Tables({ market, acquisitions, questionables, questionableConfig, competitorEvents, minigames, chains }, { resources, businesses }, textRef, errors);
+  // ---------- Services and settings (Requirement 51) ----------
+  const services: Record<string, ServiceDef> = {};
+  for (const b of Object.values(businesses))
+    for (const s of b.services ?? []) {
+      const def = `businesses#${b.id}.services#${s.id}`;
+      if (services[s.id]) errors.push({ definition: def, field: 'id', message: 'duplicate Service id' });
+      services[s.id] = s;
+      textRef(def, 'nameKey', s.nameKey);
+      if (s.cost < 0) errors.push({ definition: def, field: 'cost', message: 'cost must not be negative' });
+      for (const [name, p] of Object.entries(s.params ?? {}))
+        if (p.type === 'int' && p.min > p.max) errors.push({ definition: def, field: `params.${name}`, message: 'minimum is above the maximum' });
+    }
+  const revealFeatures = new Set(Object.values(revealTriggers).flatMap((t) => t.reveals));
+  const checkCondition = (definition: string, field: string, c: Condition): void => {
+    switch (c.kind) {
+      case 'all':
+      case 'any':
+        c.of.forEach((x, i) => checkCondition(definition, `${field}.of.${i}`, x));
+        break;
+      case 'not':
+        checkCondition(definition, `${field}.of`, c.of);
+        break;
+      case 'revealed':
+        if (!revealFeatures.has(c.feature)) errors.push({ definition, field: `${field}.feature`, message: `no Reveal_Trigger reveals "${c.feature}"` });
+        break;
+      case 'serviceUsed':
+        if (!services[c.serviceId]) errors.push({ definition, field: `${field}.serviceId`, message: `unknown Service "${c.serviceId}"` });
+        break;
+      case 'humanCountAtLeast':
+        if (c.jobId !== undefined && !jobs[c.jobId]) errors.push({ definition, field: `${field}.jobId`, message: `unknown Job "${c.jobId}"` });
+        break;
+      default:
+        break;
+    }
+  };
+  const checkEffect = (definition: string, field: string, e: Effect): void => {
+    if (e.kind === 'reveal' && !revealTriggers[e.triggerId]) errors.push({ definition, field: `${field}.triggerId`, message: `unknown Reveal_Trigger "${e.triggerId}"` });
+    if (e.kind === 'grantResource' && !resources[e.resourceId]) errors.push({ definition, field: `${field}.resourceId`, message: `unknown Resource "${e.resourceId}"` });
+    if (e.kind === 'news') textRef(definition, `${field}.textKey`, e.textKey);
+  };
+  for (const a of Object.values(achievements)) checkCondition(`achievements#${a.id}`, 'condition', a.condition);
+  for (const tr of Object.values(revealTriggers)) checkCondition(`reveal-triggers#${tr.id}`, 'condition', tr.condition);
+  for (const s of Object.values(services)) {
+    const def = `services#${s.id}`;
+    s.conditions.forEach((c, i) => {
+      if (c.reason !== undefined && !(REASON_CODES as readonly string[]).includes(c.reason))
+        errors.push({ definition: def, field: `conditions.${i}.reason`, message: `unknown Reason_Code "${c.reason}"` });
+      checkCondition(def, `conditions.${i}.condition`, c.condition);
+    });
+    s.effects.forEach((e, i) => checkEffect(def, `effects.${i}`, e));
+  }
+  const settings: DefinitionRegistry['settings'] = {};
+  for (const s of settingList) {
+    if (settings[s.commandType]) errors.push({ definition: 'settings', field: s.commandType, message: 'duplicate setting' });
+    settings[s.commandType] = s.access;
+  }
+  const traitBp: DefinitionRegistry['traitBp'] = {};
+  for (const tr of Object.values(traits)) {
+    // Data percentages become integer basis points once, here (50.2).
+    const bp = (ms: readonly { stat: StatId; addPct: number }[]): TraitBp[] => ms.map((m) => ({ stat: m.stat, addBp: Math.round(m.addPct * 100) }));
+    traitBp[tr.id] = { modifiers: bp(tr.modifiers), penalty: bp(tr.liability?.penalty ?? []) };
+  }  validatePhase2Tables({ market, acquisitions, questionables, questionableConfig, competitorEvents, minigames, chains }, { resources, businesses }, textRef, errors);
 
   if (startState) validateStartState(startState, { businesses, vehicles, jobs, humans, resources, world }, textRef, errors);
 
@@ -413,6 +532,9 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
     minigames,
     chains,
     brandBp,
+    traitBp,
+    services,
+    settings,
   };
   return { ok: true, value: deepFreeze(registry) };
 }

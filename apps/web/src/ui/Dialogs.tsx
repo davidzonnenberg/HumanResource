@@ -5,6 +5,7 @@ import { bridge } from '../store/simBridge';
 import { setPauseMenu } from '../input/actions';
 import { getServices, replaceRunningState, runningSession } from '../game/session';
 import { newId } from '../persistence/saves';
+import { buildBugReport, downloadBugReport } from '../game/bugReport';
 
 export function PauseMenu({ onExit }: { onExit: () => void }) {
   const open = useUi((u) => u.pauseMenuOpen);
@@ -15,6 +16,9 @@ export function PauseMenu({ onExit }: { onExit: () => void }) {
     useSession.getState().set({ devTesting: next });
     await getServices()?.repo.store.put('meta', 'devTesting', next); // per device
   };
+  const exportBugReport = () => {
+    if (bridge.recorder) downloadBugReport(buildBugReport(bridge.recorder));
+  };
   return (
     <div className="modal">
       <div className="modal-card">
@@ -24,6 +28,9 @@ export function PauseMenu({ onExit }: { onExit: () => void }) {
         </button>
         <button className="big-button secondary" onClick={() => void toggleTesting()} aria-pressed={testing}>
           {t('pause.testing')}: {t(testing ? 'pause.testing.on' : 'pause.testing.off')}
+        </button>
+        <button className="big-button secondary" onClick={exportBugReport}>
+          {t('pause.bugReport')}
         </button>
         <button className="big-button secondary" onClick={onExit}>
           {t('pause.exitToSlots')}

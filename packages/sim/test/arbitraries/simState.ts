@@ -7,9 +7,11 @@ import fc from 'fast-check';
 import type { DefinitionRegistry } from '../../src/defs/registry';
 import { Simulation } from '../../src/core/simulation';
 import { newGame } from '../../src/state/newGame';
-import type { SimState } from '../../src/state/types';
+import type { Modifier, SimState } from '../../src/state/types';
+import { STAT_IDS } from '../../src/defs/vocabulary';
+import { compareIds } from '../../src/stats/getStat';
 
-export type Phase2Sections = Pick<SimState, 'acquisitions' | 'questionable' | 'chains' | 'boosts' | 'reputationPending'>;
+export type Phase2Sections = Pick<SimState, 'acquisitions' | 'questionable' | 'chains' | 'boosts' | 'reputationPending' | 'modifiers' | 'servicesUsed'>;
 
 /** Reveal_Trigger ids whose reveals include `feature` (fired by the reveals system in a real game). */
 function revealIdsFor(reg: DefinitionRegistry, feature: string): string[] {
@@ -68,7 +70,33 @@ export function arbPhase2Sections(reg: DefinitionRegistry, state: SimState): fc.
     causeKey: fc.constantFrom('news.reputation.questionable', 'news.reputation.competitor'),
   });
 
+  // Stored Modifiers (task 35.8): unique ids, sorted by id like the real state.modifiers.
+  const modifier: fc.Arbitrary<Modifier> = fc
+    .record({
+      n: fc.integer({ min: 1, max: 9_999 }),
+      kind: fc.constantFrom('trait', 'brand', 'recipe', 'boost', 'reputation', 'effect', 'service', 'policy'),
+      sourceId: fc.constantFrom('a', 'b', 'c'),
+      target: fc.oneof(
+        fc.constant({ kind: 'all' as const }),
+        fc.constant({ kind: 'owner' as const, owner: 'player' }),
+        businessId.map((id) => ({ kind: 'business' as const, id })),
+        recipeId.map((id) => ({ kind: 'recipe' as const, id })),
+      ),
+      stat: fc.constantFrom(...STAT_IDS),
+      op: fc.constantFrom('addBp' as const, 'addFlat' as const),
+      value: fc.integer({ min: -5000, max: 5000 }),
+      untilTick: fc.option(fc.integer({ min: 1, max: 100_000 }), { nil: undefined }),
+    })
+    .map(({ n, kind, sourceId, untilTick, ...rest }) => ({
+      id: `mod_${String(n).padStart(4, '0')}`,
+      source: { kind, id: sourceId },
+      ...rest,
+      ...(untilTick === undefined ? {} : { untilTick }),
+    }));
+  const serviceUses = fc.dictionary(fc.constantFrom('svc_a', 'svc_b'), fc.integer({ min: 1, max: 5 }));
   return fc.record({
+    modifiers: fc.array(modifier, { maxLength: 4 }),
+    servicesUsed: serviceUses,
     offers: fc.array(offer, { maxLength: 3 }),
     nextOfferTick: tickValue,
     openQuestionables: fc.array(offerOpen, { maxLength: 2 }),
@@ -82,7 +110,10 @@ export function arbPhase2Sections(reg: DefinitionRegistry, state: SimState): fc.
   }).map((s) => {
     const offers = Object.fromEntries(s.offers.map((o) => [o.id, o]));
     const chainRecords = Object.fromEntries(s.chains.map((c) => [c.key, c]));
+    const uniqueMods = [...new Map(s.modifiers.map((m) => [m.id, m])).values()].sort((a, b) => compareIds(a.id, b.id));
     return {
+      modifiers: uniqueMods,
+      servicesUsed: s.servicesUsed,
       acquisitions: { offers, nextOfferTick: s.nextOfferTick },
       questionable: {
         offers: Object.fromEntries(s.openQuestionables.map((o) => [o.id, o])),

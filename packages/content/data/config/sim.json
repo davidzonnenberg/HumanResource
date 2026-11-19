@@ -20,5 +20,7 @@
   "pubWindowSeconds": 60,
   "vehicleWindowSeconds": 300,
   "financeWindowSeconds": 300,
-  "newsLimit": 50
+  "newsLimit": 50,
+  "commandLogTailLimit": 2000,
+  "stateHashEveryTicks": 100
 }

@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { demandPerMinute } from '../src/defs/formulas';
+import { demandPerMinute, reputationDemandBp } from '../src/defs/formulas';
 import { Simulation } from '../src/core/simulation';
 import { newGame } from '../src/state/newGame';
 import { GOLD_LIMIT } from '../src/money/gold';
@@ -18,7 +18,8 @@ describe('economy properties', () => {
         const def = pubs[i]?.pub;
         if (!def) return;
         const [lo, hi] = p1 <= p2 ? [p1, p2] : [p2, p1];
-        expect(demandPerMinute(def, hi, rep)).toBeLessThanOrEqual(demandPerMinute(def, lo, rep));
+        const bp = reputationDemandBp(def, rep);
+        expect(demandPerMinute(def, hi, bp)).toBeLessThanOrEqual(demandPerMinute(def, lo, bp));
       }),
     );
   });

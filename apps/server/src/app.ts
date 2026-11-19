@@ -61,6 +61,13 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
   const slotsFile = (pid: string) => `saves/${pid}/slots.json`;
   const saveFile = (pid: string, sid: string) => `saves/${pid}/${sid}.json`;
   const backupFile = (pid: string, sid: string) => `saves/${pid}/${sid}.backup.json`;
+  /** State_Hash and Tick of the stored document (53.8), kept beside it so the Save_Document stays untouched. */
+  const proofFile = (pid: string, sid: string) => `saves/${pid}/${sid}.proof.json`;
+  interface Proof {
+    revision: number;
+    stateHash: string;
+    tick: number;
+  }
   const slots = async (pid: string): Promise<SlotDto[]> => (await store.readJson<SlotDto[]>(slotsFile(pid))) ?? [];
   const safeId = (s: string) => /^[\w-]{1,64}$/.test(s);
 
@@ -187,7 +194,9 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
     if ((await slotState(pid, sid)) === 'deleted') return reply.code(410).send({ error: 'slot_deleted' });
     const doc = await store.readJson<SaveDocument>(saveFile(pid, sid));
     if (!doc) return reply.code(404).send({ error: 'not_found' });
-    return { revision: doc.revision, schemaVersion: doc.schemaVersion, updatedAt: doc.timestamp };
+    const proof = await store.readJson<Proof>(proofFile(pid, sid));
+    const withProof = proof && proof.revision === doc.revision ? { stateHash: proof.stateHash, tick: proof.tick } : {};
+    return { revision: doc.revision, schemaVersion: doc.schemaVersion, updatedAt: doc.timestamp, ...withProof };
   });
 
   app.get<{ Params: { pid: string; sid: string } }>('/api/profiles/:pid/slots/:sid/save', async (req, reply) => {
@@ -198,8 +207,10 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
     return doc ?? reply.code(404).send({ error: 'not_found' });
   });
 
-  async function storeDoc(pid: string, sid: string, doc: SaveDocument): Promise<void> {
+  async function storeDoc(pid: string, sid: string, doc: SaveDocument, proof?: { stateHash?: string | undefined; tick?: number | undefined }): Promise<void> {
     await store.writeJson(saveFile(pid, sid), doc);
+    if (proof?.stateHash !== undefined && proof.tick !== undefined) await store.writeJson(proofFile(pid, sid), { revision: doc.revision, stateHash: proof.stateHash, tick: proof.tick } satisfies Proof);
+    else await store.remove(proofFile(pid, sid)); // an old proof must never describe a newer document
     const list = await slots(pid);
     const cur = list.find((x) => x.slotId === sid);
     const rec: SlotDto = { slotId: sid, name: cur?.name ?? sid, revision: doc.revision, schemaVersion: doc.schemaVersion, updatedAt: doc.timestamp, deleted: false };
@@ -240,7 +251,7 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
       const current = stored?.revision ?? 0;
       // Accepted iff the client built on the current server Revision (25.2, 25.3)
       if (body.baseRevision !== current || doc.revision <= body.baseRevision) return reply.code(409).send({ error: 'conflict', serverRevision: current });
-      await storeDoc(pid, sid, doc);
+      await storeDoc(pid, sid, doc, body);
       return { revision: doc.revision };
     });
   });
@@ -258,7 +269,7 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
       const current = stored?.revision ?? 0;
       if (body.replacedRevision !== current || doc.revision <= current) return reply.code(409).send({ error: 'conflict', serverRevision: current });
       if (stored) await store.writeJson(backupFile(pid, sid), stored); // server backup (25.6)
-      await storeDoc(pid, sid, doc);
+      await storeDoc(pid, sid, doc, body);
       return { revision: doc.revision };
     });
   });

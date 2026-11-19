@@ -16,6 +16,7 @@ import {
 import { t, tDynamic } from '../../text/t';
 import { useUi } from '../../store/stores';
 import { Card, Panel, PanelButton, Row } from '../components/Card';
+import { ServicesCard } from '../components/ServicesCard';
 import { fire, resumeRoute, setRoute, unassign } from './panelActions';
 
 export function HumanPanel({ reg, state, human, onClose }: { reg: DefinitionRegistry; state: SimState; human: Human; onClose: () => void }) {
@@ -141,6 +142,7 @@ export function SupplierPanel({ reg, state, b, onClose }: { reg: DefinitionRegis
         ))}
         <Row label={t('panel.supplier.orders', { value: '' }).replace('{value}', '').trim()} value={orders.reduce((n, o) => n + o.remaining, 0)} />
       </Card>
+      <ServicesCard reg={reg} state={state} b={b} />
     </Panel>
   );
 }

@@ -1,8 +1,9 @@
 // Autosave (23.1–23.3, 23.7, 21.2): every 30 s real time while Ticks advance, plus hidden,
 // pagehide, Pause_Menu, speed pause and exit. Failures raise a client Alert and retry next interval.
-import type { SaveDocument } from '@hr/shared';
+import type { CommandLogEntry, SaveDocument } from '@hr/shared';
 import type { SimState } from '@hr/sim';
 import type { GameLoop, SaveReason } from '../loop/GameLoop';
+import { bridge } from '../store/simBridge';
 import { useHud } from '../store/stores';
 import type { SaveRepository } from './saves';
 
@@ -35,7 +36,9 @@ export class Autosave {
   save(_reason: SaveReason): Promise<void> {
     this.writing = this.writing.then(async () => {
       try {
-        const doc = await this.repo.writeSave(this.profileId, this.slotId, this.loop.sim.state);
+        // The rolling tail of the Command_Log travels with the save (53.2).
+        const tail = bridge.recorder?.tail() as CommandLogEntry[] | undefined;
+        const doc = await this.repo.writeSave(this.profileId, this.slotId, this.loop.sim.state, false, tail);
         useHud.getState().setClientAlert('saveFailed', null);
         if (doc) this.onSaved?.(doc);
       } catch (err) {

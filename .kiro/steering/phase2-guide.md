@@ -451,3 +451,11 @@ Step A (24.1, 24.2 and the foundation fixes) is done and verified (typecheck, li
 - **Domain events** `chainRegistered` and `reputationChanged` exist in `core/events.ts`; the reveal triggers read them by name.
 - `content.test.ts` now also checks string literals starting with `news.`, `market.` and `achievement.`.
 - New ReasonCodes were not needed. Keys for `reason.not_allowed`, `reason.not_available` and `alert.no_internal_supply` already exist in `en.json`.
+
+## 10. Since the Phase 2 foundations (tasks 35 to 40)
+This guide describes the Phase 6 economy (market, plots, brewery, acquisitions, chains, questionables). When you work on it, use the foundations instead of adding wiring:
+- A trait, brand, recipe, boost or policy effect on demand, price or repeat chance is a **Modifier** read through `getStat`. Do not add a direct multiplication to `systems/pub.ts`. Recipe traits already reach the repeat chance and the price per drink through the lot's `recipeId` (§1, A7).
+- A "reveal" or "achievement" test is a **Condition**; a reward, fine, headline or delayed consequence is an **Effect** list (`gold`, `addModifier`, `schedule`, `grantResource`, `news`, `domain`). Questionable consequences (29.4) should be Effect lists in data, not code.
+- A building action that fits the Service model (permits, offices, questionable offers where they fit) is a **Service** used through `useService`. Plot purchase, construction, Warehouse purchase or rental and Acquisition stay their own Commands (Requirement 51.11).
+- A new building in a street is a **Frontage_Slot**. A Plot you would hand-place on a street is a `plot` or `business` slot instead. The Plots a slot derives behave exactly like hand-placed ones, so `openLocation` and `construct` need no change.
+- Rules 3 to 5 of §0 still hold. The Phase 1 numbers are pinned by the golden playthrough (`npm.cmd run golden:record` re-records it on purpose).

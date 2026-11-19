@@ -1,13 +1,19 @@
 // Zod schemas for every Definition (Requirement 1). Types are inferred from the schemas so
 // data and code can never drift apart. Formulas are parameterised kinds, never code strings.
 import { z } from 'zod';
+import { DOMAIN_OPS, EFFECT_GOLD_MAX, FINANCE_CATEGORIES, SCHEDULED_KINDS, STAT_IDS, type DomainOp, type StatId } from './vocabulary';
 
 const id = z.string().min(1);
 const gold = z.number().int(); // integer hundredths of Gold
 const point2 = z.tuple([z.number(), z.number()]);
 const polygon = z.array(point2).min(3);
 
-// ---------- Conditions (Reveal_Triggers, Achievements, District unlocks) ----------
+// ---------- Stats, Conditions and Effects (Requirements 50, 52) ----------
+export const statIdSchema = z.enum(STAT_IDS);
+export type { StatId, DomainOp };
+export const domainOpSchema = z.enum(DOMAIN_OPS);
+export const financeCategorySchema = z.enum(FINANCE_CATEGORIES);
+/** Conditions read state and the Tick's events only (52.1, 52.5). Vocabulary: `CONDITION_KINDS`. */
 export type Condition =
   | { kind: 'event'; event: string; where?: Record<string, string | number | boolean> }
   | { kind: 'goldAtLeast'; amount: number }
@@ -15,8 +21,17 @@ export type Condition =
   | { kind: 'ownedBusinessCountAtLeast'; businessType: string; count: number }
   | { kind: 'tickAtLeast'; tick: number }
   | { kind: 'never' }
-  | { kind: 'all' | 'any'; of: Condition[] };
-
+  | { kind: 'all' | 'any'; of: Condition[] }
+  | { kind: 'not'; of: Condition }
+  | { kind: 'revealed'; feature: string }
+  /** `value` is in the unit of the stat (basis points for every current StatId). Without `businessId`: the Player's first Pub. */
+  | { kind: 'statAtLeast' | 'statBelow'; stat: StatId; value: number; businessId?: string }
+  | { kind: 'loanActive' }
+  | { kind: 'licensed'; tier?: string }
+  | { kind: 'pubOpen'; businessId?: string }
+  | { kind: 'humanCountAtLeast'; count: number; jobId?: string }
+  | { kind: 'serviceUsed'; serviceId: string }
+  | { kind: 'questStepDone'; questId: string; stepId: string };
 export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
   z.union([
     z.object({
@@ -30,8 +45,88 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.object({ kind: z.literal('tickAtLeast'), tick: z.number().int().nonnegative() }),
     z.object({ kind: z.literal('never') }),
     z.object({ kind: z.enum(['all', 'any']), of: z.array(conditionSchema) }),
+    z.object({ kind: z.literal('not'), of: conditionSchema }),
+    z.object({ kind: z.literal('revealed'), feature: id }),
+    z.object({ kind: z.enum(['statAtLeast', 'statBelow']), stat: statIdSchema, value: z.number(), businessId: id.optional() }),
+    z.object({ kind: z.literal('loanActive') }),
+    z.object({ kind: z.literal('licensed'), tier: id.optional() }),
+    z.object({ kind: z.literal('pubOpen'), businessId: id.optional() }),
+    z.object({ kind: z.literal('humanCountAtLeast'), count: z.number().int(), jobId: id.optional() }),
+    z.object({ kind: z.literal('serviceUsed'), serviceId: id }),
+    z.object({ kind: z.literal('questStepDone'), questId: id, stepId: id }),
   ]),
 ) as z.ZodType<Condition>;
+/** An integer, or an inclusive `range` that is drawn from the seeded RNG in Effect order (52.2). */
+export type EffectAmount = number | { range: [number, number] };
+const effectAmount: z.ZodType<EffectAmount> = z.union([
+  z.number().int(),
+  z.object({ range: z.tuple([z.number().int(), z.number().int()]) }).refine((r) => r.range[0] <= r.range[1], 'range minimum is above the maximum'),
+]);
+const goldBounded = z.number().int().min(-EFFECT_GOLD_MAX).max(EFFECT_GOLD_MAX);
+/** Gold amounts are bounded in the schema so Effects can never push Gold out of range (52.6). */
+const goldAmount: z.ZodType<EffectAmount> = z.union([
+  goldBounded,
+  z.object({ range: z.tuple([goldBounded, goldBounded]) }).refine((r) => r.range[0] <= r.range[1], 'range minimum is above the maximum'),
+]);
+export type EffectTarget = { kind: 'all' } | { kind: 'player' } | { kind: 'self' } | { kind: 'business'; id: string };
+const effectTarget: z.ZodType<EffectTarget> = z.union([
+  z.object({ kind: z.literal('all') }),
+  z.object({ kind: z.literal('player') }),
+  z.object({ kind: z.literal('self') }),
+  z.object({ kind: z.literal('business'), id }),
+]);
+const paramValue = z.union([z.string(), z.number(), z.boolean(), z.array(z.string())]);
+export type ParamValue = z.infer<typeof paramValue>;
+/** Effects are applied by `applyEffects` over the closed vocabulary `EFFECT_KINDS` (52.2). */
+export const effectSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('gold'), amount: goldAmount, category: financeCategorySchema.optional() }),
+  z.object({
+    kind: z.literal('addModifier'),
+    stat: statIdSchema,
+    op: z.enum(['addBp', 'addFlat']),
+    value: z.number().int(),
+    target: effectTarget.optional(),
+    /** Game seconds until the Modifier expires; absent = permanent. */
+    seconds: z.number().positive().optional(),
+  }),
+  z.object({ kind: z.literal('reveal'), triggerId: id }),
+  z.object({
+    kind: z.literal('schedule'),
+    event: z.enum(SCHEDULED_KINDS),
+    delaySeconds: effectAmount,
+    payload: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+  }),
+  z.object({ kind: z.literal('grantResource'), resourceId: id, qty: effectAmount }),
+  z.object({ kind: z.literal('news'), textKey: id, params: z.record(z.string(), z.union([z.string(), z.number()])).optional() }),
+  z.object({ kind: z.literal('domain'), op: domainOpSchema, params: z.record(z.string(), paramValue).optional() }),
+]);
+export type Effect = z.infer<typeof effectSchema>;
+// ---------- Services (Requirement 51) ----------
+export const serviceParamSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('string'), oneOf: z.array(z.string()).min(1).optional() }),
+  z.object({ type: z.literal('int'), min: z.number().int(), max: z.number().int() }),
+  z.object({ type: z.literal('boolean') }),
+  z.object({ type: z.literal('stringList'), oneOf: z.array(z.string()).min(1), maxItems: z.number().int().positive() }),
+]);
+export type ServiceParamDef = z.infer<typeof serviceParamSchema>;
+export const serviceDefSchema = z.object({
+  id,
+  nameKey: id,
+  cost: gold,
+  /** `remote`: usable from anywhere. `presence`: the CEO must be at the door or inside (51.5). */
+  access: z.enum(['remote', 'presence']),
+  /** Checked in order; the first that fails rejects with its own `reason` (default conditions_not_met). */
+  conditions: z.array(z.object({ condition: conditionSchema, reason: id.optional() })),
+  effects: z.array(effectSchema),
+  /** Usable once per Save_Slot (`already_done` afterwards). */
+  once: z.boolean().optional(),
+  /** Accepted `params` of the Command; any other parameter is rejected (51.12). */
+  params: z.record(z.string(), serviceParamSchema).optional(),
+});
+export type ServiceDef = z.infer<typeof serviceDefSchema>;
+/** One entry of `settings.json`: which Command is a setting and whether it needs the CEO present (51.5). */
+export const settingDefSchema = z.object({ commandType: id, access: z.enum(['remote', 'presence']) });
+export type SettingDef = z.infer<typeof settingDefSchema>;
 
 // ---------- Resources ----------
 export const resourceDefSchema = z.object({
@@ -137,6 +232,11 @@ export const businessDefSchema = z.object({
   recipes: z.array(id).optional(),
   /** Makes Businesses of this Definition acquirable. */
   acquisition: z.object({ askingPrice: gold }).optional(),
+  // ---- Phase 2 foundations (Requirement 51) ----
+  /** Data-defined Services used through the useService Command. */
+  services: z.array(serviceDefSchema).optional(),
+  /** Marker: an office with a counter screen (Municipality, Bank, Job_Centre). Written as `{}` in JSON. */
+  office: z.record(z.string(), z.never()).optional(),
 });
 export type BusinessDef = z.infer<typeof businessDefSchema>;
 
@@ -194,7 +294,7 @@ export type HumanDef = z.infer<typeof humanDefSchema>;
 
 // ---------- Traits, Recipes, Brands (Phase 2 content, schema exists from Phase 1) ----------
 /** Wired stats only: a stat that no code reads must not be accepted in content (phase2-guide A2). */
-export const modifierStatSchema = z.enum(['repeatOrderChance', 'premiumPrice', 'demand']);
+export const modifierStatSchema = statIdSchema;
 export type ModifierStat = z.infer<typeof modifierStatSchema>;
 export const modifierSchema = z.object({ stat: modifierStatSchema, addPct: z.number() });
 export const traitDefSchema = z.object({
@@ -248,13 +348,67 @@ export const plotDefSchema = z.object({
 });
 export type PlotDef = z.infer<typeof plotDefSchema>;
 
+// ---------- Street layout: Frontage_Slots (Requirement 54) ----------
+const slotZone = z.object({ w: z.number().positive().optional(), d: z.number().positive().optional(), offset: z.number().nonnegative().optional() });
+const slotBase = {
+  id,
+  /** Width along the street in World_Units (narrow canal houses 6 to 8, a Landmark takes a double slot). */
+  width: z.number().positive(),
+  /** Model drawn in the slot; absent = a generated house (filler) or the Business Definition's model. */
+  modelKey: id.optional(),
+  /** Overrides of the street's `depth` and `setback` for this slot. */
+  depth: z.number().positive().optional(),
+  setback: z.number().nonnegative().optional(),
+};
+const plotLike = {
+  /** Plot id; defaults to the slot id. Keep the old id when a hand-placed Plot becomes a slot (54.10). */
+  plotId: id.optional(),
+  tags: z.array(z.string()).optional(),
+  /** Overrides of the Unloading_Zone derived on the road next to the slot. */
+  unloadingZone: slotZone.optional(),
+};
+export const frontageSlotSchema = z.discriminatedUnion('kind', [
+  /** Scenery: a model with a hitbox, no interaction, no Business Definition (54.3). */
+  z.object({ ...slotBase, kind: z.literal('filler') }),
+  /** A Business stands here from the start (door, Context_Action, services; 54.4). */
+  z.object({ ...slotBase, ...plotLike, kind: z.literal('business') }),
+  /** A Plot: "Inspect" and, when for sale, buy and build (54.5). */
+  z.object({
+    ...slotBase,
+    ...plotLike,
+    kind: z.literal('plot'),
+    initial: z.discriminatedUnion('kind', [z.object({ kind: z.literal('empty') }), z.object({ kind: z.literal('for_sale'), price: gold })]).optional(),
+  }),
+]);
+export type FrontageSlot = z.infer<typeof frontageSlotSchema>;
+export const streetDefSchema = z.object({
+  id,
+  /** The street runs along the straight road from node `from` to node `to` (same x or same z). */
+  from: id,
+  to: id,
+  /** Side of the direction of travel; a +x line has `left` = north (-z). */
+  side: z.enum(['left', 'right']),
+  /** Distance along the line before the first slot. */
+  start: z.number().nonnegative().optional(),
+  /** Distance from the line to the front of the slots (road half width plus sidewalk at least). */
+  setback: z.number().nonnegative(),
+  /** Default depth of a slot. */
+  depth: z.number().positive(),
+  /** Default Plot tags of the street's business and plot slots. */
+  tags: z.array(z.string()).optional(),
+  slots: z.array(frontageSlotSchema).min(1),
+});
+export type StreetDef = z.infer<typeof streetDefSchema>;
 export const districtDefSchema = z.object({
   id,
   nameKey: id,
   bounds: polygon,
   nodes: z.array(z.object({ id, x: z.number(), z: z.number() })).min(1),
   edges: z.array(z.object({ id, a: id, b: id })),
-  plots: z.array(plotDefSchema),
+  /** Hand-placed Plots; still valid next to streets (54.6). */
+  plots: z.array(plotDefSchema).default([]),
+  /** Streets of Frontage_Slots; their Plots are derived (defs/frontage.ts). */
+  streets: z.array(streetDefSchema).optional(),
   drivableBounds: polygon,
   walkableBounds: polygon,
 });
@@ -294,6 +448,10 @@ export const simConfigSchema = z.object({
   vehicleWindowSeconds: z.number().int().positive(),
   financeWindowSeconds: z.number().int().positive(),
   newsLimit: z.number().int().positive(),
+  /** Newest Command_Log entries kept in a Save_Document (53.2). */
+  commandLogTailLimit: z.number().int().positive().default(2000),
+  /** The State_Hash is computed every this many Ticks (53.7). */
+  stateHashEveryTicks: z.number().int().positive().default(100),
 });
 export type SimConfig = z.infer<typeof simConfigSchema>;
 

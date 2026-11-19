@@ -5,6 +5,8 @@ import { gold, ledgerChange, secondsToTicks } from '../core/context';
 import { nextId } from '../core/ids';
 import type { Command, Rejection } from '../commands/types';
 import { demandPerMinute } from '../defs/formulas';
+import { mulDivFloor } from '../money/gold';
+import { getStat } from '../stats/getStat';
 import type { PubParams } from '../defs/schemas';
 import { ringAdd } from '../metrics/ring';
 import { rngChance, rngNext } from '../rng/xoshiro128ss';
@@ -31,9 +33,6 @@ function* pubs(ctx: TickContext): Generator<PubCtx> {
 
 const second = (ctx: TickContext): number => Math.floor(ctx.state.tick / ctx.tps);
 
-function reputationOf(ctx: TickContext, owner: string): number {
-  return owner === PLAYER ? ctx.state.player.reputation : ctx.cfg.reputationStart;
-}
 
 function recordLost(ctx: TickContext, p: PubCtx, reason: LostReason): void {
   const m = ctx.state.metrics.pubs[p.b.id];
@@ -48,7 +47,8 @@ function recordLost(ctx: TickContext, p: PubCtx, reason: LostReason): void {
 export function customerArrivalsSystem(ctx: TickContext): void {
   const ticksPerMinute = 60 * ctx.tps;
   for (const p of pubs(ctx)) {
-    const rate = demandPerMinute(p.def, p.pub.drinkPrice, reputationOf(ctx, p.b.owner));
+    // Brand, Traits, Reputation and boosts all reach the arrival rate through the demand stat (50.2).
+    const rate = demandPerMinute(p.def, p.pub.drinkPrice, getStat(ctx, 'demand', { businessId: p.b.id }));
     if (!(rngNext(ctx.state) < rate / ticksPerMinute)) continue;
     const m = ctx.state.metrics.pubs[p.b.id];
     if (m) ringAdd(m.arrivals, second(ctx), 1);
@@ -204,8 +204,11 @@ export function customerVisitsSystem(ctx: TickContext): void {
       case 'drinking':
         if (tick >= c.stateUntil) {
           c.drinksConsumed += 1;
+          const recipeId = c.currentLot?.recipeId ?? null;
           c.currentLot = null;
-          const chance = Math.min(p.def.repeatOrderChance, ctx.cfg.repeatChanceMax);
+          const premiumBp = getStat(ctx, 'premiumPrice', { businessId: p.b.id, recipeId });
+          if (premiumBp !== 10000) c.priceBpExtra = (c.priceBpExtra ?? 0) + (premiumBp - 10000);
+          const chance = Math.min(getStat(ctx, 'repeatOrderChance', { businessId: p.b.id, recipeId }) / 10000, ctx.cfg.repeatChanceMax);
           if (c.drinksConsumed < p.def.maxDrinksPerVisit && rngChance(ctx.state, chance)) {
             c.state = 'waiting';
             p.pub.orderQueue.push({ customerId: c.id, placedTick: tick, poured: false });
@@ -217,7 +220,8 @@ export function customerVisitsSystem(ctx: TickContext): void {
         break;
       case 'paying':
         if (tick >= c.stateUntil) {
-          const amount = p.pub.drinkPrice * c.drinksConsumed; // price at the payment Tick (4.7)
+          // Price at the payment Tick (4.7); priceBpExtra carries Brand and Recipe price Modifiers of the drinks served.
+          const amount = p.pub.drinkPrice * c.drinksConsumed + (c.priceBpExtra ? mulDivFloor(p.pub.drinkPrice, c.priceBpExtra, 10000) : 0);
           gold(ctx, p.b.owner, amount, 'sales', p.b.id);
           ctx.events.push({ type: 'customerPaid', pubId: p.b.id, owner: p.b.owner, amount });
           startLeaving(ctx, p, c);

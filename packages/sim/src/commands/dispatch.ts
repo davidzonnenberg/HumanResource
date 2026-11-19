@@ -22,6 +22,8 @@ import { handleBuyPlot, handleConstruct } from '../systems/phase2/construction';
 import { handleAcquireWarehouse, handleEndRental } from '../systems/phase2/warehouse';
 import { handleSetSourcingPolicy } from '../systems/phase2/sourcing';
 import { handleSetProductionRecipe } from '../systems/phase2/production';
+import { handleUseService } from './useService';
+import { requireAccess } from '../world/access';
 
 function handleUnlockDistrict(ctx: TickContext, env: CommandEnvelope, cmd: Extract<Command, { type: 'unlockDistrict' }>): Rejection | null {
   if (env.issuer !== 'system') return { reason: 'not_allowed' };
@@ -36,6 +38,11 @@ function handleUnlockDistrict(ctx: TickContext, env: CommandEnvelope, cmd: Extra
 
 function dispatch(ctx: TickContext, env: CommandEnvelope): Rejection | null {
   const cmd = env.cmd;
+  // Settings tagged presence in settings.json need the CEO at the Business (51.5), shared by every setting handler.
+  if (ctx.reg.settings[cmd.type] === 'presence' && 'businessId' in cmd && ctx.state.businesses[cmd.businessId]) {
+    const denied = requireAccess(ctx, 'presence', cmd.businessId);
+    if (denied) return denied;
+  }
   switch (cmd.type) {
     case 'hire':
       return handleHire(ctx);
@@ -95,6 +102,8 @@ function dispatch(ctx: TickContext, env: CommandEnvelope): Rejection | null {
     case 'setProductionRecipe':
       return handleSetProductionRecipe(ctx, cmd);
     // Phase 2 Commands whose handlers arrive with later tasks (acquisitions 28, questionable 29, minigames 30)
+    case 'useService':
+      return handleUseService(ctx, cmd);
     case 'acceptAcquisition':
     case 'startQuestionable':
     case 'completeMinigame':

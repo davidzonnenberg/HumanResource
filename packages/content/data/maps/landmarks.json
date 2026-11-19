@@ -1,12 +1,1 @@
-[
-  {
-    "id": "city_hall",
-    "district": "old_town",
-    "modelKey": "building_town_hall",
-    "x": 0,
-    "z": -43,
-    "w": 20,
-    "d": 12,
-    "facing": 1
-  }
-]
+[]

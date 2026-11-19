@@ -1,7 +1,7 @@
 // Commands: every external influence enters the Simulation as one of these, applied at the next
 // Tick boundary (Requirement 2.7). Phase 2 shapes exist so the union never needs a breaking change.
 import type { Gold, Id, JobSlotRef } from '../state/types';
-import type { SourcingPolicy } from '../defs/schemas';
+import type { ParamValue, SourcingPolicy } from '../defs/schemas';
 
 export type Issuer = 'player' | 'physics' | 'ui' | 'system';
 
@@ -49,7 +49,9 @@ export type Command =
   | { type: 'acceptAcquisition'; offerId: Id }
   | { type: 'setProductionRecipe'; businessId: Id; recipeId: string }
   | { type: 'startQuestionable'; opportunityId: Id; humanIds: Id[]; destinationId: Id }
-  | { type: 'completeMinigame'; minigameId: string; businessId: Id; score: number };
+  | { type: 'completeMinigame'; minigameId: string; businessId: Id; score: number }
+  // Data-defined Services (Requirement 51)
+  | { type: 'useService'; businessId: Id; serviceId: string; params?: Record<string, ParamValue> };
 
 export type CommandType = Command['type'];
 
@@ -59,30 +61,35 @@ export interface CommandEnvelope {
   cmd: Command;
 }
 
-export type ReasonCode =
-  | 'insufficient_gold'
-  | 'invalid_price'
-  | 'invalid_quantity'
-  | 'invalid_threshold'
-  | 'invalid_route'
-  | 'not_owner'
-  | 'slot_occupied'
-  | 'human_occupied'
-  | 'unknown_entity'
-  | 'not_in_range'
-  | 'not_stopped'
-  | 'vehicle_not_manual'
-  | 'storage_not_empty'
-  | 'insufficient_humans'
-  | 'nothing_to_load'
-  | 'nothing_to_unload'
-  | 'offer_expired'
-  | 'district_locked'
-  | 'not_qualified'
-  | 'not_allowed'
-  | 'not_available';
-
-export type CommandResult =
+/** Every Reason_Code. Each needs a `reason.<code>` text key in en.json (phase2-guide rule 9). */
+export const REASON_CODES = [
+  'insufficient_gold',
+  'invalid_price',
+  'invalid_quantity',
+  'invalid_threshold',
+  'invalid_route',
+  'not_owner',
+  'slot_occupied',
+  'human_occupied',
+  'unknown_entity',
+  'not_in_range',
+  'not_stopped',
+  'vehicle_not_manual',
+  'storage_not_empty',
+  'insufficient_humans',
+  'nothing_to_load',
+  'nothing_to_unload',
+  'offer_expired',
+  'district_locked',
+  'not_qualified',
+  'not_allowed',
+  'not_available',
+  // Services (Requirement 51)
+  'not_present',
+  'conditions_not_met',
+  'already_done',
+] as const;
+export type ReasonCode = (typeof REASON_CODES)[number];export type CommandResult =
   | { seq: number; type: CommandType; ok: true }
   | { seq: number; type: CommandType; ok: false; reason: ReasonCode; missingGold?: Gold; field?: string };
 

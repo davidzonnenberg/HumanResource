@@ -4,11 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { fillerStreets, landmarks } from '@hr/content';
 import { houseFootprint, lineLength, placeAlongLine, streetGaps, type FillerStreet, type Rect } from '../src/render/procedural/buildings/streets';
 import { blockersFor, layoutFillerStreets, STREET_CONFIG, type LandmarkRect } from '../src/render/procedural/buildings/streetsLayout';
+import { slotBlockers } from '../src/render/frontage';
 import { FILLER_STREETS, fillerStreetsSchema } from '../src/render/procedural/buildings/streetsSchema';
 import { freshRegistry } from './phoneTestHelpers';
 
 const reg = freshRegistry().sim.reg;
-const lms = landmarks as LandmarkRect[];
+// Landmarks now come from filler slots of the frontage layout (the town hall); landmarks.json holds off-street ones only.
+const lms = [...(landmarks as LandmarkRect[]), ...slotBlockers(reg)];
 const overlaps = (a: Rect, b: Rect) => a.minX < b.maxX - 1e-6 && a.maxX > b.minX + 1e-6 && a.minZ < b.maxZ - 1e-6 && a.maxZ > b.minZ + 1e-6;
 
 describe('placeAlongLine', () => {
@@ -95,7 +97,7 @@ describe('old_town filler streets', () => {
     }
   });
   it('the north street stops at the left edge of the town hall', () => {
-    const hall = lms.find((l) => l.district === 'old_town' && l.x === 0);
+    const hall = lms.find((l) => l.district === 'old_town' && l.x === 0 && l.w === 20);
     expect(hall).toBeDefined();
     const north = houses.filter((h) => h.gapId.startsWith('old_town:north_left_of_hall'));
     expect(north.length).toBeGreaterThan(3);

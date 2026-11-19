@@ -32,6 +32,9 @@ export function setAutoReorder(businessId: string, resourceId: string, enabled: 
   sim()?.submit({ type: 'setAutoReorder', businessId, resourceId, enabled, threshold });
 }
 
+export function useService(businessId: string, serviceId: string): void {
+  sim()?.submit({ type: 'useService', businessId, serviceId });
+}
 export function setRoute(vehicleId: string, stops: RouteStopInput[]): void {
   sim()?.submit({ type: 'setRoute', vehicleId, stops });
 }

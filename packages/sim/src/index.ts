@@ -19,8 +19,18 @@ export { checkInvariants, checkGoldLimit, physicalTotals, type InvariantViolatio
 export { pubMetricsView, vehicleDeliveriesPerMinute, type PubMetricsView } from './selectors/metrics';
 export { isRevealed } from './systems/observe';
 export { evaluateCondition } from './conditions/evaluate';
+export { getStat, explainStat, STAT_DEFS, type StatEnv, type StatTarget, type StatEntry, type StatExplanation } from './stats/getStat';
+export { addModifier, modifiersSystem } from './stats/modifiers';
+export { applyEffects } from './conditions/effects';
+export { printCondition, parseCondition } from './conditions/text';
+export { STAT_IDS, CONDITION_KINDS, EFFECT_KINDS, DOMAIN_OPS, FINANCE_CATEGORIES, SCHEDULED_KINDS } from './defs/vocabulary';
+export { REASON_CODES } from './commands/types';
+export { serviceParamsValid } from './commands/useService';
+export { isCeoPresent, requireAccess, type AccessTag } from './world/access';
 export { entrance, parkingPoint, plotCenter, inUnloadingZone, frontSign, isBusinessInUnlockedDistrict } from './world/geometry';
 export { humanPosition, pendingQuantity, supplierFor, storageCapacity, cargoTotal, vehicleNextDropoff, firstPlayerPub } from './world/queries';
 export { emptyStock, addToStock, takeFromStock, freeCapacity } from './storage/stock';
 export { seedRng, rngNext } from './rng/xoshiro128ss';
 export { PIPELINE } from './core/pipeline';
+export * from './replay';
+export { deriveFrontage, frontageConflicts, rectInsidePolygon, ROAD_CLEARANCE, DEFAULT_ZONE, slotPlotId, type SlotInfo, type Rect2, type DerivedFrontage } from './defs/frontage';

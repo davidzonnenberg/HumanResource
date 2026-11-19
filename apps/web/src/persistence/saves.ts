@@ -1,5 +1,5 @@
 // Local Profiles, Save_Slots and save writes (22, 23, 24.6–24.8). Keys: `${profileId}/${slotId}`.
-import type { PinRecord, SaveDocument } from '@hr/shared';
+import type { CommandLogEntry, PinRecord, SaveDocument } from '@hr/shared';
 import type { DefinitionRegistry, SimState } from '@hr/sim';
 import type { KeyValueStore } from './localStore';
 import { buildSaveDocument, deserialize, type LoadResult } from './serializer';
@@ -92,14 +92,14 @@ export class SaveRepository {
    * Writes the current state. Skips when the Tick has not changed since the last write (23.3);
    * Revision increases by exactly 1 on success (23.4). Returns the written document or null.
    */
-  async writeSave(profileId: string, slotId: string, state: SimState, force = false): Promise<SaveDocument<SimState> | null> {
+  async writeSave(profileId: string, slotId: string, state: SimState, force = false, commandLog?: CommandLogEntry[]): Promise<SaveDocument<SimState> | null> {
     const k = slotKey(profileId, slotId);
     if (!force && this.lastWrittenTick.get(k) === state.tick) return null;
     const slot = await this.getSlot(profileId, slotId);
     const prev = await this.getRawSave(profileId, slotId);
     const revision = (prev?.revision ?? 0) + 1;
     const syncedRevision = prev?.syncedRevision ?? slot?.syncedRevision ?? 0;
-    const doc = buildSaveDocument(JSON.parse(JSON.stringify(state)) as SimState, { profileId, slotId, revision, syncedRevision });
+    const doc = buildSaveDocument(JSON.parse(JSON.stringify(state)) as SimState, { profileId, slotId, revision, syncedRevision }, new Date(), commandLog);
     await this.store.put('saves', k, doc);
     this.lastWrittenTick.set(k, state.tick);
     if (slot) await this.putSlot({ ...slot, revision, updatedAt: doc.timestamp, schemaVersion: doc.schemaVersion });

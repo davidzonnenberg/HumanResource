@@ -1,0 +1,229 @@
+{
+ "plot_home": {
+  "districtId": "old_town",
+  "accessNode": "old_town:home",
+  "def": {
+   "id": "plot_home",
+   "x": -14,
+   "z": -12,
+   "w": 16,
+   "d": 12,
+   "rotation": 0,
+   "tags": [
+    "commercial"
+   ],
+   "accessNode": "home",
+   "unloadingZone": {
+    "x": -14,
+    "z": -2,
+    "w": 12,
+    "d": 6
+   },
+   "initial": {
+    "kind": "reserved"
+   }
+  }
+ },
+ "plot_rival": {
+  "districtId": "old_town",
+  "accessNode": "old_town:rival",
+  "def": {
+   "id": "plot_rival",
+   "x": 14,
+   "z": -12,
+   "w": 16,
+   "d": 12,
+   "rotation": 0,
+   "tags": [
+    "commercial"
+   ],
+   "accessNode": "rival",
+   "unloadingZone": {
+    "x": 14,
+    "z": -2,
+    "w": 12,
+    "d": 6
+   },
+   "initial": {
+    "kind": "reserved"
+   }
+  }
+ },
+ "plot_supplier": {
+  "districtId": "old_town",
+  "accessNode": "old_town:sup",
+  "def": {
+   "id": "plot_supplier",
+   "x": 46,
+   "z": 13,
+   "w": 18,
+   "d": 14,
+   "rotation": 0,
+   "tags": [
+    "industrial"
+   ],
+   "accessNode": "sup",
+   "unloadingZone": {
+    "x": 46,
+    "z": 2,
+    "w": 12,
+    "d": 6
+   },
+   "initial": {
+    "kind": "reserved"
+   }
+  }
+ },
+ "plot_depot": {
+  "districtId": "old_town",
+  "accessNode": "old_town:sup",
+  "def": {
+   "id": "plot_depot",
+   "x": 46,
+   "z": -12,
+   "w": 14,
+   "d": 12,
+   "rotation": 0,
+   "tags": [
+    "market"
+   ],
+   "accessNode": "sup",
+   "unloadingZone": {
+    "x": 46,
+    "z": -3,
+    "w": 12,
+    "d": 4
+   },
+   "initial": {
+    "kind": "reserved"
+   }
+  }
+ },
+ "plot_west": {
+  "districtId": "old_town",
+  "accessNode": "old_town:west_lot",
+  "def": {
+   "id": "plot_west",
+   "x": -46,
+   "z": -12,
+   "w": 16,
+   "d": 12,
+   "rotation": 0,
+   "tags": [
+    "commercial"
+   ],
+   "accessNode": "west_lot",
+   "unloadingZone": {
+    "x": -46,
+    "z": -2,
+    "w": 12,
+    "d": 6
+   },
+   "initial": {
+    "kind": "empty"
+   }
+  }
+ },
+ "plot_south": {
+  "districtId": "old_town",
+  "accessNode": "old_town:home",
+  "def": {
+   "id": "plot_south",
+   "x": -14,
+   "z": 13,
+   "w": 16,
+   "d": 12,
+   "rotation": 0,
+   "tags": [
+    "commercial"
+   ],
+   "accessNode": "home",
+   "unloadingZone": {
+    "x": -14,
+    "z": 2,
+    "w": 12,
+    "d": 6
+   },
+   "initial": {
+    "kind": "empty"
+   }
+  }
+ },
+ "plot_for_sale": {
+  "districtId": "old_town",
+  "accessNode": "old_town:rival",
+  "def": {
+   "id": "plot_for_sale",
+   "x": 14,
+   "z": 13,
+   "w": 16,
+   "d": 12,
+   "rotation": 0,
+   "tags": [
+    "commercial"
+   ],
+   "accessNode": "rival",
+   "unloadingZone": {
+    "x": 14,
+    "z": 2,
+    "w": 12,
+    "d": 6
+   },
+   "initial": {
+    "kind": "for_sale",
+    "price": 600000
+   }
+  }
+ },
+ "plot_harbour_dock": {
+  "districtId": "harbour",
+  "accessNode": "harbour:quay",
+  "def": {
+   "id": "plot_harbour_dock",
+   "x": 130,
+   "z": -13,
+   "w": 20,
+   "d": 14,
+   "rotation": 0,
+   "tags": [
+    "industrial"
+   ],
+   "accessNode": "quay",
+   "unloadingZone": {
+    "x": 130,
+    "z": -2,
+    "w": 12,
+    "d": 6
+   },
+   "initial": {
+    "kind": "for_sale",
+    "price": 1500000
+   }
+  }
+ },
+ "plot_harbour_shed": {
+  "districtId": "harbour",
+  "accessNode": "harbour:pier",
+  "def": {
+   "id": "plot_harbour_shed",
+   "x": 150,
+   "z": 14,
+   "w": 18,
+   "d": 14,
+   "rotation": 0,
+   "tags": [
+    "industrial"
+   ],
+   "accessNode": "pier",
+   "unloadingZone": {
+    "x": 150,
+    "z": 2,
+    "w": 12,
+    "d": 6
+   },
+   "initial": {
+    "kind": "empty"
+   }
+  }
+ }
+}

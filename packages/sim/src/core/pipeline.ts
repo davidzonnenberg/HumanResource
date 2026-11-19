@@ -11,6 +11,7 @@ import { alertsSystem, metricsSystem, revealsSystem } from '../systems/observe';
 import { marketSystem } from '../systems/phase2/market';
 import { productionSystem } from '../systems/phase2/production';
 import { achievementsSystem } from '../systems/phase2/achievements';
+import { modifiersSystem } from '../stats/modifiers';
 import { schedulerSystem } from './scheduler';
 
 export interface SystemEntry {
@@ -23,6 +24,8 @@ const noop = (): void => {};
 
 export const PIPELINE: readonly SystemEntry[] = [
   { id: 'clock', phase: 1, run: (ctx) => void (ctx.state.tick += 1) },
+  // Slot 0.5: expired Modifiers are removed before any system reads a stat (50.5).
+  { id: 'modifiers', phase: 1, run: modifiersSystem },
   { id: 'commands', phase: 1, run: commandsSystem },
   { id: 'scheduler', phase: 1, run: schedulerSystem },
   { id: 'competitorEvents', phase: 2, run: noop },

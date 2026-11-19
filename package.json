@@ -21,6 +21,7 @@
     "preview": "npm run preview --workspace @hr/web",
     "test": "vitest run",
     "test:watch": "vitest",
+    "golden:record": "node scripts/goldenRecord.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "clean": "node scripts/clean.mjs",

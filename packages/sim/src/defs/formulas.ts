@@ -15,13 +15,18 @@ export function piecewise(points: readonly (readonly [number, number])[], x: num
   return (points[points.length - 1] as readonly [number, number])[1];
 }
 
-/** Arriving Customers per Game_Minute (criterion 4.1). Non-increasing in price (4.2). */
-export function demandPerMinute(pub: PubParams, price: number, reputation: number, brandMultiplier = 1): number {
-  const priceMul = piecewise(pub.demand.price.points, price);
-  const repMul = piecewise(pub.demand.reputation.points, reputation);
-  return Math.max(0, pub.baseDemandPerMinute * priceMul * repMul * brandMultiplier);
+/** Reputation 0..100 as a demand multiplier in basis points (10000 = x1.0), from the Pub's data formula. */
+export function reputationDemandBp(pub: PubParams, reputation: number): number {
+  return Math.round(piecewise(pub.demand.reputation.points, reputation) * 10000);
 }
-
+/**
+ * Arriving Customers per Game_Minute (criterion 4.1). `demandBp` is the `demand` stat from `getStat`
+ * (brand, Traits, Reputation and boosts as basis points; 10000 = x1.0). Non-increasing in price (4.2).
+ */
+export function demandPerMinute(pub: PubParams, price: number, demandBp = 10000): number {
+  const priceMul = piecewise(pub.demand.price.points, price);
+  return Math.max(0, pub.baseDemandPerMinute * priceMul * (demandBp / 10000));
+}
 /** Recommended service Humans (criterion 6.3) via the data-defined throughput formula. */
 export function recommendedServiceHumans(pub: PubParams, arrivalsPerMinute: number): number {
   const f = pub.staffing;

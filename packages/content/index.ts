@@ -40,6 +40,8 @@ import questionableConfig from './data/phase2/questionable-config.json';
 import competitorEvents from './data/phase2/competitor-events.json';
 import minigames from './data/phase2/minigames.json';
 import chains from './data/phase2/chains.json';
+// Which Commands are settings and whether they need the CEO present (Requirement 51).
+import settings from './data/settings.json';
 
 export interface RawContent {
   resources: unknown;
@@ -66,6 +68,7 @@ export interface RawContent {
   competitorEvents: unknown;
   minigames: unknown;
   chains: unknown;
+  settings: unknown;
 }
 
 export const rawContent: RawContent = {
@@ -94,6 +97,7 @@ export const rawContent: RawContent = {
   competitorEvents,
   minigames,
   chains,
+  settings,
 };
 
 export { cameraConfig, themeConfig, text, landmarks, phoneApps, fillerStreets };

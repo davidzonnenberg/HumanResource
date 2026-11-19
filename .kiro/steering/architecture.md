@@ -37,7 +37,13 @@ These rules keep the foundation stable so new features are additive. Follow them
 - Every Business and Vehicle has an `owner`. Competitors run through exactly the same systems as the player.
 - Buildings (fixed recipes, generated streets, pinned streets) follow docs/buildings.md and .kiro/steering/procedural-buildings.md: data in packages/content, seeds from stable ids, nothing stored in saves.
 
-## Money
+## Stats, Conditions, Effects, Services and Frontage_Slots (Phase 2 foundations)
+These four are the **only** way to add a stat, a game question, a game change, a building action or a building in a street. Do not add a parallel mechanism.
+- **Stats:** a stat a system reads is a `StatId` and is read through `getStat(env, stat, target)` (`packages/sim/src/stats/getStat.ts`). Brands, Traits, Recipe Traits, Reputation, boosts and policies reach it as Modifiers. Never read `demandMul`, `addPct` or `repeatOrderChance` from a Definition directly in a system. Stored Modifiers live in `state.modifiers` (sorted by id) and expire in pipeline slot 0.5.
+- **Conditions and Effects:** one evaluator (`evaluateCondition`, pure, never touches the RNG) and one `applyEffects` over closed vocabularies in `defs/vocabulary.ts`. A new kind is added there, in the schema and in the evaluator in the same change. Behaviour no Effect kind can express is a domain op under `conditions/domainOps/`.
+- **Services:** a building action is a Service in the Business Definition (`services`), used with the single `useService` Command (order: unknown entity, District, access, params, Conditions, `once`, Gold). Settings tagged `presence` in `settings.json` share the same access check.
+- **Frontage_Slots:** buildings in a street are slots (`filler`, `business`, `plot`) in a street of the District file; Plots, access nodes, Unloading_Zones and hitboxes are derived (`defs/frontage.ts`). Never hand-place a Plot that a street slot can express.
+- **Replay:** every Command enters through `Simulation.submit` and is recorded; `stateHash` (canonical JSON, FNV-1a 64) of the state must equal the golden playthrough hash. A deliberate balance or RNG-order change re-records it with `npm.cmd run golden:record`.## Money
 
 - Gold is an integer number of hundredths (`Gold` type). Never use floats for money.
 - All Gold changes go through `applyGold(state, owner, delta, category, source)`.

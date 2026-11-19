@@ -2,6 +2,7 @@
 // (see types.ts) and validates loaded saves, reporting the first invalid field (Requirement 24.9).
 // State is plain JSON: records keyed by prefixed string ids, no Maps/classes/undefined values.
 import { z } from 'zod';
+import { SCHEDULED_KINDS, STAT_IDS } from '../defs/vocabulary';
 
 const id = z.string().min(1);
 const int = z.number().int();
@@ -60,6 +61,8 @@ export const pubRuntimeSchema = z.object({
   ),
   bar: z.array(z.object({ customerId: id, recipeId: id.nullable(), origin: lotOriginSchema })),
   arrivalAcc: finite,
+  /** Phase 3 (task 43.2) opens and closes the Pub. Absent = open. */
+  open: z.boolean().optional(),
 });
 
 /** One production rule's runtime (Phase 2). `missing` holds `input:<res>` / `workers:<job>` / `output:<res>`. */
@@ -121,6 +124,8 @@ export const customerSchema = z.object({
   servedAny: z.boolean(),
   seatedTick: nonNegInt,
   currentLot: z.object({ recipeId: id.nullable(), origin: lotOriginSchema }).nullable(),
+  /** Sum over finished drinks of (price stat - 10000) in basis points; omitted while 0 (Phase 1 behaviour). */
+  priceBpExtra: int.optional(),
 });
 
 export const vehicleSchema = z.object({
@@ -215,7 +220,7 @@ export const alertSchema = z.object({
 });
 
 /** Kinds the scheduler can dispatch (core/scheduler.ts). An unknown kind makes the save invalid. */
-export const scheduledKindSchema = z.enum(['constructionDone', 'revealAttribute', 'questionableDone', 'consequence']);
+export const scheduledKindSchema = z.enum(SCHEDULED_KINDS);
 
 export const scheduledEventSchema = z.object({
   seq: nonNegInt,
@@ -278,6 +283,31 @@ export const boostSchema = z.object({
   untilTick: nonNegInt,
 });
 
+// ---------- Modifiers (Requirement 50) ----------
+export const sourceRefSchema = z.object({
+  kind: z.enum(['trait', 'brand', 'recipe', 'boost', 'reputation', 'effect', 'service', 'policy']),
+  id: z.string(),
+});
+/** Which stat owners a Modifier applies to. ecipe matches the Recipe of the unit being used. */
+export const targetSelectorSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('all') }),
+  z.object({ kind: z.literal('owner'), owner: id }),
+  z.object({ kind: z.literal('business'), id }),
+  z.object({ kind: z.literal('recipe'), id }),
+]);
+export const modifierSchema = z.object({
+  id,
+  source: sourceRefSchema,
+  target: targetSelectorSchema,
+  stat: z.enum(STAT_IDS),
+  op: z.enum(['addBp', 'addFlat']),
+  value: int,
+  /** The Modifier is removed when the Tick count reaches this value (50.5). */
+  untilTick: nonNegInt.optional(),
+});
+// Minimal shapes of Phase 3 records that Conditions read (tasks 41.3, 46.1, 48.1 extend them).
+export const loanSchema = z.object({ id, remaining: goldSchema });
+export const questProgressSchema = z.object({ stepsDone: z.array(id) });
 export const reputationPendingSchema = z.object({ delta: int, causeKey: z.string() });
 
 export const newsItemSchema = z.object({
@@ -300,6 +330,8 @@ export const simStateSchema = z.object({
     corporateResources: z.record(z.string(), finite),
     availableBrands: z.array(id),
     recipes: z.array(id),
+    /** Phase 3 (task 48.2): the active license tier, or absent/null. */
+    license: id.nullable().optional(),
   }),
   competitors: z.record(
     z.string(),
@@ -336,4 +368,11 @@ export const simStateSchema = z.object({
   chains: chainsStateSchema.optional(),
   boosts: z.array(boostSchema).optional(),
   reputationPending: z.array(reputationPendingSchema).optional(),
+  // Phase 2 foundations: absent = empty, so no schema version bump (tasks 35, 37).
+  /** Stored Modifiers, sorted by id (Requirement 50). Static Modifiers come from Definitions and are not stored. */
+  modifiers: z.array(modifierSchema).optional(),
+  /** Uses per Service id (Requirement 51); drives once and the serviceUsed Condition. */
+  servicesUsed: z.record(z.string(), nonNegInt).optional(),
+  loans: z.array(loanSchema).optional(),
+  quests: z.record(z.string(), questProgressSchema).optional(),
 });
