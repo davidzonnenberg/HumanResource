@@ -1,0 +1,11 @@
+[
+  {
+    "id": "noise_followup",
+    "effects": [
+      {
+        "kind": "news",
+        "textKey": "news.noiseFollowup"
+      }
+    ]
+  }
+]

@@ -9,6 +9,7 @@ import { inputState } from '../../input/inputState';
 import { openPhoneApp, openPhoneAppIfInstalled, togglePhone } from '../phone/phoneActions';
 import { alertTarget } from '../phone/phoneAlerts';
 import { useInstalledApps } from '../phone/useInstalledApps';
+import { QuestChecklist } from './QuestChecklist';
 import { Joystick } from '../../input/Joystick';
 import { runContextAction, setPauseMenu, setSpeed, speedsAvailable, toggleDriveCamera, toggleSpeedPause, toggleViewMode, zoomIn, zoomOut } from '../../input/actions';
 import { alertRows } from './alertText';
@@ -151,6 +152,7 @@ export function Hud() {
           {t('hud.speed.pause')}
         </button>
       </div>
+      <QuestChecklist />
       <div className="alerts">
         {rows.map((r) => (
           <button

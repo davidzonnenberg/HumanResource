@@ -1,119 +1,132 @@
 [
- {
-  "id": "license_granted",
-  "condition": {
-   "kind": "licensed"
-  },
-  "reveals": [
-   "license_granted"
-  ],
-  "phase": 3,
-  "teaserKey": "unlock.licenseGranted.teaser",
-  "descriptionKey": "unlock.licenseGranted.desc",
-  "gaveKey": "unlock.licenseGranted.gave"
- },
- {
-  "id": "loan_taken",
-  "condition": {
-   "kind": "loanActive"
-  },
-  "reveals": [
-   "loan_taken"
-  ],
-  "phase": 3,
-  "teaserKey": "unlock.loanTaken.teaser",
-  "descriptionKey": "unlock.loanTaken.desc",
-  "gaveKey": "unlock.loanTaken.gave"
- },
- {
-  "id": "fit_out_done",
-  "condition": {
-   "kind": "never"
-  },
-  "reveals": [
-   "fit_out_done"
-  ],
-  "phase": 3,
-  "teaserKey": "unlock.fitOutDone.teaser",
-  "descriptionKey": "unlock.fitOutDone.desc",
-  "gaveKey": "unlock.fitOutDone.gave"
- },
- {
-  "id": "supplier_deal",
-  "condition": {
-   "kind": "never"
-  },
-  "reveals": [
-   "supplier_deal"
-  ],
-  "phase": 3,
-  "teaserKey": "unlock.supplierDeal.teaser",
-  "descriptionKey": "unlock.supplierDeal.desc",
-  "gaveKey": "unlock.supplierDeal.gave"
- },
- {
-  "id": "first_hire",
-  "condition": {
-   "kind": "never"
-  },
-  "reveals": [
-   "first_hire"
-  ],
-  "phase": 3,
-  "teaserKey": "unlock.firstHire.teaser",
-  "descriptionKey": "unlock.firstHire.desc",
-  "gaveKey": "unlock.firstHire.gave"
- },
- {
-  "id": "first_kegs",
-  "condition": {
-   "kind": "all",
-   "of": [
-    {
-     "kind": "revealed",
-     "feature": "supplier_deal"
+  {
+    "id": "license_granted",
+    "condition": {
+      "kind": "licensed"
     },
-    {
-     "kind": "event",
-     "event": "vehicleUnloaded",
-     "where": {
-      "owner": "player"
-     }
-    }
-   ]
+    "reveals": [
+      "license_granted"
+    ],
+    "phase": 3,
+    "teaserKey": "unlock.licenseGranted.teaser",
+    "descriptionKey": "unlock.licenseGranted.desc",
+    "gaveKey": "unlock.licenseGranted.gave"
   },
-  "reveals": [
-   "first_kegs"
-  ],
-  "phase": 3,
-  "teaserKey": "unlock.firstKegs.teaser",
-  "descriptionKey": "unlock.firstKegs.desc",
-  "gaveKey": "unlock.firstKegs.gave"
- },
- {
-  "id": "pub_open",
-  "condition": {
-   "kind": "never"
+  {
+    "id": "loan_taken",
+    "condition": {
+      "kind": "loanActive"
+    },
+    "reveals": [
+      "loan_taken"
+    ],
+    "phase": 3,
+    "teaserKey": "unlock.loanTaken.teaser",
+    "descriptionKey": "unlock.loanTaken.desc",
+    "gaveKey": "unlock.loanTaken.gave"
   },
-  "reveals": [
-   "pub_open"
-  ],
-  "phase": 3,
-  "teaserKey": "unlock.pubOpen.teaser",
-  "descriptionKey": "unlock.pubOpen.desc",
-  "gaveKey": "unlock.pubOpen.gave"
- },
- {
-  "id": "first_permit_offer",
-  "condition": {
-   "kind": "never"
+  {
+    "id": "fit_out_done",
+    "condition": {
+      "kind": "never"
+    },
+    "reveals": [
+      "fit_out_done"
+    ],
+    "phase": 3,
+    "teaserKey": "unlock.fitOutDone.teaser",
+    "descriptionKey": "unlock.fitOutDone.desc",
+    "gaveKey": "unlock.fitOutDone.gave"
   },
-  "reveals": [
-   "first_permit_offer"
-  ],
-  "phase": 3,
-  "teaserKey": "unlock.firstPermit.teaser",
-  "descriptionKey": "unlock.firstPermit.desc",
-  "gaveKey": "unlock.firstPermit.gave"
- }
+  {
+    "id": "supplier_deal",
+    "condition": {
+      "kind": "never"
+    },
+    "reveals": [
+      "supplier_deal"
+    ],
+    "phase": 3,
+    "teaserKey": "unlock.supplierDeal.teaser",
+    "descriptionKey": "unlock.supplierDeal.desc",
+    "gaveKey": "unlock.supplierDeal.gave"
+  },
+  {
+    "id": "first_hire",
+    "condition": {
+      "kind": "never"
+    },
+    "reveals": [
+      "first_hire"
+    ],
+    "phase": 3,
+    "teaserKey": "unlock.firstHire.teaser",
+    "descriptionKey": "unlock.firstHire.desc",
+    "gaveKey": "unlock.firstHire.gave"
+  },
+  {
+    "id": "first_kegs",
+    "condition": {
+      "kind": "all",
+      "of": [
+        {
+          "kind": "revealed",
+          "feature": "supplier_deal"
+        },
+        {
+          "kind": "event",
+          "event": "vehicleUnloaded",
+          "where": {
+            "owner": "player"
+          }
+        }
+      ]
+    },
+    "reveals": [
+      "first_kegs"
+    ],
+    "phase": 3,
+    "teaserKey": "unlock.firstKegs.teaser",
+    "descriptionKey": "unlock.firstKegs.desc",
+    "gaveKey": "unlock.firstKegs.gave"
+  },
+  {
+    "id": "pub_open",
+    "condition": {
+      "kind": "never"
+    },
+    "reveals": [
+      "pub_open"
+    ],
+    "phase": 3,
+    "teaserKey": "unlock.pubOpen.teaser",
+    "descriptionKey": "unlock.pubOpen.desc",
+    "gaveKey": "unlock.pubOpen.gave"
+  },
+  {
+    "id": "first_permit_offer",
+    "condition": {
+      "kind": "never"
+    },
+    "reveals": [
+      "first_permit_offer"
+    ],
+    "phase": 3,
+    "teaserKey": "unlock.firstPermit.teaser",
+    "descriptionKey": "unlock.firstPermit.desc",
+    "gaveKey": "unlock.firstPermit.gave"
+  },
+  {
+    "id": "rival_scouted",
+    "condition": {
+      "kind": "never"
+    },
+    "reveals": [
+      "rival_scouted"
+    ],
+    "phase": 3,
+    "teaserKey": "unlock.rivalScouted.teaser",
+    "descriptionKey": "unlock.rivalScouted.desc",
+    "gaveKey": "unlock.rivalScouted.gave"
+  }
 ]

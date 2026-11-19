@@ -17,8 +17,13 @@ function dealOf(reg: DefinitionRegistry, id: string | undefined): SimState['play
   const d = id === undefined ? undefined : reg.phase3.supplyDeals[id];
   return d ? { dealId: d.id, kegDrinks: d.kegDrinks, pricePerKeg: d.pricePerKeg, contractFeePerMinute: d.contractFeePerMinute ?? 0, feeCarry: 0 } : null;
 }
-export function newGame(reg: DefinitionRegistry, seed: number): SimState {
-  const start = reg.startState;
+export type StartKind = 'grand_opening' | 'dev';
+/**
+ * `grand_opening`: nothing built, no licence, loan, deal or staff, closed pub (the story start). `dev` (the default,
+ * used by tests, `?dev=1` and old saves): the running pub with the whole checklist done (3.1, 3.1a, 61.8).
+ */
+export function newGame(reg: DefinitionRegistry, seed: number, opts: { start?: StartKind } = {}): SimState {
+  const start = opts.start === 'grand_opening' ? reg.startState : reg.startStateDev;
   const cfg = reg.config;
   const state: SimState = {
     tick: 0,
@@ -43,7 +48,7 @@ export function newGame(reg: DefinitionRegistry, seed: number): SimState {
     // Only physical Resources are tracked; Corporate_Resources (Synergy) never enter the ledger.
     resourceTotals: Object.fromEntries(Object.values(reg.resources).filter((r) => r.kind === 'storable').map((r) => [r.id, 0])),
     alerts: {},
-    reveals: { fired: [] },
+    reveals: { fired: [...(start.reveals ?? [])] },
     achievements: [],
     news: [],
     // Phase 2 sections: created empty/deterministic so a new game consumes no extra RNG (rule 3).
@@ -85,6 +90,7 @@ export function newGame(reg: DefinitionRegistry, seed: number): SimState {
     const opts: Parameters<typeof createBusiness>[5] = {};
     if (b.stockPct) opts.stockPct = b.stockPct;
     if (b.autoReorder) opts.autoReorder = b.autoReorder;
+    if (b.pub) opts.pub = b.pub;
     bizByKey[b.key] = createBusiness(state, reg, b.defId, b.plotId, b.owner, opts);
   }
 
@@ -187,5 +193,10 @@ export function newGame(reg: DefinitionRegistry, seed: number): SimState {
   const door = entrance(reg, near.plotId);
   const park = parkingPoint(reg, near.plotId);
   state.ceo = { x: door.x + 3, z: (door.z + park.z) / 2, heading: 0, insideBusinessId: null, drivingVehicleId: null };
+  // Quests that start done (the dev start skips the Grand Opening); their rewards are not paid (61.8)
+  for (const questId of start.completedQuests ?? []) {
+    const q = reg.phase3.quests[questId];
+    if (q) (state.quests ??= {})[questId] = { stepsDone: q.steps.map((s) => s.id) };
+  }
   return state;
 }

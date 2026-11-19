@@ -6,6 +6,7 @@ import type { TickContext } from './context';
 import { constructionDone } from '../systems/phase2/construction';
 import { revealAttribute } from '../systems/phase2/acquisitions';
 import { consequence, questionableDone } from '../systems/phase2/questionable';
+import { appliedEffects, requestDeadline, spawnRequest } from '../systems/requests';
 
 export type ScheduledPayload = ScheduledEvent['payload'];
 
@@ -25,6 +26,12 @@ export function dispatchScheduled(ctx: TickContext, ev: ScheduledEvent): void {
       return questionableDone(ctx, ev.payload);
     case 'consequence':
       return consequence(ctx, ev.payload);
+    case 'spawnRequest':
+      return spawnRequest(ctx, ev.payload);
+    case 'requestDeadline':
+      return requestDeadline(ctx, ev.payload);
+    case 'applyEffects':
+      return appliedEffects(ctx, ev.payload);
     default: {
       // Unreachable for valid state (the state schema only allows the kinds above). Throwing keeps a
       // corrupt event from being silently dropped, which is the bug this dispatcher replaces.

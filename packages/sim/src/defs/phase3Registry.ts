@@ -8,6 +8,7 @@ import {
   candidateDefSchema,
   customerTypeDefSchema,
   fitOutItemDefSchema,
+  delayedEffectsDefSchema,
   layoutDefSchema,
   licenseTierDefSchema,
   loanOfferDefSchema,
@@ -61,6 +62,8 @@ export function loadPhase3(raw: RawPhase3 | undefined, ctx: Phase3Context, error
   const customerTypes = table('phase3/customerTypes', p.customerTypes, customerTypeDefSchema, errors);
   const quests = table('phase3/quests', p.quests, questDefSchema, errors);
   const layouts = table('phase3/layouts', p.layouts, layoutDefSchema, errors);
+  const delayedEffects = table('phase3/delayedEffects', p.delayedEffects, delayedEffectsDefSchema, errors);
+  rawObjects(p.delayedEffects).forEach((d, i) => rawObjects(d.effects).forEach((e, j) => checkRawEffect(`phase3/delayedEffects#${String(d.id ?? i)}`, `effects.${j}`, e, errors)));
   const err = (definition: string, field: string, message: string): void => void errors.push({ definition, field, message });
 
   for (const t of Object.values(licenseTiers)) {
@@ -150,5 +153,5 @@ export function loadPhase3(raw: RawPhase3 | undefined, ctx: Phase3Context, error
     }
   };
   for (const q of Object.values(quests)) q.steps.forEach((s, j) => checkCondition(`phase3/quests#${q.id}`, `steps.${j}.done`, s.done));
-  return { licenseTiers, loanOffers, fitOutItems, supplyDeals, candidates, requests, customerTypes, quests, layouts };
+  return { licenseTiers, loanOffers, fitOutItems, supplyDeals, candidates, requests, customerTypes, quests, layouts, delayedEffects };
 }

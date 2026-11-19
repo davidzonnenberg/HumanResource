@@ -45,3 +45,31 @@ describe('Phase 3 tables', () => {
     expect(m).toContain('unknown Job "astronaut"');
   });
 });
+
+describe('unlock menu texts (67)', () => {
+  it('every Reveal_Trigger has a teaser and a description with text', () => {
+    const r = loadRegistry(rawContent);
+    if (!r.ok) throw new Error('content');
+    const text = rawContent.text as Record<string, unknown>;
+    for (const tr of Object.values(r.value.revealTriggers)) {
+      expect(typeof text[tr.teaserKey], tr.id).toBe('string');
+      expect(typeof text[tr.descriptionKey], tr.id).toBe('string');
+      expect(tr.teaserKey).not.toBe(tr.descriptionKey);
+    }
+  });
+  it('rejects a Reveal_Trigger without a teaser or a description, naming it (67.5)', () => {
+    const drop = (field: string) =>
+      messages(
+        loadRegistry({
+          ...rawContent,
+          revealTriggers: (rawContent.revealTriggers as Record<string, unknown>[]).map((t) => (t.id === 'game_speed' ? Object.fromEntries(Object.entries(t).filter(([k]) => k !== field)) : t)),
+        }),
+      ).join('\n');
+    expect(drop('teaserKey')).toContain('reveal-triggers#game_speed');
+    expect(drop('descriptionKey')).toContain('reveal-triggers#game_speed');
+  });
+  it('rejects a teaser key that has no text', () => {
+    const bad = loadRegistry({ ...rawContent, revealTriggers: (rawContent.revealTriggers as Record<string, unknown>[]).map((t) => (t.id === 'game_speed' ? { ...t, teaserKey: 'unlock.nope' } : t)) });
+    expect(messages(bad).join('\n')).toContain('unknown text key "unlock.nope"');
+  });
+});

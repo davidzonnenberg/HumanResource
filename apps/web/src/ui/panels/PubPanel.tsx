@@ -6,6 +6,7 @@ import { t, tDynamic } from '../../text/t';
 import { bridge } from '../../store/simBridge';
 import { useUi } from '../../store/stores';
 import { Bar, Card, Panel, PanelButton, Row } from '../components/Card';
+import { FitOutCard } from '../components/FitOutCard';
 import { CapacityCard } from '../components/CapacityCard';
 import { ServicesCard } from '../components/ServicesCard';
 import { StatBreakdownCard } from '../components/StatBreakdown';
@@ -44,6 +45,7 @@ export function PubPanel({ reg, state, b, onClose }: { reg: DefinitionRegistry; 
         </Card>
       )}
 
+      <FitOutCard reg={reg} state={state} b={b} />
       <CapacityCard reg={reg} state={state} b={b} />
       <ServicesCard reg={reg} state={state} b={b} />
       {owned && <StatBreakdownCard reg={reg} state={state} stat="demand" businessId={b.id} />}

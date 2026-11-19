@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "id": "noise_complaint",
+    "nameKey": "request.noiseComplaint",
+    "businessRole": "municipality",
+    "serviceId": "answer_noise_complaint",
+    "deadlineSeconds": 180,
+    "consequence": [
+      {
+        "kind": "gold",
+        "amount": -5000,
+        "category": "fine"
+      },
+      {
+        "kind": "news",
+        "textKey": "news.noiseFined"
+      }
+    ]
+  },
+  {
+    "id": "repayment_question",
+    "nameKey": "request.repaymentQuestion",
+    "businessRole": "bank",
+    "serviceId": "answer_repayment_question",
+    "deadlineSeconds": 240,
+    "consequence": [
+      {
+        "kind": "gold",
+        "amount": -2000,
+        "category": "fine"
+      },
+      {
+        "kind": "news",
+        "textKey": "news.bankLateFee"
+      }
+    ]
+  }
+]

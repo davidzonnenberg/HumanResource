@@ -324,12 +324,18 @@ export function Building({ reg, state, b, open }: { reg: DefinitionRegistry; sta
             <boxGeometry args={[layout.bar.w, 1.1, 0.8]} />
             <meshStandardMaterial color={palette.bar} />
           </mesh>
-          {layout.seats.map((st, i) => (
+          {layout.seats.slice(0, b.pub?.seatsBuilt ?? layout.seats.length).map((st, i) => (
             <mesh key={i} position={[st.x + 0.7, 0.4, st.z]}>
               <cylinderGeometry args={[0.45, 0.45, 0.8, 10]} />
               <meshStandardMaterial color={palette.table} />
             </mesh>
           ))}
+          {(b.pub?.vibeBase ?? 0) > 0 && (
+            <mesh position={[layout.bar.x + layout.bar.w / 2 + 0.8, 0.5, layout.bar.z + 0.6]}>
+              <cylinderGeometry args={[0.3, 0.4, 1, 8]} />
+              <meshStandardMaterial color="#4f8f4f" />
+            </mesh>
+          )}
         </group>
       )}
     </>

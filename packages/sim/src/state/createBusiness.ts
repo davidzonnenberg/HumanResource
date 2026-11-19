@@ -27,6 +27,8 @@ export interface CreateBusinessOptions {
   stockPct?: Record<string, number>;
   /** Auto-reorder settings as percent of capacity per Resource (start-state data). */
   autoReorder?: Record<string, { enabled: boolean; thresholdPct: number }>;
+  /** Pub runtime overrides: Seats and Taps built so far and whether it is open (Grand Opening start). */
+  pub?: { seatsBuilt: number; tapsBuilt: number; open: boolean };
 }
 
 /**
@@ -91,7 +93,7 @@ export function createBusiness(
       missing: [],
     }));
   if (def.pub) {
-    biz.pub = { drinkPrice: def.pub.defaultDrinkPrice, seats: new Array<string | null>(def.pub.seats).fill(null), orderQueue: [], bar: [], arrivalAcc: 0, open: true, seatsBuilt: def.pub.seats, tapsBuilt: def.pub.maxTaps, vibeBase: 0, pace: reg.config.defaultPace, lostIncome: 0 };
+    biz.pub = { drinkPrice: def.pub.defaultDrinkPrice, seats: new Array<string | null>(def.pub.seats).fill(null), orderQueue: [], bar: [], arrivalAcc: 0, open: opts.pub?.open ?? true, seatsBuilt: opts.pub?.seatsBuilt ?? def.pub.seats, tapsBuilt: opts.pub?.tapsBuilt ?? def.pub.maxTaps, vibeBase: 0, pace: reg.config.defaultPace, lostIncome: 0 };
     state.metrics.pubs[id] = emptyPubMetrics(reg.config.pubWindowSeconds);
   }
   state.businesses[id] = biz;

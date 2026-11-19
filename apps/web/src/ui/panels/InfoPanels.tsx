@@ -153,8 +153,11 @@ export function CompetitorPanel({ reg, state, b, onClose }: { reg: DefinitionReg
     <Panel title={b.name} onClose={onClose}>
       <Card title={t('panel.owner.competitor', { name: tDynamic(state.competitors[b.owner]?.nameKey ?? b.owner) })}>
         <Row label={t('panel.competitor.popularity', { value: '' }).replace('{value}', '').trim()} value={t(`panel.competitor.popularity.${pop}` as Parameters<typeof t>[0])} />
-        {b.pub && <Row label={t('panel.price')} value={t('panel.price.value', { amount: goldToWholeFloor(b.pub.drinkPrice) })} />}
+        {/* Details are known only after the CEO scouted the rival in person (68.6). */}
+        {b.pub && state.reveals.fired.includes('rival_scouted') && <Row label={t('panel.price')} value={t('panel.price.value', { amount: goldToWholeFloor(b.pub.drinkPrice) })} />}
+        {b.pub && !state.reveals.fired.includes('rival_scouted') && <Row label={t('panel.competitor.unscouted')} value="?" />}
       </Card>
+      <ServicesCard reg={reg} state={state} b={b} />
     </Panel>
   );
 }

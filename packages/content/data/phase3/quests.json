@@ -1,118 +1,156 @@
 [
- {
-  "id": "grand_opening",
-  "nameKey": "quest.grandOpening",
-  "steps": [
-   {
-    "id": "municipality",
-    "textKey": "quest.grandOpening.municipality",
-    "done": {
-     "kind": "revealed",
-     "feature": "license_granted"
-    },
-    "targetBusinessRole": "municipality"
-   },
-   {
-    "id": "bank",
-    "textKey": "quest.grandOpening.bank",
-    "done": {
-     "kind": "revealed",
-     "feature": "loan_taken"
-    },
-    "targetBusinessRole": "bank"
-   },
-   {
-    "id": "fit_out",
-    "textKey": "quest.grandOpening.fitOut",
-    "done": {
-     "kind": "revealed",
-     "feature": "fit_out_done"
-    },
-    "targetBusinessRole": "pub",
-    "requires": [
-     "municipality",
-     "bank"
+  {
+    "id": "grand_opening",
+    "nameKey": "quest.grandOpening",
+    "steps": [
+      {
+        "id": "municipality",
+        "textKey": "quest.grandOpening.municipality",
+        "done": {
+          "kind": "revealed",
+          "feature": "license_granted"
+        },
+        "targetBusinessRole": "municipality"
+      },
+      {
+        "id": "bank",
+        "textKey": "quest.grandOpening.bank",
+        "done": {
+          "kind": "revealed",
+          "feature": "loan_taken"
+        },
+        "targetBusinessRole": "bank"
+      },
+      {
+        "id": "fit_out",
+        "textKey": "quest.grandOpening.fitOut",
+        "done": {
+          "kind": "revealed",
+          "feature": "fit_out_done"
+        },
+        "targetBusinessRole": "pub",
+        "requires": [
+          "municipality",
+          "bank"
+        ]
+      },
+      {
+        "id": "supplier",
+        "textKey": "quest.grandOpening.supplier",
+        "done": {
+          "kind": "revealed",
+          "feature": "supplier_deal"
+        },
+        "targetBusinessRole": "supplier"
+      },
+      {
+        "id": "job_centre",
+        "textKey": "quest.grandOpening.jobCentre",
+        "done": {
+          "kind": "revealed",
+          "feature": "first_hire"
+        },
+        "targetBusinessRole": "job_centre"
+      },
+      {
+        "id": "back_at_pub",
+        "textKey": "quest.grandOpening.backAtPub",
+        "done": {
+          "kind": "revealed",
+          "feature": "pub_open"
+        },
+        "targetBusinessRole": "pub",
+        "requires": [
+          "municipality",
+          "bank",
+          "fit_out",
+          "supplier",
+          "job_centre"
+        ],
+        "reward": [
+          {
+            "kind": "news",
+            "textKey": "news.grandOpening"
+          },
+          {
+            "kind": "schedule",
+            "event": "spawnRequest",
+            "delaySeconds": 240,
+            "payload": {
+              "defId": "noise_complaint"
+            }
+          }
+        ]
+      }
     ]
-   },
-   {
-    "id": "supplier",
-    "textKey": "quest.grandOpening.supplier",
-    "done": {
-     "kind": "revealed",
-     "feature": "supplier_deal"
-    },
-    "targetBusinessRole": "supplier"
-   },
-   {
-    "id": "job_centre",
-    "textKey": "quest.grandOpening.jobCentre",
-    "done": {
-     "kind": "revealed",
-     "feature": "first_hire"
-    },
-    "targetBusinessRole": "job_centre"
-   },
-   {
-    "id": "back_at_pub",
-    "textKey": "quest.grandOpening.backAtPub",
-    "done": {
-     "kind": "revealed",
-     "feature": "pub_open"
-    },
-    "targetBusinessRole": "pub",
-    "requires": [
-     "municipality",
-     "bank",
-     "fit_out",
-     "supplier",
-     "job_centre"
-    ],
-    "reward": [
-     {
-      "kind": "news",
-      "textKey": "news.grandOpening"
-     }
+  },
+  {
+    "id": "first_100_pints",
+    "nameKey": "quest.first100",
+    "after": "grand_opening",
+    "steps": [
+      {
+        "id": "serve_100",
+        "textKey": "quest.first100.serve",
+        "done": {
+          "kind": "counterAtLeast",
+          "counter": "drinksServed",
+          "count": 100
+        },
+        "targetBusinessRole": "pub",
+        "reward": [
+          {
+            "kind": "news",
+            "textKey": "news.first100"
+          }
+        ]
+      }
     ]
-   }
-  ]
- },
- {
-  "id": "first_100_pints",
-  "nameKey": "quest.first100",
-  "after": "grand_opening",
-  "steps": [
-   {
-    "id": "serve_100",
-    "textKey": "quest.first100.serve",
-    "done": {
-     "kind": "counterAtLeast",
-     "counter": "drinksServed",
-     "count": 100
-    },
-    "targetBusinessRole": "pub",
-    "reward": [
-     {
-      "kind": "news",
-      "textKey": "news.first100"
-     }
+  },
+  {
+    "id": "second_location",
+    "nameKey": "quest.secondLocation",
+    "after": "first_100_pints",
+    "steps": [
+      {
+        "id": "second_pub",
+        "textKey": "quest.secondLocation.pub",
+        "done": {
+          "kind": "ownedBusinessCountAtLeast",
+          "businessType": "pub",
+          "count": 2
+        }
+      }
     ]
-   }
-  ]
- },
- {
-  "id": "second_location",
-  "nameKey": "quest.secondLocation",
-  "after": "first_100_pints",
-  "steps": [
-   {
-    "id": "second_pub",
-    "textKey": "quest.secondLocation.pub",
-    "done": {
-     "kind": "ownedBusinessCountAtLeast",
-     "businessType": "pub",
-     "count": 2
-    }
-   }
-  ]
- }
+  },
+  {
+    "id": "side_delivery_hops",
+    "nameKey": "quest.sideHops",
+    "after": "grand_opening",
+    "steps": [
+      {
+        "id": "deliver_hops",
+        "textKey": "quest.sideHops.deliver",
+        "done": {
+          "kind": "event",
+          "event": "vehicleUnloaded",
+          "where": {
+            "owner": "player",
+            "resourceId": "hops"
+          }
+        },
+        "reward": [
+          {
+            "kind": "gold",
+            "amount": 15000,
+            "category": "other"
+          },
+          {
+            "kind": "news",
+            "textKey": "news.sideHops"
+          }
+        ]
+      }
+    ]
+  }
 ]

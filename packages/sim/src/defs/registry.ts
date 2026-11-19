@@ -82,6 +82,8 @@ export interface RawContentInput {
   models: unknown;
   namePool: unknown;
   startState: unknown;
+  /** The running-pub start of `?dev=1` and the tests (optional: falls back to `startState`). */
+  startStateDev?: unknown;
   world: unknown;
   districtFiles: Record<string, unknown>;
   simConfig: unknown;
@@ -149,6 +151,7 @@ export interface DefinitionRegistry {
   config: SimConfig;
   world: WorldInfo;
   startState: StartStateDef;
+  startStateDev: StartStateDef;
   // Phase 2
   market: MarketConfig;
   acquisitions: AcquisitionConfig;
@@ -248,6 +251,7 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
   const namePool = parseOne('name-pool', raw.namePool, namePoolSchema, errors) ?? [];
   const config = parseOne('config/sim', raw.simConfig, simConfigSchema, errors);
   const startState = parseOne('start-state', raw.startState, startStateDefSchema, errors);
+  const startStateDev = raw.startStateDev === undefined ? startState : parseOne('start-state.dev', raw.startStateDev, startStateDefSchema, errors);
   const worldFile = parseOne('maps/world', raw.world, worldDefSchema, errors);
   const market = parseOne('phase2/market', raw.market, marketConfigSchema, errors);
   const acquisitions = parseOne('phase2/acquisitions', raw.acquisitions, acquisitionConfigSchema, errors);
@@ -437,6 +441,11 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
       Object.entries(b.perVenue).map(([venue, m]) => [venue, { demandBp: Math.round(m.demandMul * 10000), priceBp: Math.round(m.priceMul * 10000) }]),
     );
   }
+  for (const tr of Object.values(revealTriggers)) {
+    textRef(`reveal-triggers#${tr.id}`, 'teaserKey', tr.teaserKey);
+    textRef(`reveal-triggers#${tr.id}`, 'descriptionKey', tr.descriptionKey);
+    if (tr.gaveKey !== undefined) textRef(`reveal-triggers#${tr.id}`, 'gaveKey', tr.gaveKey);
+  }
   for (const a of Object.values(achievements)) {
     textRef(`achievements#${a.id}`, 'nameKey', a.nameKey);
     textRef(`achievements#${a.id}`, 'descriptionKey', a.descriptionKey);
@@ -518,8 +527,9 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
   }  validatePhase2Tables({ market, acquisitions, questionables, questionableConfig, competitorEvents, minigames, chains }, { resources, businesses }, textRef, errors);
 
   if (startState) validateStartState(startState, { businesses, vehicles, jobs, humans, resources, world }, textRef, errors);
+  if (startStateDev && startStateDev !== startState) validateStartState(startStateDev, { businesses, vehicles, jobs, humans, resources, world }, textRef, errors);
 
-  if (errors.length > 0 || !config || !startState || !market || !acquisitions || !questionableConfig || !competitorEvents || !chains) {
+  if (errors.length > 0 || !config || !startState || !market || !acquisitions || !questionableConfig || !competitorEvents || !chains || !startStateDev) {
     if (errors.length === 0) errors.push({ definition: '(content)', field: '(root)', message: 'missing configuration' });
     return { ok: false, errors };
   }
@@ -541,6 +551,7 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
     config,
     world,
     startState,
+    startStateDev,
     market,
     acquisitions,
     questionables,

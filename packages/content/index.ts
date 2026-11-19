@@ -12,6 +12,7 @@ import revealTriggers from './data/reveal-triggers.json';
 import models from './data/models.json';
 import namePool from './data/name-pool.json';
 import startState from './data/start-state.json';
+import startStateDev from './data/start-state.dev.json';
 import world from './data/maps/world.json';
 import oldTown from './data/maps/districts/old_town.json';
 import harbour from './data/maps/districts/harbour.json';
@@ -50,6 +51,7 @@ import requests from './data/phase3/requests.json';
 import customerTypes from './data/phase3/customerTypes.json';
 import quests from './data/phase3/quests.json';
 import layouts from './data/phase3/layouts.json';
+import delayedEffects from './data/phase3/delayedEffects.json';
 import phase3Businesses from './data/phase3/businesses.json';
 import phase3RevealTriggers from './data/phase3/reveal-triggers.json';
 // Which Commands are settings and whether they need the CEO present (Requirement 51).
@@ -69,6 +71,7 @@ export interface RawContent {
   models: unknown;
   namePool: unknown;
   startState: unknown;
+  startStateDev: unknown;
   world: unknown;
   districtFiles: Record<string, unknown>;
   simConfig: unknown;
@@ -99,6 +102,7 @@ export const rawContent: RawContent = {
   models,
   namePool,
   startState,
+  startStateDev,
   world,
   districtFiles: { old_town: oldTown, harbour },
   simConfig,
@@ -111,7 +115,7 @@ export const rawContent: RawContent = {
   minigames,
   chains,
   settings,
-  phase3: { licenseTiers, loanOffers, fitOutItems, supplyDeals, candidates, requests, customerTypes, quests, layouts },
+  phase3: { licenseTiers, loanOffers, fitOutItems, supplyDeals, candidates, requests, customerTypes, quests, layouts, delayedEffects },
 };
 
 export { cameraConfig, themeConfig, text, landmarks, phoneApps, fillerStreets };

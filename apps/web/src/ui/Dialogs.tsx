@@ -1,5 +1,6 @@
 // Pause_Menu (21.6, 47.6 Testing toggle), "Resume Route?" (13.11) and sync dialogs (25.4, 25.15).
-import { t } from '../text/t';
+import { useState } from 'react';
+import { t, tDynamic } from '../text/t';
 import { useSession, useUi } from '../store/stores';
 import { bridge } from '../store/simBridge';
 import { setPauseMenu } from '../input/actions';
@@ -7,8 +8,36 @@ import { getServices, replaceRunningState, runningSession } from '../game/sessio
 import { newId } from '../persistence/saves';
 import { buildBugReport, downloadBugReport } from '../game/bugReport';
 
+/** Every Reveal_Trigger: only the teaser until it fired, then what it was and what it gave (Requirement 67). */
+function UnlockMenu({ onBack }: { onBack: () => void }) {
+  const reg = bridge.reg;
+  const fired = new Set(bridge.loop?.sim.state.reveals.fired ?? []);
+  return (
+    <div className="modal-card">
+      <h2>{t('unlocks.title')}</h2>
+      <ul className="unlock-list">
+        {Object.values(reg?.revealTriggers ?? {}).map((tr) => (
+          <li key={tr.id}>
+            {fired.has(tr.id) ? (
+              <>
+                <strong>{tDynamic(tr.descriptionKey)}</strong>
+                {tr.gaveKey !== undefined && <div>{t('unlocks.gave', { what: tDynamic(tr.gaveKey) })}</div>}
+              </>
+            ) : (
+              <em>{tDynamic(tr.teaserKey)}</em>
+            )}
+          </li>
+        ))}
+      </ul>
+      <button className="big-button secondary" onClick={onBack}>
+        {t('unlocks.back')}
+      </button>
+    </div>
+  );
+}
 export function PauseMenu({ onExit }: { onExit: () => void }) {
   const open = useUi((u) => u.pauseMenuOpen);
+  const [unlocks, setUnlocks] = useState(false);
   const testing = useSession((s) => s.devTesting);
   if (!open) return null;
   const toggleTesting = async () => {
@@ -19,6 +48,12 @@ export function PauseMenu({ onExit }: { onExit: () => void }) {
   const exportBugReport = () => {
     if (bridge.recorder) downloadBugReport(buildBugReport(bridge.recorder));
   };
+  if (unlocks)
+    return (
+      <div className="modal">
+        <UnlockMenu onBack={() => setUnlocks(false)} />
+      </div>
+    );
   return (
     <div className="modal">
       <div className="modal-card">
@@ -28,6 +63,9 @@ export function PauseMenu({ onExit }: { onExit: () => void }) {
         </button>
         <button className="big-button secondary" onClick={() => void toggleTesting()} aria-pressed={testing}>
           {t('pause.testing')}: {t(testing ? 'pause.testing.on' : 'pause.testing.off')}
+        </button>
+        <button className="big-button secondary" onClick={() => setUnlocks(true)}>
+          {t('pause.unlocks')}
         </button>
         <button className="big-button secondary" onClick={exportBugReport}>
           {t('pause.bugReport')}

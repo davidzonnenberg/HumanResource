@@ -4,23 +4,48 @@
     "role": "pub",
     "type": "pub",
     "nameTable": "names.pub",
-    "inputs": ["beer"],
+    "inputs": [
+      "beer"
+    ],
     "outputs": [],
-    "storage": { "beer": 120 },
+    "storage": {
+      "beer": 120
+    },
     "humanRequirements": [
-      { "jobId": "bar_worker", "slots": 4, "requiredForProduction": 0 }
+      {
+        "jobId": "bar_worker",
+        "slots": 4,
+        "requiredForProduction": 0
+      },
+      {
+        "jobId": "head_of_errands",
+        "slots": 1,
+        "requiredForProduction": 0
+      }
     ],
     "productionRules": [],
     "brand": null,
     "traits": [],
-    "locationConstraints": { "plotTags": ["commercial"] },
+    "locationConstraints": {
+      "plotTags": [
+        "commercial"
+      ]
+    },
     "owner": "any",
-    "automation": { "autoReorderAvailable": true, "defaultSourcing": "buy_external" },
+    "automation": {
+      "autoReorderAvailable": true,
+      "defaultSourcing": "buy_external"
+    },
     "loadRatePerSecond": 10,
     "modelKey": "building_pub",
     "layoutKey": "pub_small",
-    "construction": { "cost": 500000, "seconds": 60 },
-    "acquisition": { "askingPrice": 450000 },
+    "construction": {
+      "cost": 500000,
+      "seconds": 60
+    },
+    "acquisition": {
+      "askingPrice": 450000
+    },
     "pub": {
       "venueType": "cosy_local",
       "seats": 10,
@@ -41,35 +66,210 @@
       "drinkResource": "beer",
       "demand": {
         "kind": "piecewise",
-        "price": { "points": [[100, 1.6], [300, 1.3], [500, 1.0], [800, 0.6], [1100, 0.3], [1500, 0.1]] },
-        "reputation": { "points": [[0, 0.5], [50, 1.0], [100, 1.5]] }
+        "price": {
+          "points": [
+            [
+              100,
+              1.6
+            ],
+            [
+              300,
+              1.3
+            ],
+            [
+              500,
+              1
+            ],
+            [
+              800,
+              0.6
+            ],
+            [
+              1100,
+              0.3
+            ],
+            [
+              1500,
+              0.1
+            ]
+          ]
+        },
+        "reputation": {
+          "points": [
+            [
+              0,
+              0.5
+            ],
+            [
+              50,
+              1
+            ],
+            [
+              100,
+              1.5
+            ]
+          ]
+        }
       },
-      "staffing": { "kind": "throughput", "expectedDrinksPerVisit": 1.6, "serverRatio": 1, "headroom": 1.2 }
-    }
+      "staffing": {
+        "kind": "throughput",
+        "expectedDrinksPerVisit": 1.6,
+        "serverRatio": 1,
+        "headroom": 1.2
+      }
+    },
+    "services": [
+      {
+        "id": "fit_out",
+        "nameKey": "service.fitOut",
+        "cost": 0,
+        "access": "presence",
+        "params": {
+          "table_small": {
+            "type": "int",
+            "min": 0,
+            "max": 12
+          },
+          "table_large": {
+            "type": "int",
+            "min": 0,
+            "max": 12
+          },
+          "tap_standard": {
+            "type": "int",
+            "min": 0,
+            "max": 12
+          },
+          "decor_plant": {
+            "type": "int",
+            "min": 0,
+            "max": 12
+          },
+          "decor_synergy_poster": {
+            "type": "int",
+            "min": 0,
+            "max": 12
+          }
+        },
+        "conditions": [],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "applyFitOut"
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "fit_out_done"
+          }
+        ]
+      },
+      {
+        "id": "cut_ribbon",
+        "nameKey": "service.cutRibbon",
+        "cost": 0,
+        "access": "presence",
+        "once": true,
+        "conditions": [
+          {
+            "condition": {
+              "kind": "revealed",
+              "feature": "first_kegs"
+            }
+          },
+          {
+            "condition": {
+              "kind": "questStepDone",
+              "questId": "grand_opening",
+              "stepId": "municipality"
+            }
+          },
+          {
+            "condition": {
+              "kind": "questStepDone",
+              "questId": "grand_opening",
+              "stepId": "bank"
+            }
+          },
+          {
+            "condition": {
+              "kind": "questStepDone",
+              "questId": "grand_opening",
+              "stepId": "fit_out"
+            }
+          },
+          {
+            "condition": {
+              "kind": "questStepDone",
+              "questId": "grand_opening",
+              "stepId": "supplier"
+            }
+          },
+          {
+            "condition": {
+              "kind": "questStepDone",
+              "questId": "grand_opening",
+              "stepId": "job_centre"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "reveal",
+            "triggerId": "pub_open"
+          },
+          {
+            "kind": "domain",
+            "op": "fireRibbon"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "pub_sports",
     "role": "pub",
     "type": "pub",
     "nameTable": "names.rivalPub",
-    "inputs": ["beer"],
+    "inputs": [
+      "beer"
+    ],
     "outputs": [],
-    "storage": { "beer": 160 },
+    "storage": {
+      "beer": 160
+    },
     "humanRequirements": [
-      { "jobId": "bar_worker", "slots": 4, "requiredForProduction": 0 }
+      {
+        "jobId": "bar_worker",
+        "slots": 4,
+        "requiredForProduction": 0
+      }
     ],
     "productionRules": [],
     "brand": null,
     "traits": [],
-    "locationConstraints": { "plotTags": ["commercial"] },
+    "locationConstraints": {
+      "plotTags": [
+        "commercial"
+      ]
+    },
     "owner": "any",
-    "automation": { "autoReorderAvailable": true, "defaultSourcing": "buy_external" },
+    "automation": {
+      "autoReorderAvailable": true,
+      "defaultSourcing": "buy_external"
+    },
     "loadRatePerSecond": 10,
     "modelKey": "building_pub_rival",
     "layoutKey": "pub_sports",
-    "construction": { "cost": 550000, "seconds": 60 },
-    "acquisition": { "askingPrice": 500000 },
-    "recipes": ["badgers_bite"],
+    "construction": {
+      "cost": 550000,
+      "seconds": 60
+    },
+    "acquisition": {
+      "askingPrice": 500000
+    },
+    "recipes": [
+      "badgers_bite"
+    ],
     "pub": {
       "venueType": "sports_pub",
       "seats": 12,
@@ -90,11 +290,79 @@
       "drinkResource": "beer",
       "demand": {
         "kind": "piecewise",
-        "price": { "points": [[100, 1.6], [300, 1.3], [500, 1.0], [800, 0.6], [1100, 0.3], [1500, 0.1]] },
-        "reputation": { "points": [[0, 0.5], [50, 1.0], [100, 1.5]] }
+        "price": {
+          "points": [
+            [
+              100,
+              1.6
+            ],
+            [
+              300,
+              1.3
+            ],
+            [
+              500,
+              1
+            ],
+            [
+              800,
+              0.6
+            ],
+            [
+              1100,
+              0.3
+            ],
+            [
+              1500,
+              0.1
+            ]
+          ]
+        },
+        "reputation": {
+          "points": [
+            [
+              0,
+              0.5
+            ],
+            [
+              50,
+              1
+            ],
+            [
+              100,
+              1.5
+            ]
+          ]
+        }
       },
-      "staffing": { "kind": "throughput", "expectedDrinksPerVisit": 1.6, "serverRatio": 1, "headroom": 1.2 }
-    }
+      "staffing": {
+        "kind": "throughput",
+        "expectedDrinksPerVisit": 1.6,
+        "serverRatio": 1,
+        "headroom": 1.2
+      }
+    },
+    "services": [
+      {
+        "id": "scout_rival",
+        "nameKey": "service.scoutRival",
+        "cost": 0,
+        "access": "presence",
+        "scout": true,
+        "once": true,
+        "conditions": [],
+        "effects": [
+          {
+            "kind": "reveal",
+            "triggerId": "rival_scouted"
+          },
+          {
+            "kind": "news",
+            "textKey": "news.rivalScouted"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "supplier_beer",
@@ -102,23 +370,41 @@
     "type": "supplier",
     "nameTable": "names.supplier",
     "inputs": [],
-    "outputs": ["beer"],
+    "outputs": [
+      "beer"
+    ],
     "storage": {},
     "humanRequirements": [],
     "productionRules": [],
     "brand": null,
     "traits": [],
-    "locationConstraints": { "plotTags": ["industrial"] },
+    "locationConstraints": {
+      "plotTags": [
+        "industrial"
+      ]
+    },
     "owner": "npc",
-    "automation": { "autoReorderAvailable": false, "defaultSourcing": "buy_external" },
+    "automation": {
+      "autoReorderAvailable": false,
+      "defaultSourcing": "buy_external"
+    },
     "loadRatePerSecond": 12,
     "modelKey": "building_supplier",
     "layoutKey": "warehouse_small",
     "supplier": {
       "sells": [
-        { "resourceId": "beer", "unitPrice": 260 },
-        { "resourceId": "hops", "unitPrice": 120 },
-        { "resourceId": "malt", "unitPrice": 100 }
+        {
+          "resourceId": "beer",
+          "unitPrice": 260
+        },
+        {
+          "resourceId": "hops",
+          "unitPrice": 120
+        },
+        {
+          "resourceId": "malt",
+          "unitPrice": 100
+        }
       ]
     },
     "services": [
@@ -127,8 +413,60 @@
         "nameKey": "service.buyTap",
         "cost": 8000,
         "access": "presence",
-        "conditions": [{ "condition": { "kind": "tapsBelowMax" }, "reason": "limit_reached" }],
-        "effects": [{ "kind": "domain", "op": "buyTap" }]
+        "conditions": [
+          {
+            "condition": {
+              "kind": "tapsBelowMax"
+            },
+            "reason": "limit_reached"
+          }
+        ],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "buyTap"
+          }
+        ]
+      },
+      {
+        "id": "sign_deal_small_flexible",
+        "nameKey": "deal.small",
+        "cost": 0,
+        "access": "presence",
+        "conditions": [],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "setSupplyDeal",
+            "params": {
+              "dealId": "small_flexible"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "supplier_deal"
+          }
+        ]
+      },
+      {
+        "id": "sign_deal_big_contract",
+        "nameKey": "deal.big",
+        "cost": 0,
+        "access": "presence",
+        "conditions": [],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "setSupplyDeal",
+            "params": {
+              "dealId": "big_contract"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "supplier_deal"
+          }
+        ]
       }
     ]
   }

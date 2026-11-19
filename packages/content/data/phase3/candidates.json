@@ -1,5 +1,38 @@
 [
-  { "id": "cand_jan", "name": "Jan", "jobId": "bar_worker", "quirkId": "synergy_enthusiast", "cvKey": "cv.jan", "salaryPerMinute": 500, "hiringCost": 2500 },
-  { "id": "cand_julia", "name": "Julia", "jobId": "bar_worker", "quirkId": "overly_honest", "cvKey": "cv.julia", "salaryPerMinute": 500, "hiringCost": 2500 },
-  { "id": "cand_thomas", "name": "Thomas", "jobId": "driver", "quirkId": "road_philosopher", "cvKey": "cv.thomas", "salaryPerMinute": 500, "hiringCost": 2500 }
+  {
+    "id": "cand_jan",
+    "name": "Jan",
+    "jobId": "bar_worker",
+    "quirkId": "synergy_enthusiast",
+    "cvKey": "cv.jan",
+    "salaryPerMinute": 500,
+    "hiringCost": 2500
+  },
+  {
+    "id": "cand_julia",
+    "name": "Julia",
+    "jobId": "bar_worker",
+    "quirkId": "overly_honest",
+    "cvKey": "cv.julia",
+    "salaryPerMinute": 500,
+    "hiringCost": 2500
+  },
+  {
+    "id": "cand_thomas",
+    "name": "Thomas",
+    "jobId": "driver",
+    "quirkId": "road_philosopher",
+    "cvKey": "cv.thomas",
+    "salaryPerMinute": 500,
+    "hiringCost": 2500
+  },
+  {
+    "id": "cand_errands",
+    "name": "Eveline",
+    "jobId": "head_of_errands",
+    "quirkId": "form_filler",
+    "cvKey": "cv.eveline",
+    "salaryPerMinute": 500,
+    "hiringCost": 4000
+  }
 ]

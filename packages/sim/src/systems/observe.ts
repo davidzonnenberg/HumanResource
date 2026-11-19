@@ -70,7 +70,7 @@ export function alertsSystem(ctx: TickContext): void {
         if ((over && m.arrivalsInWindow >= ctx.cfg.lostAlertMinArrivals) || (wasLost && over)) raise(next, prev, tick, 'lost_customers', b.id, m.topLostReason); // 6.5, 6.6
       }
     }
-    for (const hr of def.humanRequirements) if (hr.slots > 0 && isJobUnstaffed(b, hr.jobId, ctx.state)) raise(next, prev, tick, `unstaffed:${hr.jobId}`, b.id); // 5.6
+    for (const hr of def.humanRequirements) if (hr.slots > 0 && !ctx.reg.jobs[hr.jobId]?.optional && isJobUnstaffed(b, hr.jobId, ctx.state)) raise(next, prev, tick, `unstaffed:${hr.jobId}`, b.id); // 5.6
     for (const ar of Object.values(b.autoReorder)) if (ar.enabled && ar.failed) raise(next, prev, tick, 'reorder_failed', b.id);
     // "internal supply" with no Player Route delivering that input (31.3)
     for (const [res, policy] of Object.entries(b.sourcing)) {

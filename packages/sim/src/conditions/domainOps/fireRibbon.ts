@@ -1,7 +1,8 @@
-// Domain op `fireRibbon` (the Grand Opening task (Phase 3, 51.x)): Cuts the ribbon: the Grand Opening starts.
-// Stub until its task lands: the op is registered, so Definitions may name it, but using it throws.
+// Domain op `fireRibbon` (task 48.7): cuts the ribbon. The Service lists the checklist as Conditions and fires the
+// `pub_open` Reveal_Trigger; this op opens the Player's Pub.
+import { firstPlayerPub } from '../../world/queries';
 import type { DomainHandler } from './types';
-
-export const fireRibbon: DomainHandler = () => {
-  throw new Error('domain op fireRibbon is not implemented yet (the Grand Opening task (Phase 3, 51.x))');
+export const fireRibbon: DomainHandler = (ctx) => {
+  const b = firstPlayerPub(ctx.reg, ctx.state);
+  if (b?.pub) b.pub.open = true;
 };

@@ -13,6 +13,7 @@ import { rngChance, rngInt, rngNext } from '../rng/xoshiro128ss';
 import { takeFromStock } from '../storage/stock';
 import { anchorDistance, layoutOf } from '../layout/anchors';
 import { seatsOf, tapsOf } from './pubCapacity';
+import { isRevealed } from '../conditions/revealed';
 import { addModifier } from '../stats/modifiers';
 import { barEntryFor, drinkLotFor } from './lots';
 import type { Business, Customer, Human, JobSlot, LostReason, PubRuntime, StaffTask } from '../state/types';
@@ -50,6 +51,7 @@ function recordLost(ctx: TickContext, p: PubCtx, reason: LostReason): void {
 export function customerArrivalsSystem(ctx: TickContext): void {
   const ticksPerMinute = 60 * ctx.tps;
   for (const p of pubs(ctx)) {
+    if (p.b.owner === PLAYER && !isRevealed(ctx.state, ctx.reg, 'pub_open')) continue; // no Customers before the Grand Opening (61.6)
     if (p.pub.open === false) continue; // a closed Pub gets no arrivals; Customers inside finish (56.1, 71.10)
     // Brand, Traits, Reputation and boosts all reach the arrival rate through the demand stat (50.2).
     const rate = demandPerMinute(p.def, p.pub.drinkPrice, getStat(ctx, 'demand', { businessId: p.b.id }));

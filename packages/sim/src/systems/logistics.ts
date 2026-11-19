@@ -284,6 +284,7 @@ export function handlePlaceOrder(ctx: TickContext, cmd: Extract<Command, { type:
   if (!sale) return { reason: 'unknown_entity', field: 'resourceId' };
   if (dest.owner !== PLAYER) return { reason: 'not_owner', field: 'destinationId' };
   if (!isBusinessInUnlockedDistrict(ctx.reg, ctx.state, supplier) || !isBusinessInUnlockedDistrict(ctx.reg, ctx.state, dest)) return { reason: 'district_locked' };
+  if (ctx.reg.resources[cmd.resourceId]?.container.kind === 'keg' && !ctx.state.player.supplyDeal) return { reason: 'deal_missing' }; // sign a keg deal first (65.5)
   if (!Number.isInteger(cmd.quantity) || cmd.quantity <= 0) return { reason: 'invalid_quantity', field: 'quantity' };
   if (storageCapacity(ctx.reg, dest, cmd.resourceId) <= 0) return { reason: 'invalid_quantity', field: 'resourceId' };
   const cost = orderCost(ctx.reg, ctx.state, PLAYER, cmd.resourceId, sale.unitPrice, cmd.quantity);
@@ -325,6 +326,10 @@ export function sourcingSystem(ctx: TickContext): void {
       const policy = b.sourcing[res] ?? 'buy_external';
       if (policy === 'internal') {
         ar.failed = false;
+        continue;
+      }
+      if (b.owner === PLAYER && ctx.reg.resources[res]?.container.kind === 'keg' && !ctx.state.player.supplyDeal) {
+        ar.failed = true; // no deal yet: nothing can be ordered
         continue;
       }
       const offer = supplierFor(ctx.reg, ctx.state, res);

@@ -1,5 +1,6 @@
 // One stub file per domain op, so later tasks fill separate files (task 36.2).
 import type { DomainOp } from '../../defs/vocabulary';
+import { answerRequest } from './answerRequest';
 import { applyFitOut } from './applyFitOut';
 import { buyTap } from './buyTap';
 import { fireRibbon } from './fireRibbon';
@@ -9,11 +10,20 @@ import { payOffLoan } from './payOffLoan';
 import { setLicense } from './setLicense';
 import { setSupplyDeal } from './setSupplyDeal';
 import { startLoan } from './startLoan';
-import type { DomainHandler } from './types';
+import type { DomainHandler, DomainValidator } from './types';
+import { validateApplyFitOut } from './applyFitOut';
+import { validateHireCandidate } from './hireCandidate';
+import { validatePayOffLoan } from './payOffLoan';
 
-export type { DomainHandler, EffectContext } from './types';
+export type { DomainHandler, DomainValidator, EffectContext } from './types';
 
 /** Typed over the closed `DOMAIN_OPS` enum: adding an op without a handler does not compile. */
+/** Ops that can reject their Service before it is paid for. */
+export const DOMAIN_VALIDATORS: Partial<Record<DomainOp, DomainValidator>> = {
+  applyFitOut: validateApplyFitOut,
+  hireCandidate: validateHireCandidate,
+  payOffLoan: validatePayOffLoan,
+};
 export const DOMAIN_HANDLERS: Record<DomainOp, DomainHandler> = {
   setLicense,
   startLoan,
@@ -24,4 +34,5 @@ export const DOMAIN_HANDLERS: Record<DomainOp, DomainHandler> = {
   hireCandidate,
   fireRibbon,
   occupyStaff,
+  answerRequest,
 };

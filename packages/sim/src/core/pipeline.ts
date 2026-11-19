@@ -13,6 +13,7 @@ import { productionSystem } from '../systems/phase2/production';
 import { achievementsSystem } from '../systems/phase2/achievements';
 import { modifiersSystem } from '../stats/modifiers';
 import { questsSystem } from '../systems/quests';
+import { errandsSystem } from '../systems/requests';
 import { schedulerSystem } from './scheduler';
 
 export interface SystemEntry {
@@ -29,6 +30,8 @@ export const PIPELINE: readonly SystemEntry[] = [
   { id: 'modifiers', phase: 1, run: modifiersSystem },
   { id: 'commands', phase: 1, run: commandsSystem },
   { id: 'scheduler', phase: 1, run: schedulerSystem },
+  // Slot 2.5: a Head of Errands answers delegable requests without the CEO (68.8).
+  { id: 'errands', phase: 3, run: errandsSystem },
   { id: 'competitorEvents', phase: 2, run: noop },
   { id: 'market', phase: 2, run: marketSystem },
   { id: 'acquisitions', phase: 2, run: noop },

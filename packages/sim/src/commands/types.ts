@@ -89,6 +89,9 @@ export const REASON_CODES = [
   'not_allowed',
   'not_available',
   'limit_reached',
+  'already_licensed',
+  'loan_active',
+  'deal_missing',
   // Services (Requirement 51)
   'not_present',
   'conditions_not_met',

@@ -28,7 +28,7 @@ describe('context action selection', () => {
         } else if (action.targetKind === 'business') {
           const b = sim.state.businesses[action.targetId];
           expect(b).toBeDefined();
-          expect(action.kind).toBe(b?.owner === PLAYER ? 'enter' : 'inspect'); // 14.3: enter at the door
+          expect(action.kind).toBe(b?.owner === PLAYER || (b && reg.businesses[b.defId]?.office !== undefined) ? 'enter' : 'inspect'); // offices open their counter // 14.3: enter at the door
           const door = entrance(reg, b?.plotId ?? '');
           expect(dist2d(x, z, door.x, door.z)).toBeLessThanOrEqual(range);
         }

@@ -82,7 +82,8 @@ function applyOne(ctx: TickContext, e: Effect, ectx: EffectContext): void {
       ctx.events.push({ type: 'news', item: { tick: state.tick, textKey: e.textKey, params: { ...(e.params ?? {}) } } });
       return;
     case 'domain':
-      DOMAIN_HANDLERS[e.op](ctx, ectx, e.params ?? {});
+      // Params written in the Effect, then the Command's own params (a fit-out's picks, a chosen candidate)
+      DOMAIN_HANDLERS[e.op](ctx, ectx, { ...(e.params ?? {}), ...(ectx.params ?? {}) });
       return;
   }
 }

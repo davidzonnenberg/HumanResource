@@ -29,6 +29,7 @@ export { REASON_CODES } from './commands/types';
 export { serviceParamsValid } from './commands/useService';
 export { isCeoPresent, requireAccess, type AccessTag } from './world/access';
 export { officeVisitKey } from './commands/dispatch';
+export { errandsSystem } from './systems/requests';
 export { questComplete } from './systems/quests';
 export { affordableQty, fromContainers, orderCost, toContainers, unitsPerContainer } from './storage/containers';
 export { anchorDistance, anchorWorld, layoutOf, type Anchor, type AnchorName } from './layout/anchors';

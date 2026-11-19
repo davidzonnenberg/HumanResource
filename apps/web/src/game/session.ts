@@ -2,6 +2,7 @@
 import { rawContent } from '@hr/content';
 import { loadRegistry, newGame, Simulation, entrance, firstPlayerPub, type DefinitionError, type DefinitionRegistry, type SimState } from '@hr/sim';
 import type { SaveDocument } from '@hr/shared';
+import { startKindFromSearch } from '../dev/devMode';
 import { openLocalStore } from '../persistence/localStore';
 import { SaveRepository, newId, newSeed, type LocalProfile, type LocalSlot } from '../persistence/saves';
 import { Autosave, installLifecycle } from '../persistence/autosave';
@@ -60,7 +61,7 @@ export async function createSlot(profile: LocalProfile, name: string): Promise<L
   if (!s) throw new Error('not booted');
   const slot: LocalSlot = { profileId: profile.id, slotId: newId(), name, updatedAt: new Date().toISOString(), revision: 0, syncedRevision: 0, schemaVersion: 0, deleted: false };
   await s.repo.putSlot(slot);
-  const state = newGame(s.reg, newSeed()); // new Seed per Save_Slot (3.2)
+  const state = newGame(s.reg, newSeed(), { start: startKindFromSearch(window.location.search) }); // new Seed per Save_Slot (3.2)
   await s.repo.writeSave(profile.id, slot.slotId, state, true);
   void s.api.putSlot(profile.id, slot.slotId, name);
   return (await s.repo.getSlot(profile.id, slot.slotId)) ?? slot;

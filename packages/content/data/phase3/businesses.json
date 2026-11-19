@@ -27,7 +27,134 @@
     "office": {
       "queueTickets": 30
     },
-    "services": []
+    "services": [
+      {
+        "id": "take_license_cafe",
+        "nameKey": "license.cafe",
+        "cost": 15000,
+        "access": "presence",
+        "conditions": [
+          {
+            "condition": {
+              "kind": "not",
+              "of": {
+                "kind": "licensed"
+              }
+            },
+            "reason": "already_licensed"
+          }
+        ],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "setLicense",
+            "params": {
+              "tierId": "cafe"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "license_granted"
+          }
+        ]
+      },
+      {
+        "id": "take_license_pub",
+        "nameKey": "license.pub",
+        "cost": 30000,
+        "access": "presence",
+        "conditions": [
+          {
+            "condition": {
+              "kind": "not",
+              "of": {
+                "kind": "licensed"
+              }
+            },
+            "reason": "already_licensed"
+          }
+        ],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "setLicense",
+            "params": {
+              "tierId": "pub"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "license_granted"
+          }
+        ]
+      },
+      {
+        "id": "take_license_late",
+        "nameKey": "license.late",
+        "cost": 60000,
+        "access": "presence",
+        "conditions": [
+          {
+            "condition": {
+              "kind": "not",
+              "of": {
+                "kind": "licensed"
+              }
+            },
+            "reason": "already_licensed"
+          }
+        ],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "setLicense",
+            "params": {
+              "tierId": "late"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "license_granted"
+          }
+        ]
+      },
+      {
+        "id": "answer_noise_complaint",
+        "nameKey": "service.answerNoise",
+        "cost": 0,
+        "access": "presence",
+        "delegable": true,
+        "conditions": [
+          {
+            "condition": {
+              "kind": "requestOpen",
+              "defId": "noise_complaint"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "answerRequest",
+            "params": {
+              "defId": "noise_complaint"
+            }
+          },
+          {
+            "kind": "news",
+            "textKey": "news.noiseAnswered"
+          },
+          {
+            "kind": "schedule",
+            "event": "applyEffects",
+            "delaySeconds": 120,
+            "payload": {
+              "id": "noise_followup"
+            }
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "bank",
@@ -55,7 +182,169 @@
     "layoutKey": "office_small",
     "role": "bank",
     "office": {},
-    "services": []
+    "services": [
+      {
+        "id": "take_loan_sensible",
+        "nameKey": "loan.sensible",
+        "cost": 0,
+        "access": "presence",
+        "conditions": [
+          {
+            "condition": {
+              "kind": "not",
+              "of": {
+                "kind": "loanActive"
+              }
+            },
+            "reason": "loan_active"
+          }
+        ],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "startLoan",
+            "params": {
+              "offerId": "sensible"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "loan_taken"
+          },
+          {
+            "kind": "schedule",
+            "event": "spawnRequest",
+            "delaySeconds": 600,
+            "payload": {
+              "defId": "repayment_question"
+            }
+          }
+        ]
+      },
+      {
+        "id": "take_loan_ambitious",
+        "nameKey": "loan.ambitious",
+        "cost": 0,
+        "access": "presence",
+        "conditions": [
+          {
+            "condition": {
+              "kind": "not",
+              "of": {
+                "kind": "loanActive"
+              }
+            },
+            "reason": "loan_active"
+          }
+        ],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "startLoan",
+            "params": {
+              "offerId": "ambitious"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "loan_taken"
+          },
+          {
+            "kind": "schedule",
+            "event": "spawnRequest",
+            "delaySeconds": 600,
+            "payload": {
+              "defId": "repayment_question"
+            }
+          }
+        ]
+      },
+      {
+        "id": "take_loan_visionary",
+        "nameKey": "loan.visionary",
+        "cost": 0,
+        "access": "presence",
+        "conditions": [
+          {
+            "condition": {
+              "kind": "not",
+              "of": {
+                "kind": "loanActive"
+              }
+            },
+            "reason": "loan_active"
+          }
+        ],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "startLoan",
+            "params": {
+              "offerId": "visionary"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "loan_taken"
+          },
+          {
+            "kind": "schedule",
+            "event": "spawnRequest",
+            "delaySeconds": 600,
+            "payload": {
+              "defId": "repayment_question"
+            }
+          }
+        ]
+      },
+      {
+        "id": "pay_off_loan",
+        "nameKey": "service.payOffLoan",
+        "cost": 0,
+        "access": "presence",
+        "conditions": [
+          {
+            "condition": {
+              "kind": "loanActive"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "payOffLoan"
+          }
+        ]
+      },
+      {
+        "id": "answer_repayment_question",
+        "nameKey": "service.answerRepayment",
+        "cost": 0,
+        "access": "presence",
+        "delegable": true,
+        "conditions": [
+          {
+            "condition": {
+              "kind": "requestOpen",
+              "defId": "repayment_question"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "answerRequest",
+            "params": {
+              "defId": "repayment_question"
+            }
+          },
+          {
+            "kind": "news",
+            "textKey": "news.bankAnswered"
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "job_centre",
@@ -83,6 +372,91 @@
     "layoutKey": "office_small",
     "role": "job_centre",
     "office": {},
-    "services": []
+    "services": [
+      {
+        "id": "hire_cand_jan",
+        "nameKey": "service.hire.cand_jan",
+        "cost": 0,
+        "access": "presence",
+        "once": true,
+        "conditions": [],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "hireCandidate",
+            "params": {
+              "candidateId": "cand_jan"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "first_hire"
+          }
+        ]
+      },
+      {
+        "id": "hire_cand_julia",
+        "nameKey": "service.hire.cand_julia",
+        "cost": 0,
+        "access": "presence",
+        "once": true,
+        "conditions": [],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "hireCandidate",
+            "params": {
+              "candidateId": "cand_julia"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "first_hire"
+          }
+        ]
+      },
+      {
+        "id": "hire_cand_thomas",
+        "nameKey": "service.hire.cand_thomas",
+        "cost": 0,
+        "access": "presence",
+        "once": true,
+        "conditions": [],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "hireCandidate",
+            "params": {
+              "candidateId": "cand_thomas"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "first_hire"
+          }
+        ]
+      },
+      {
+        "id": "hire_cand_errands",
+        "nameKey": "service.hire.cand_errands",
+        "cost": 0,
+        "access": "presence",
+        "once": true,
+        "conditions": [],
+        "effects": [
+          {
+            "kind": "domain",
+            "op": "hireCandidate",
+            "params": {
+              "candidateId": "cand_errands"
+            }
+          },
+          {
+            "kind": "reveal",
+            "triggerId": "first_hire"
+          }
+        ]
+      }
+    ]
   }
 ]

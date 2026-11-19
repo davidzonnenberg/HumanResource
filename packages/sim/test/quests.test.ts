@@ -78,9 +78,9 @@ describe('quest engine (73)', () => {
     expect(bad({ kind: 'questStepDone', questId: 'broken', stepId: 'zzz' })).toContain('zzz');
   });
 
-  it('the shipped chain is Grand Opening, First 100 pints, Second location', () => {
+  it('the shipped chain is Grand Opening, First 100 pints, Second location, plus a side delivery', () => {
     const q = registry().phase3.quests;
-    expect(Object.keys(q)).toEqual(['grand_opening', 'first_100_pints', 'second_location']);
+    expect(Object.keys(q)).toEqual(['grand_opening', 'first_100_pints', 'second_location', 'side_delivery_hops']);
     expect(q.first_100_pints?.after).toBe('grand_opening');
     expect(q.second_location?.after).toBe('first_100_pints');
     expect(q.grand_opening?.steps.map((s) => s.id)).toEqual(['municipality', 'bank', 'fit_out', 'supplier', 'job_centre', 'back_at_pub']);

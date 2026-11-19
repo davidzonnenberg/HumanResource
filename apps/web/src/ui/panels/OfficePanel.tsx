@@ -3,7 +3,7 @@
 // so pressing the Context_Action again never shortens it.
 import type { ReactNode } from 'react';
 import { officeVisitKey, type Business, type DefinitionRegistry, type SimState } from '@hr/sim';
-import { t } from '../../text/t';
+import { t, tDynamic } from '../../text/t';
 import { Card, Panel, Row } from '../components/Card';
 import { ServicesCard } from '../components/ServicesCard';
 
@@ -24,9 +24,17 @@ export function OfficePanel({ reg, state, b, onClose }: { reg: DefinitionRegistr
       </Card>
     );
   }
+  const waiting = Object.values(state.requests ?? {}).filter((r) => r.businessId === b.id);
   return (
     <Panel title={b.name} onClose={onClose}>
       {queue}
+      {waiting.length > 0 && (
+        <Card title={t('panel.office.requests')}>
+          {waiting.map((r) => (
+            <Row key={r.id} label={tDynamic(reg.phase3.requests[r.defId]?.nameKey ?? r.defId)} value={t('panel.office.deadline', { seconds: Math.max(0, Math.ceil((r.expiresTick - state.tick) / reg.config.ticksPerSecond)) })} />
+          ))}
+        </Card>
+      )}
       <ServicesCard reg={reg} state={state} b={b} />
     </Panel>
   );

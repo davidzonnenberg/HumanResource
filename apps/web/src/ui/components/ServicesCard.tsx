@@ -7,8 +7,9 @@ import { Card, PanelButton, Row } from './Card';
 import { useService } from '../panels/panelActions';
 
 export function ServicesCard({ reg, state, b }: { reg: DefinitionRegistry; state: SimState; b: Business }) {
-  const services = reg.businesses[b.defId]?.services ?? [];
-  if (services.length === 0 || (b.owner !== 'player' && b.owner !== 'npc')) return null;
+  // A rival's Business offers only scouting (68.6)
+  const services = (reg.businesses[b.defId]?.services ?? []).filter((s) => b.owner === 'player' || b.owner === 'npc' || s.scout === true);
+  if (services.length === 0) return null;
   const present = isCeoPresent({ reg, state }, b.id);
   return (
     <Card title={t('panel.services')}>

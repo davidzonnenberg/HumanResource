@@ -33,6 +33,7 @@ export const arbLeafCondition: fc.Arbitrary<Condition> = fc.oneof(
   fc.record({ kind: fc.constant('serviceUsed' as const), serviceId: word }),
   fc.record({ kind: fc.constant('questStepDone' as const), questId: word, stepId: word }),
   fc.constant<Condition>({ kind: 'tapsBelowMax' }),
+  fc.record({ kind: fc.constant('requestOpen' as const), defId: word }),
   fc.record({ kind: fc.constant('counterAtLeast' as const), counter: word, count: fc.integer({ min: 0, max: 500 }) }),
 );
 

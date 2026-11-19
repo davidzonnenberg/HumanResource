@@ -27,6 +27,7 @@ export const CONDITION_KINDS = [
   'questStepDone',
   'tapsBelowMax',
   'counterAtLeast',
+  'requestOpen',
 ] as const;
 export type ConditionKind = (typeof CONDITION_KINDS)[number];
 
@@ -44,11 +45,12 @@ export const DOMAIN_OPS = [
   'hireCandidate',
   'fireRibbon',
   'occupyStaff',
+  'answerRequest',
 ] as const;
 export type DomainOp = (typeof DOMAIN_OPS)[number];
 
 /** Kinds the scheduler can dispatch (core/scheduler.ts); a `schedule` Effect names one of them. */
-export const SCHEDULED_KINDS = ['constructionDone', 'revealAttribute', 'questionableDone', 'consequence'] as const;
+export const SCHEDULED_KINDS = ['constructionDone', 'revealAttribute', 'questionableDone', 'consequence', 'spawnRequest', 'requestDeadline', 'applyEffects'] as const;
 
 /**
  * Largest |Gold| a single gold Effect may carry (hundredths). Well below GOLD_LIMIT (2^50), so a handful of

@@ -62,6 +62,12 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outl
 .speed-control { display: flex; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 3px 0 #c9d6e8; }
 .speed-control .seg { border: 0; background: transparent; font-weight: 700; min-width: 48px; }
 .speed-control .seg.active { background: var(--blue); color: #fff; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.quest-checklist { position: absolute; top: 64px; right: 12px; max-width: 36vw; background: rgba(255, 255, 255, 0.92); border-radius: 12px; padding: 6px 10px; box-shadow: 0 3px 0 #c9d6e8; font-size: 13px; pointer-events: none; }
+.quest-checklist h3 { margin: 0 0 4px; font-size: 14px; }
+.quest-checklist ul { list-style: none; margin: 0; padding: 0; }
+.quest-checklist li.done { opacity: 0.6; text-decoration: line-through; }
+.quest-checklist li.next { font-weight: 800; color: var(--blue); }
 .alerts { position: absolute; top: 64px; left: 12px; display: grid; gap: 6px; max-width: 40vw; pointer-events: none; }
 .alert { pointer-events: auto; text-align: left; border: 0; border-radius: 12px; padding: 6px 12px; background: #fff3c4; border-left: 6px solid var(--danger); font-weight: 600; }
 .alert.client { background: #ffe0e6; }

@@ -4,6 +4,7 @@
 import type { TickContext } from '../core/context';
 import { gold } from '../core/context';
 import { applyEffects } from '../conditions/effects';
+import { DOMAIN_VALIDATORS } from '../conditions/domainOps';
 import { evaluateCondition } from '../conditions/evaluate';
 import type { ParamValue, ServiceDef } from '../defs/schemas';
 import { requireGold } from '../money/gold';
@@ -40,15 +41,17 @@ export function serviceParamsValid(service: ServiceDef, params: Record<string, P
   return true;
 }
 
-export function handleUseService(ctx: TickContext, cmd: Extract<Command, { type: 'useService' }>): Rejection | null {
+/** `delegated`: a Human of a delegating Job performs the Service, so the CEO need not be present (68.8). */
+export function handleUseService(ctx: TickContext, cmd: Extract<Command, { type: 'useService' }>, opts: { delegated?: boolean } = {}): Rejection | null {
   const { state, reg } = ctx;
   const b = state.businesses[cmd.businessId];
   if (!b) return { reason: 'unknown_entity', field: 'businessId' };
   const service = reg.businesses[b.defId]?.services?.find((s) => s.id === cmd.serviceId);
   if (!service) return { reason: 'unknown_entity', field: 'serviceId' };
   if (!isBusinessInUnlockedDistrict(reg, state, b)) return { reason: 'district_locked' };
-  if (b.owner !== PLAYER && b.owner !== NPC) return { reason: 'not_owner' }; // a rival's Business offers no Services
-  const denied = requireAccess(ctx, service.access, b.id);
+  if (b.owner !== PLAYER && b.owner !== NPC && service.scout !== true) return { reason: 'not_owner' }; // a rival's Business offers only scouting
+  if (opts.delegated && service.delegable !== true) return { reason: 'not_allowed' };
+  const denied = opts.delegated ? null : requireAccess(ctx, service.access, b.id);
   if (denied) return denied;
   if (!serviceParamsValid(service, cmd.params)) return { reason: 'conditions_not_met', field: 'params' };
   for (const c of service.conditions)
@@ -56,6 +59,11 @@ export function handleUseService(ctx: TickContext, cmd: Extract<Command, { type:
   if (service.once && (state.servicesUsed?.[service.id] ?? 0) > 0) return { reason: 'already_done' };
   const afford = requireGold(state, PLAYER, service.cost);
   if (!afford.ok) return { reason: afford.reason, missingGold: afford.missingGold };
+  for (const e of service.effects) {
+    if (e.kind !== 'domain') continue;
+    const rejected = DOMAIN_VALIDATORS[e.op]?.(ctx, { businessId: b.id, source: service.id, params: cmd.params ?? {} }, { ...(e.params ?? {}), ...(cmd.params ?? {}) });
+    if (rejected) return rejected;
+  }
   // All checks passed: apply.
   if (service.cost > 0) gold(ctx, PLAYER, -service.cost, 'other', b.id);
   applyEffects(ctx, service.effects, { businessId: b.id, source: service.id, params: cmd.params ?? {} });

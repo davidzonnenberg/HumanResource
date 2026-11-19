@@ -791,12 +791,15 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - _Requirements: 59.4_
     - Built Nov 2026: \
 ew-game\, \played\, \mid-order\ (an unpoured order in the queue) and \mid-carry\ (a \carry\ task) as schema 3 files in \ixtures/v3/\; checked by \pps/web/test/migrations.test.ts\.
+    - Built Nov 2026: requests `noise_complaint` (Municipality) and `repayment_question` (Bank, scheduled after every Loan), answering services, Consequences as data (fines). The noise complaint is scheduled by the Grand Opening reward. A terrace permit offer is not authored.
+    - Built Nov 2026: completed `v3_to_v4_phase3`: `bartender`/`server` Slots and assignments become `bar_worker_N`, open orders become taken, the three offices and their Plots are inserted as literal JSON, checklist triggers fired, `grand_opening` completed, Head of Errands slot added. No Plot id changed, so there is no id mapping. The Tab of a Customer mid-visit is price x drinks.
   - [x] 41.2 Add Phase 3 content schemas and data files
     - zod schemas and starter JSON in `packages/content/data/phase3/` for `licenseTiers`, `loanOffers`, `fitOutItems`, `supplyDeals`, `candidates`, `requests`, `customerTypes`, `quests`, `layouts` and extended `reveal-triggers` (teaser and description keys); extend `FinanceCategory` with `loan`; text keys in `en.json`
     - _Requirements: 62.5, 63.1, 64.2, 65.1, 66.1, 67.1, 73.1_
     - Built Nov 2026: schemas in `defs/phase3Schemas.ts`, loader and checks in `defs/phase3Registry.ts` (`reg.phase3`; Loan rule 63.11, Quest vocabulary 73.7, referential and text checks), data in `data/phase3/`. `requests`, `quests` and `layouts` ship empty (tasks 51.1, 46.2, 42.1 fill them). Candidates use the current Job ids `bartender`, `server`, `driver` until task 42.2 switches Jan and Julia to `bar_worker`. `teaserKey`, `descriptionKey` and `gaveKey` are optional on Reveal_Triggers until task 50.1 makes the first two required. `player.license` stays a tier id string (tier data is read from `reg.phase3.licenseTiers`), not a copy of the tier in the save. Test: `test/phase3Registry.test.ts`.
     - Built Nov 2026: layouts are plot-local data in `data/phase3/layouts.json` (`u` across the width, `v` from the back wall to the door), one per Pub Definition (`pub_small` 10 Seats, `pub_sports` 12, `pub_student` 14; the rival and student pubs got their own `layoutKey`). `packages/sim/src/layout/anchors.ts` has `layoutOf`, `anchorDistance` (`Math.sqrt`) and `anchorWorld`; the registry rejects a Pub whose Seat anchors differ from its Seats or that has no Tap anchor. `render/layout.ts` (`pubLayout(reg, plotId, defId)`) reads the same data.
     - Built Nov 2026: one job `bar_worker` (4 slots per Pub, replacing 2 bartender + 2 server), Jan and Julia in the start state, the hiring candidates and the text key. Systems find the job through `service: true`, not by id.
+    - Built Nov 2026: `teaserKey` and `descriptionKey` are required and checked for text; the ten older triggers got texts.
   - [x] 41.3 Add the v3 state shape and migration skeleton
     - `CURRENT_SCHEMA_VERSION = 3`; state fields `loans`, `servicesUsed`, `quests`, `requests`, `player.license`, `player.supplyDeal`, `player.fitOutBudget`, pub runtime (`seatsBuilt`, `tapsBuilt`, `vibeBase`, `open`, `pace`, `lostIncome`, order queue `taken`), Customer `tab`, `typeId`, `waitedLong`; `migrations/v2_to_v3.ts` skeleton that adds empty values; later tasks extend it
     - _Requirements: 59.1, 59.3, 59.6_
@@ -914,99 +917,123 @@ ewgame-golden.test.ts\ removes the new fields.
     - _Requirements: 60.3, 60.5_
 
     - Built Nov 2026: Enter at an office opens `OfficePanel` (no walking inside); the first visit stores a counter and shows a ticket queue that runs on game time; pressing again changes nothing (command `uiEvent officeVisited`).
-- [ ] 48. Implement the Grand Opening services
-  - [ ] 48.1 Loans
+- [x] 48. Implement the Grand Opening services
+  - [x] 48.1 Loans
     - `startLoan` and `payOffLoan` domain ops, Loan record (Gold += principal − fitOutBudget; the fit-out budget is part of the principal), repayment with exact carry in `finance`, category `loan`, Bank services; Gold may go negative; load-time validation of `loanOffers` (`fitOutBudget ≤ principal`, `repaymentPerMinute × termMinutes ≥ principal + interest`)
     - _Requirements: 63.1, 63.2, 63.3, 63.4, 63.5, 63.6, 63.7, 63.9_
-  - [ ] 48.2 License tiers
+    - Built Nov 2026: `startLoan`, `payOffLoan` ops, Loan record, repayment with exact carry in `finance` (category `loan`, Gold may go negative), Bank services `take_loan_*` and `pay_off_loan`. New mechanism: a domain op may have a validator (`DOMAIN_VALIDATORS`) that `useService` runs before charging, for rules a Condition cannot state; the Command's params now reach the op.
+  - [x] 48.2 License tiers
     - `setLicense` domain op, Municipality services, seat cap, `minSeats`/`minTaps` per tier (no opening time), seats = 0 while `player.license` is null, `already_licensed`, `license_granted` reveal
     - _Requirements: 62.1, 62.2, 62.3, 62.4_
-  - [ ] 48.3 Pub fit-out
+    - Built Nov 2026: `setLicense`, Municipality services `take_license_*` (fee = service cost), `already_licensed` through a Condition. The tier `minSeats`/`minTaps` are data only for now; nothing checks them.
+  - [x] 48.3 Pub fit-out
     - `applyFitOut` domain op and the "Fit-out" Service at the Player Pub; budget, seat and tap limits; Interior_View shows the chosen items
     - _Requirements: 64.1, 64.3, 64.4, 64.5, 64.6_
-  - [ ] 48.4 Supplier keg deal
+    - Built Nov 2026: `applyFitOut` + validator (`insufficient_gold` with the missing amount, `limit_reached` for Seats and Taps), service `fit_out` with one int param per item, `FitOutCard`, Interior shows only built seats and a plant when Vibe was bought.
+  - [x] 48.4 Supplier keg deal
     - `setSupplyDeal` domain op, `deal_missing` for Orders and auto-reorder, contract fee with exact carry, `supplier_deal` reveal
     - _Requirements: 65.1, 65.2, 65.5, 65.6_
-  - [ ] 48.5 First load and `first_kegs`
+    - Built Nov 2026: `setSupplyDeal`, Supplier services `sign_deal_*`, `deal_missing` for Orders and auto-reorder, contract fee with exact carry. The small deal costs 52.00 per 20 drinks (2.60 a drink, as before).
+  - [x] 48.5 First load and `first_kegs`
     - After the deal the CEO loads the first Kegs with the Context_Action "Load"; `first_kegs` fires on the first unload at the Player Pub
     - _Requirements: 65.3, 65.4_
-  - [ ] 48.6 Job centre hiring
+    - Built Nov 2026: nothing new: `first_kegs` fires from data (the first `vehicleUnloaded` after `supplier_deal`). The CEO places the first Order in the Pub Panel (no automatic first Order) and loads with the existing Load action. No test drives the van through the first load yet.
+  - [x] 48.6 Job centre hiring
     - `candidates.json`, `hireCandidate` domain op with Quirk (`Human.quirkId`, optional), Hiring_Cost, `first_hire`, a second Bar_Worker gated by `hiring_option` (a Driver can always be hired); Jan and Julia as Bar_Worker candidates and Thomas as Driver
     - _Requirements: 66.1, 66.2, 66.3, 66.4, 66.5, 66.6, 55.8_
-  - [ ] 48.7 Cut the ribbon and gate arrivals
+    - Built Nov 2026: `hireCandidate` + validator (Gold, duplicate name, second Bar_Worker needs `hiring`), services `hire_*`, `Human.quirkId`. The candidate salary field is not used (every Human uses its Definition salary). The interview CV and Quirk show in the Desk (task 60).
+  - [x] 48.7 Cut the ribbon and gate arrivals
     - `fireRibbon` Service firing `pub_open`; `customerArrivals` returns early until `pub_open` has fired; closed sign and empty interior before opening
     - _Requirements: 61.5, 61.6, 61.7_
-  - [ ] 48.8 Add Reveal_Triggers and text keys
+    - Built Nov 2026: service `cut_ribbon` (needs `first_kegs` and the five quest steps), `fireRibbon` opens the pub; the Player's pub gets no Customers until `pub_open` fired.
+  - [x] 48.8 Add Reveal_Triggers and text keys
     - `license_granted`, `loan_taken`, `fit_out_done`, `supplier_deal`, `first_hire`, `first_kegs`, `pub_open`, `first_news`, `first_permit_offer` with teaser, description and gave keys; all `reason.*` and Service text keys
     - _Requirements: 67.1, 62.3, 65.2_
-  - [ ] 48.9 Write property test for loan conservation
+    - Built Nov 2026: eight Phase 3 Reveal_Triggers plus `rival_scouted`, every `reason.*` and service text key.
+  - [x] 48.9 Write property test for loan conservation
     - **Property 67: Loan repayment conservation**
     - Required
     - **Validates: Requirements 63.3, 63.4, 63.5, 63.10**
-  - [ ]* 48.10 Write property test for loan rules
+    - Built Nov 2026: `test/grandOpening.test.ts` Property 67, by comparing a game with the loan to the same game without it.
+  - [x]* 48.10 Write property test for loan rules
     - **Property 68: Loan rules**
     - **Validates: Requirements 63.2, 63.6, 63.7**
-  - [ ]* 48.11 Write property test for fit-out budget
+    - Built Nov 2026: same file: Property 68 (loan rules) and the registry rejection of bad offers.
+  - [x]* 48.11 Write property test for fit-out budget
     - **Property 70: Fit-out budget**
     - **Validates: Requirements 64.2, 64.3, 64.4, 64.5**
 
-- [ ] 49. Implement the start states and the checklist HUD
-  - [ ] 49.1 Add both start states
+    - Built Nov 2026: same file: Property 70 (fit-out budget, limits, nothing changes on rejection).
+- [x] 49. Implement the start states and the checklist HUD
+  - [x] 49.1 Add both start states
     - `newGame(reg, seed, { start: 'grand_opening' | 'dev' })`; `start-state.json` is the Grand Opening, `start-state.dev.json` the running pub with `pub_open` fired and the quest completed; dev start chosen by `?dev=1` or an option when creating a slot
     - _Requirements: 3.1, 3.1a, 3.1b, 61.8_
-  - [ ] 49.2 Show a minimal Grand Opening checklist
+    - Built Nov 2026: `newGame(reg, seed, { start })`: `start-state.json` is the Grand Opening (nothing built, closed, no staff, stock or order), `start-state.dev.json` the running pub with the checklist fired and the quest done; the default is the dev start, so tests and old callers are unchanged. The web picks the Grand Opening unless the URL has `?dev=1`; there is no in-game option yet.
+  - [x] 49.2 Show a minimal Grand Opening checklist
     - HUD list of the six entries with ticks and the next recommended entry highlighted (replaced by the quest tracker and Waypoint in Phase 4); CEO starts next to the Pub
     - _Requirements: 3.8, 61.1, 61.3_
-  - [ ]* 49.3 Write property test for Grand Opening gating
+    - Built Nov 2026: `QuestChecklist` in the HUD: the current quest's steps, ticks, the next recommended step highlighted. The CEO starts next to the Pub as before.
+  - [x]* 49.3 Write property test for Grand Opening gating
     - **Property 69: Grand Opening gating**
     - **Validates: Requirements 61.4, 61.5, 61.6**
 
-- [ ] 50. Implement the unlock menu
-  - [ ] 50.1 Require teaser and description keys
+    - Built Nov 2026: `test/startStates.test.ts`, Property 69 over random orders of the checklist triggers.
+- [x] 50. Implement the unlock menu
+  - [x] 50.1 Require teaser and description keys
     - Registry rejects a Reveal_Trigger without both keys
     - _Requirements: 67.1, 67.5_
-  - [ ] 50.2 Build the unlock menu Panel
+  - [x] 50.2 Build the unlock menu Panel
     - Pause_Menu entry listing every trigger; teaser while locked, description and what it gave once fired; text via `t()`
     - _Requirements: 67.2, 67.3, 67.4, 67.6_
-  - [ ]* 50.3 Write unit tests for the unlock menu
+    - Built Nov 2026: Pause_Menu entry "Unlock menu": every trigger as a teaser until fired, then its description and what it gave. The trigger has no separate name, the description is the headline.
+  - [x]* 50.3 Write unit tests for the unlock menu
     - Teaser versus description, missing key rejection
     - _Requirements: 67.3, 67.4, 67.5_
 
-- [ ] 51. Implement the CEO's outside jobs
-  - [ ] 51.1 Add requests and scheduler kinds
+    - Built Nov 2026: tests in `test/phase3Registry.test.ts` (texts present, missing key rejected by name, missing text rejected). The teaser versus description switch itself is not tested (UI).
+- [x] 51. Implement the CEO's outside jobs
+  - [x] 51.1 Add requests and scheduler kinds
     - `spawnRequest`, `requestDeadline` and `applyEffects` (payload = index into a data Effect list, for delayed Effects such as team-building and consultant follow-ups) in `scheduledKindSchema`, `requests.json`, `state.requests`
     - _Requirements: 68.3, 68.4_
-  - [ ] 51.2 Municipality requests and bank meetings
+    - Built Nov 2026: scheduler kinds `spawnRequest`, `requestDeadline`, `applyEffects` (named lists in `phase3/delayedEffects.json`), `state.requests`, Condition `requestOpen`, op `answerRequest`.
+  - [x] 51.2 Municipality requests and bank meetings
     - Presence Services that answer a request before its deadline; ignored requests apply the data Consequence; bank meetings for repayment and refinancing
     - _Requirements: 68.3, 68.4, 68.5_
-  - [ ] 51.3 Scouting
+  - [x] 51.3 Scouting
     - Presence Services on the Competitor Pub and Plots for sale that reveal their details
     - _Requirements: 68.6_
-  - [ ] 51.4 Side deliveries
+    - Built Nov 2026: service `scout_rival` on the rival pub (`scout: true` lets a rival's Business offer it), reveals `rival_scouted`; the rival panel shows its price only after that. Plots for sale cannot be scouted (a Plot has no Services).
+  - [x] 51.4 Side deliveries
     - Quest steps with a deliver Condition on the `vehicleUnloaded` event, reward and deadline
     - _Requirements: 68.7, 68.9_
-  - [ ] 51.5 Head of Errands
+    - Built Nov 2026: quest `side_delivery_hops` with a `vehicleUnloaded` event Condition and a Gold reward. It has NO deadline and no destination yet (quest steps cannot time out).
+  - [x] 51.5 Head of Errands
     - Job with headcount capacity and the `errands` system in slot 2.5 that applies due `delegable` presence Services without the CEO
     - _Requirements: 68.8, 49.3_
-  - [ ] 51.6 Emergency supply runs
+    - Built Nov 2026: Job `head_of_errands` (`optional`, `delegates`), a slot in the starting pub, `errandsSystem` in slot 2.5 answering `delegable` services without the CEO, candidate Eveline. An optional Job never raises an `unstaffed` Alert.
+  - [x] 51.6 Emergency supply runs
     - Test and quest text that an Order without a Driver is carried out by the CEO and that hiring Thomas hands it to Automatic_Delivery
     - _Requirements: 68.1, 68.2_
 
-- [ ] 52. Complete the v3 migration
-  - [ ] 52.1 Implement `v2_to_v3`
+    - Built Nov 2026: test: an Order waits while nobody drives and is delivered once a Driver is assigned. There is no extra quest text.
+- [x] 52. Complete the v3 migration
+  - [x] 52.1 Implement `v2_to_v3`
     - Map `bartender` and `server` slots and Humans to `bar_worker`; map Customers mid-order and mid-carry to open bar orders with the drink on the Tab; add pub fields, `license`, default `supplyDeal`, `fitOutBudget: 0`, `modifiers: []`, `loans: []`, quests, requests; fire `pub_open`, `license_granted`, `supplier_deal`, `first_hire`, `first_kegs` for existing saves; insert the office Businesses and Plots as literal JSON; apply the Plot id mapping of task 39.4; never import current types; keep the pre-migration backup
     - _Requirements: 59.1, 59.2, 59.3, 59.5, 59.6, 50.8, 54.10, 58.5_
-  - [ ] 52.2 Add fixtures for the migration
+  - [x] 52.2 Add fixtures for the migration
     - A v2 save with a Customer mid-order and one mid-carry, and a v1 save, both as committed fixtures
     - _Requirements: 59.2, 59.4_
-  - [ ] 52.3 Write property test for the v3 migration
+    - Built Nov 2026: fixtures `v3/new-game`, `played`, `mid-order`, `mid-carry` and the three v1 files, all used by `apps/web/test/migrations.test.ts`.
+  - [x] 52.3 Write property test for the v3 migration
     - **Property 66: Migration to v3 is valid and removes old jobs**
     - Required; extends the Property 27 harness
     - **Validates: Requirements 59.1, 59.2, 59.3, 59.4, 59.5**
-  - [ ]* 52.4 Run migrated saves for 300 Ticks
+    - Built Nov 2026: Property 66 in the same file (30 runs over every fixture).
+  - [x]* 52.4 Run migrated saves for 300 Ticks
     - Migrate every fixture, validate, run 300 Ticks and check the invariants
     - _Requirements: 59.4_
 
+    - Built Nov 2026: covered by the same test (each migrated save runs up to 300 Ticks and passes the invariants).
 - [ ] 53. **Checkpoint - Phase 3 complete (play the Grand Opening)**
   - Run `npm.cmd test`, `npm.cmd run typecheck`, `npm.cmd run lint` and `npm.cmd run build`. Re-record the golden hash on purpose only if the dev-start balance changed.
   - The user plays a Grand Opening start on PC and phone (start the dev server manually: `npm.cmd run dev -- --host`) and a `?dev=1` start, and loads an old v2 save to check the migration.

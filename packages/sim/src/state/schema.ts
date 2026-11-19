@@ -129,6 +129,8 @@ export const humanSchema = z.object({
   location: humanLocationSchema,
   task: staffTaskSchema.nullable(),
   salaryCarry: finite,
+  /** The Quirk of a hired candidate (Requirement 66); Phase 5 gives it effects. */
+  quirkId: id.optional(),
 });
 
 export const customerSchema = z.object({

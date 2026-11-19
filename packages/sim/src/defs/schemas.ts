@@ -35,7 +35,9 @@ export type Condition =
   /** The Player's Pub (or `businessId`) can still take another Tap (56.6). */
   | { kind: 'tapsBelowMax'; businessId?: string }
   /** A named counter of `state.counters` (for example `drinksServed`) has reached `count`. */
-  | { kind: 'counterAtLeast'; counter: string; count: number };
+  | { kind: 'counterAtLeast'; counter: string; count: number }
+  /** A municipality or bank request of this `requests` Definition is waiting for an answer (68.3). */
+  | { kind: 'requestOpen'; defId: string };
 export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
   z.union([
     z.object({
@@ -60,6 +62,7 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.object({ kind: z.literal('questStepDone'), questId: id, stepId: id }),
     z.object({ kind: z.literal('tapsBelowMax'), businessId: id.optional() }),
     z.object({ kind: z.literal('counterAtLeast'), counter: id, count: z.number().int() }),
+    z.object({ kind: z.literal('requestOpen'), defId: id }),
   ]),
 ) as z.ZodType<Condition>;
 /** An integer, or an inclusive `range` that is drawn from the seeded RNG in Effect order (52.2). */
@@ -126,6 +129,10 @@ export const serviceDefSchema = z.object({
   effects: z.array(effectSchema),
   /** Usable once per Save_Slot (`already_done` afterwards). */
   once: z.boolean().optional(),
+  /** A presence Service a Head of Errands may perform without the CEO (68.8). */
+  delegable: z.boolean().optional(),
+  /** Scouting: usable on a rival's Business too, to reveal its details in person (68.6). */
+  scout: z.boolean().optional(),
   /** Accepted `params` of the Command; any other parameter is rejected (51.12). */
   params: z.record(z.string(), serviceParamSchema).optional(),
 });
@@ -291,6 +298,10 @@ export const jobDefSchema = z.object({
   movementSpeed: z.number().positive(),
   maxHeadcountPerSlot: z.number().int(),
   service: z.boolean(), // counts as a service Human in Pub metrics
+  /** Never raises an `unstaffed` Alert when nobody fills its slots (an optional helper such as the Head of Errands). */
+  optional: z.boolean().optional(),
+  /** A working Human of this Job performs delegable presence Services of open requests without the CEO (68.8). */
+  delegates: z.boolean().optional(),
 });
 export type JobDef = z.infer<typeof jobDefSchema>;
 
@@ -339,10 +350,9 @@ export const revealTriggerDefSchema = z.object({
   condition: conditionSchema,
   reveals: z.array(id).min(1),
   phase: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-  // Unlock menu (Requirement 67). Optional until task 48.8 gives every trigger its texts; task 50.1 then makes
-  // `teaserKey` and `descriptionKey` required and the registry rejects a Definition without them (67.5).
-  teaserKey: id.optional(),
-  descriptionKey: id.optional(),
+  // Unlock menu (Requirement 67): a vague teaser until fired, then the description and what it gave.
+  teaserKey: id,
+  descriptionKey: id,
   gaveKey: id.optional(),
 });
 export type RevealTriggerDef = z.infer<typeof revealTriggerDefSchema>;
@@ -587,6 +597,10 @@ export const startStateDefSchema = z.object({
   license: id.optional(),
   /** Supply deal the Player starts with (a `supplyDeals` id); absent = none, orders are rejected (Grand Opening start, task 49.1). */
   supplyDeal: id.optional(),
+  /** Reveal_Trigger ids already fired at the start (the dev start fires the whole Grand Opening checklist, 61.8). */
+  reveals: z.array(id).optional(),
+  /** Quests that start completed (the dev start skips the Grand Opening, 61.8). */
+  completedQuests: z.array(id).optional(),
   reputation: z.number().int().min(0).max(100),
   districts: z.record(z.string(), z.object({ unlocked: z.boolean() })),
   businesses: z.array(
@@ -597,6 +611,8 @@ export const startStateDefSchema = z.object({
       owner: id, // 'player' | 'npc' | competitor id
       stockPct: z.record(z.string(), z.number().min(0).max(100)).optional(),
       autoReorder: z.record(z.string(), z.object({ enabled: z.boolean(), thresholdPct: z.number().min(0).max(100) })).optional(),
+      /** Pub runtime at the start: the Grand Opening pub has nothing built and is closed. */
+      pub: z.object({ seatsBuilt: z.number().int().nonnegative(), tapsBuilt: z.number().int().nonnegative(), open: z.boolean() }).optional(),
     }),
   ),
   competitors: z.array(z.object({ id, nameKey: id, colorToken: id })),

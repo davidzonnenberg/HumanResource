@@ -129,6 +129,10 @@ export const layoutDefSchema = z.object({
 });
 export type LayoutDef = z.infer<typeof layoutDefSchema>;
 
+/** A named list of Effects that a `schedule` Effect of kind `applyEffects` applies later (team building, consultant follow-ups). */
+export const delayedEffectsDefSchema = z.object({ id, effects: z.array(effectSchema) });
+export type DelayedEffectsDef = z.infer<typeof delayedEffectsDefSchema>;
+
 /** The raw `phase3` pack handed to the registry; every table is optional so older callers keep working. */
 export interface RawPhase3 {
   licenseTiers?: unknown;
@@ -140,6 +144,7 @@ export interface RawPhase3 {
   customerTypes?: unknown;
   quests?: unknown;
   layouts?: unknown;
+  delayedEffects?: unknown;
 }
 
 export interface Phase3Defs {
@@ -152,4 +157,5 @@ export interface Phase3Defs {
   customerTypes: Record<string, CustomerTypeDef>;
   quests: Record<string, QuestDef>;
   layouts: Record<string, LayoutDef>;
+  delayedEffects: Record<string, DelayedEffectsDef>;
 }

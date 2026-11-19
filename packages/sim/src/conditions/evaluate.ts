@@ -64,6 +64,8 @@ export function evaluateCondition(c: Condition, state: SimState, events: readonl
       }
       return n >= c.count;
     }
+    case 'requestOpen':
+      return Object.values(state.requests ?? {}).some((r) => r.defId === c.defId);
     case 'counterAtLeast':
       return (state.counters?.[c.counter] ?? 0) >= c.count;
     case 'tapsBelowMax': {

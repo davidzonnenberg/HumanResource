@@ -1,38 +1,89 @@
 [
   {
     "id": "expansion",
-    "condition": { "kind": "goldAtLeast", "amount": 800000 },
-    "reveals": ["expansion"],
-    "phase": 2
+    "condition": {
+      "kind": "goldAtLeast",
+      "amount": 800000
+    },
+    "reveals": [
+      "expansion"
+    ],
+    "phase": 2,
+    "teaserKey": "unlock.expansion.teaser",
+    "descriptionKey": "unlock.expansion.desc",
+    "gaveKey": "unlock.expansion.gave"
   },
   {
     "id": "second_pub",
-    "condition": { "kind": "ownedBusinessCountAtLeast", "businessType": "pub", "count": 2 },
-    "reveals": ["brewery", "acquisitions", "competitor_events"],
-    "phase": 2
+    "condition": {
+      "kind": "ownedBusinessCountAtLeast",
+      "businessType": "pub",
+      "count": 2
+    },
+    "reveals": [
+      "brewery",
+      "acquisitions",
+      "competitor_events"
+    ],
+    "phase": 2,
+    "teaserKey": "unlock.secondPub.teaser",
+    "descriptionKey": "unlock.secondPub.desc",
+    "gaveKey": "unlock.secondPub.gave"
   },
   {
     "id": "questionable_offers",
-    "condition": { "kind": "tickAtLeast", "tick": 18000 },
-    "reveals": ["questionable"],
-    "phase": 2
+    "condition": {
+      "kind": "tickAtLeast",
+      "tick": 18000
+    },
+    "reveals": [
+      "questionable"
+    ],
+    "phase": 2,
+    "teaserKey": "unlock.questionableOffers.teaser",
+    "descriptionKey": "unlock.questionableOffers.desc",
+    "gaveKey": "unlock.questionableOffers.gave"
   },
   {
     "id": "first_news",
-    "condition": { "kind": "event", "event": "news" },
-    "reveals": ["news_feed"],
-    "phase": 2
+    "condition": {
+      "kind": "event",
+      "event": "news"
+    },
+    "reveals": [
+      "news_feed"
+    ],
+    "phase": 2,
+    "teaserKey": "unlock.firstNews.teaser",
+    "descriptionKey": "unlock.firstNews.desc",
+    "gaveKey": "unlock.firstNews.gave"
   },
   {
     "id": "first_chain",
-    "condition": { "kind": "event", "event": "chainRegistered" },
-    "reveals": ["synergy_counter"],
-    "phase": 2
+    "condition": {
+      "kind": "event",
+      "event": "chainRegistered"
+    },
+    "reveals": [
+      "synergy_counter"
+    ],
+    "phase": 2,
+    "teaserKey": "unlock.firstChain.teaser",
+    "descriptionKey": "unlock.firstChain.desc",
+    "gaveKey": "unlock.firstChain.gave"
   },
   {
     "id": "first_reputation_change",
-    "condition": { "kind": "event", "event": "reputationChanged" },
-    "reveals": ["reputation_counter"],
-    "phase": 2
+    "condition": {
+      "kind": "event",
+      "event": "reputationChanged"
+    },
+    "reveals": [
+      "reputation_counter"
+    ],
+    "phase": 2,
+    "teaserKey": "unlock.firstReputationChange.teaser",
+    "descriptionKey": "unlock.firstReputationChange.desc",
+    "gaveKey": "unlock.firstReputationChange.gave"
   }
 ]
