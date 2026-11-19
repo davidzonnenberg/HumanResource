@@ -6,6 +6,8 @@ import { REASON_CODES } from '../commands/types';
 import type { StatId } from './vocabulary';
 import { checkRawCondition, checkRawService, checkRawStat } from './vocabularyCheck';
 import { deriveFrontage, frontageConflicts, rectInsidePolygon, type SlotInfo } from './frontage';
+import { loadPhase3 } from './phase3Registry';
+import type { Phase3Defs, RawPhase3 } from './phase3Schemas';
 import {
   acquisitionConfigSchema,
   achievementDefSchema,
@@ -94,6 +96,8 @@ export interface RawContentInput {
   chains: unknown;
   /** settings.json: which Commands are settings and whether they need the CEO present (51.5). */
   settings: unknown;
+  /** Phase 3 tables (content/data/phase3); optional so callers without them keep working. */
+  phase3?: RawPhase3;
 }
 
 export interface RoadNode {
@@ -161,6 +165,8 @@ export interface DefinitionRegistry {
   services: Record<string, ServiceDef>;
   /** Access tag per setting Command type (emote unless tagged presence). */
   settings: Record<string, SettingDef['access']>;
+  /** Phase 3 tables: License_Tiers, Loans, fit-out, supply deals, candidates, requests, customer types, quests, layouts. */
+  phase3: Phase3Defs;
 }
 export interface TraitBp {
   stat: StatId;
@@ -493,6 +499,7 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
     if (settings[s.commandType]) errors.push({ definition: 'settings', field: s.commandType, message: 'duplicate setting' });
     settings[s.commandType] = s.access;
   }
+  const phase3 = loadPhase3(raw.phase3, { jobIds: new Set(Object.keys(jobs)), modelKeys, serviceIds: new Set(Object.keys(services)), textRef }, errors);
   const traitBp: DefinitionRegistry['traitBp'] = {};
   for (const tr of Object.values(traits)) {
     // Data percentages become integer basis points once, here (50.2).
@@ -535,6 +542,7 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
     traitBp,
     services,
     settings,
+    phase3,
   };
   return { ok: true, value: deepFreeze(registry) };
 }

@@ -17,9 +17,9 @@ const reg: DefinitionRegistry = (() => {
 const dir = join(__dirname, '..', '..', '..', 'packages', 'shared', 'test', 'fixtures', 'v1');
 const fixture = (name: string): Record<string, unknown> => JSON.parse(readFileSync(join(dir, `${name}.json`), 'utf8')) as Record<string, unknown>;
 
-describe('v1 -> v2 migration', () => {
-  it('current schema version is 3', () => {
-    expect(CURRENT_SCHEMA_VERSION).toBe(3);
+describe('v1 -> v4 migration', () => {
+  it('current schema version is 4', () => {
+    expect(CURRENT_SCHEMA_VERSION).toBe(4);
   });
 
   for (const name of ['new-game', 'played', 'in-debt']) {
@@ -27,7 +27,7 @@ describe('v1 -> v2 migration', () => {
       const old = fixture(name);
       expect(old.schemaVersion).toBe(1);
       const m = migrate(old);
-      expect(m).toMatchObject({ ok: true, applied: ['v1_to_v2_phase2_sections', 'v2_to_v3_savings'] });
+      expect(m).toMatchObject({ ok: true, applied: ['v1_to_v2_phase2_sections', 'v2_to_v3_savings', 'v3_to_v4_phase3_skeleton'] });
       expect(old.schemaVersion).toBe(1); // input untouched
 
       const res = deserialize(JSON.parse(JSON.stringify(old)), reg);
@@ -35,7 +35,7 @@ describe('v1 -> v2 migration', () => {
       if (!res.ok) return;
       expect(res.migrated).toBe(true);
       const state: SimState = res.doc.state;
-      expect(res.doc.schemaVersion).toBe(3);
+      expect(res.doc.schemaVersion).toBe(4);
       expect(state.player.savings).toBe(0);
       expect(checkInvariants(state, reg)).toEqual([]);
 
@@ -61,5 +61,52 @@ describe('v1 -> v2 migration', () => {
     if (!res.ok) return;
     expect(res.doc.state.player.gold).toBeLessThan(0);
     expect(Object.keys(res.doc.state.orders).length).toBeGreaterThan(0);
+  });
+});
+
+// Task 41.1 / 41.3: fixtures recorded from the code before the Phase 3 schema change (schema 3).
+const v3dir = join(__dirname, '..', '..', '..', 'packages', 'shared', 'test', 'fixtures', 'v3');
+const v3fixture = (name: string): Record<string, unknown> => JSON.parse(readFileSync(join(v3dir, `${name}.json`), 'utf8')) as Record<string, unknown>;
+
+describe('v3 -> v4 migration skeleton', () => {
+  for (const name of ['new-game', 'played', 'mid-order', 'mid-carry']) {
+    it(`${name}.json migrates, validates and still runs`, () => {
+      const old = v3fixture(name);
+      expect(old.schemaVersion).toBe(3);
+      const res = deserialize(JSON.parse(JSON.stringify(old)), reg);
+      expect(res.ok).toBe(true);
+      if (!res.ok) return;
+      const state: SimState = res.doc.state;
+      expect(res.migrated).toBe(true);
+      expect(res.doc.schemaVersion).toBe(4);
+      expect(state.player).toMatchObject({ license: null, supplyDeal: null, fitOutBudget: 0 });
+      expect(state.loans).toEqual([]);
+      expect(state.quests).toEqual({});
+      expect(state.requests).toEqual({});
+      for (const b of Object.values(state.businesses)) if (b.pub) expect(b.pub).toMatchObject({ open: true, seatsBuilt: b.pub.seats.length, vibeBase: 0, lostIncome: 0 });
+      for (const c of Object.values(state.customers)) expect(c).toMatchObject({ tab: 0, waitedLong: false });
+      expect(checkInvariants(state, reg)).toEqual([]);
+      const sim = new Simulation(reg, state);
+      for (let t = 0; t < 300; t++) sim.tick();
+      expect(checkInvariants(sim.state, reg)).toEqual([]);
+    });
+  }
+  it('the mid-order and mid-carry fixtures really contain such Customers', () => {
+    const open = (n: string): boolean => {
+      const st = v3fixture(n).state as SimState;
+      return Object.values(st.businesses).some((b) => b.pub?.orderQueue.some((o) => !o.poured));
+    };
+    expect(open('mid-order')).toBe(true);
+    const st = v3fixture('mid-carry').state as SimState;
+    const carry = Object.values(st.humans).some((h) => h.task?.kind === 'carry') || Object.values(st.businesses).some((b) => b.jobSlots.some((j) => j.headcountTasks?.some((x) => x?.kind === 'carry')));
+    expect(carry).toBe(true);
+  });
+  it('is idempotent on a v4 document', () => {
+    const once = deserialize(v3fixture('played'), reg);
+    expect(once.ok).toBe(true);
+    if (!once.ok) return;
+    const again = deserialize(JSON.parse(JSON.stringify(once.doc)), reg);
+    expect(again.ok).toBe(true);
+    if (again.ok) expect(again.migrated).toBe(false);
   });
 });

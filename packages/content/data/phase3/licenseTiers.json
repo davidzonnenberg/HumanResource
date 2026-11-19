@@ -1,0 +1,5 @@
+[
+  { "id": "cafe", "nameKey": "license.cafe", "descriptionKey": "license.cafe.desc", "fee": 15000, "minSeats": 4, "maxSeats": 6, "minTaps": 1, "customerTypes": ["regular"] },
+  { "id": "pub", "nameKey": "license.pub", "descriptionKey": "license.pub.desc", "fee": 30000, "minSeats": 6, "maxSeats": 10, "minTaps": 2, "customerTypes": ["regular"] },
+  { "id": "late", "nameKey": "license.late", "descriptionKey": "license.late.desc", "fee": 60000, "minSeats": 6, "maxSeats": 12, "minTaps": 2, "customerTypes": ["regular", "night_owl"] }
+]

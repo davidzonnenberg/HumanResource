@@ -1,0 +1,4 @@
+[
+  { "id": "small_flexible", "nameKey": "deal.small", "descriptionKey": "deal.small.desc", "pricePerKeg": 4800, "kegDrinks": 20 },
+  { "id": "big_contract", "nameKey": "deal.big", "descriptionKey": "deal.big.desc", "pricePerKeg": 10500, "kegDrinks": 50, "contractFeePerMinute": 300 }
+]

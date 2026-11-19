@@ -66,6 +66,7 @@ export const FINANCE_CATEGORIES = [
   'construction',
   'acquisition',
   'liability',
+  'loan',
   'fine',
   'market_sale',
   'other',

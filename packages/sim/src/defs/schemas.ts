@@ -325,7 +325,12 @@ export const revealTriggerDefSchema = z.object({
   id,
   condition: conditionSchema,
   reveals: z.array(id).min(1),
-  phase: z.union([z.literal(1), z.literal(2)]),
+  phase: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  // Unlock menu (Requirement 67). Optional until task 48.8 gives every trigger its texts; task 50.1 then makes
+  // `teaserKey` and `descriptionKey` required and the registry rejects a Definition without them (67.5).
+  teaserKey: id.optional(),
+  descriptionKey: id.optional(),
+  gaveKey: id.optional(),
 });
 export type RevealTriggerDef = z.infer<typeof revealTriggerDefSchema>;
 

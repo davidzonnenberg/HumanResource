@@ -40,6 +40,16 @@ import questionableConfig from './data/phase2/questionable-config.json';
 import competitorEvents from './data/phase2/competitor-events.json';
 import minigames from './data/phase2/minigames.json';
 import chains from './data/phase2/chains.json';
+// Phase 3 pack: Grand Opening tables (licenses, loans, fit-out, supply deals, hiring, quests, layouts)
+import licenseTiers from './data/phase3/licenseTiers.json';
+import loanOffers from './data/phase3/loanOffers.json';
+import fitOutItems from './data/phase3/fitOutItems.json';
+import supplyDeals from './data/phase3/supplyDeals.json';
+import candidates from './data/phase3/candidates.json';
+import requests from './data/phase3/requests.json';
+import customerTypes from './data/phase3/customerTypes.json';
+import quests from './data/phase3/quests.json';
+import layouts from './data/phase3/layouts.json';
 // Which Commands are settings and whether they need the CEO present (Requirement 51).
 import settings from './data/settings.json';
 
@@ -69,6 +79,7 @@ export interface RawContent {
   minigames: unknown;
   chains: unknown;
   settings: unknown;
+  phase3: Record<string, unknown>;
 }
 
 export const rawContent: RawContent = {
@@ -98,6 +109,7 @@ export const rawContent: RawContent = {
   minigames,
   chains,
   settings,
+  phase3: { licenseTiers, loanOffers, fitOutItems, supplyDeals, candidates, requests, customerTypes, quests, layouts },
 };
 
 export { cameraConfig, themeConfig, text, landmarks, phoneApps, fillerStreets };

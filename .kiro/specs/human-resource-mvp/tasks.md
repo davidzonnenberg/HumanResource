@@ -784,16 +784,22 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
 - Strong model: 41, 42.3, 44.1, 44.2, 46.1, 48.1, 52.1. Cheaper model: content JSON, text keys, renderer and Panel work, tests, 50, 51.2 to 51.6.
 - Verify: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd test`, `npm.cmd run build`; then play the Grand Opening (task 53).
 
-- [ ] 41. Define the Phase 3 contracts and the v3 skeleton
-  - [ ] 41.1 Generate the v2 fixtures
+> **Schema numbering changed (Nov 2026).** The savings account (bank app) already took schema 3, so everything this phase calls the \3\ migration is now **v3 to v4** (\migrations/v3_to_v4.ts\, \CURRENT_SCHEMA_VERSION = 4\) and the Gold buckets of task 54.2 become **v4 to v5**. Read \
     - Commit v2 Save_Document fixtures under `packages/shared/test/fixtures/v2/` from the current code before any schema change, including a Customer mid-order and one mid-carry; keep the v1 fixtures
     - _Requirements: 59.4_
-  - [ ] 41.2 Add Phase 3 content schemas and data files
+    - Built Nov 2026: \
+ew-game\, \played\, \mid-order\ (an unpoured order in the queue) and \mid-carry\ (a \carry\ task) as schema 3 files in \ixtures/v3/\; checked by \pps/web/test/migrations.test.ts\.
+  - [x] 41.2 Add Phase 3 content schemas and data files
     - zod schemas and starter JSON in `packages/content/data/phase3/` for `licenseTiers`, `loanOffers`, `fitOutItems`, `supplyDeals`, `candidates`, `requests`, `customerTypes`, `quests`, `layouts` and extended `reveal-triggers` (teaser and description keys); extend `FinanceCategory` with `loan`; text keys in `en.json`
     - _Requirements: 62.5, 63.1, 64.2, 65.1, 66.1, 67.1, 73.1_
-  - [ ] 41.3 Add the v3 state shape and migration skeleton
+    - Built Nov 2026: schemas in `defs/phase3Schemas.ts`, loader and checks in `defs/phase3Registry.ts` (`reg.phase3`; Loan rule 63.11, Quest vocabulary 73.7, referential and text checks), data in `data/phase3/`. `requests`, `quests` and `layouts` ship empty (tasks 51.1, 46.2, 42.1 fill them). Candidates use the current Job ids `bartender`, `server`, `driver` until task 42.2 switches Jan and Julia to `bar_worker`. `teaserKey`, `descriptionKey` and `gaveKey` are optional on Reveal_Triggers until task 50.1 makes the first two required. `player.license` stays a tier id string (tier data is read from `reg.phase3.licenseTiers`), not a copy of the tier in the save. Test: `test/phase3Registry.test.ts`.
+  - [x] 41.3 Add the v3 state shape and migration skeleton
     - `CURRENT_SCHEMA_VERSION = 3`; state fields `loans`, `servicesUsed`, `quests`, `requests`, `player.license`, `player.supplyDeal`, `player.fitOutBudget`, pub runtime (`seatsBuilt`, `tapsBuilt`, `vibeBase`, `open`, `pace`, `lostIncome`, order queue `taken`), Customer `tab`, `typeId`, `waitedLong`; `migrations/v2_to_v3.ts` skeleton that adds empty values; later tasks extend it
     - _Requirements: 59.1, 59.3, 59.6_
+    - Built Nov 2026: required fields `player.license/supplyDeal/fitOutBudget`, pub `open/seatsBuilt/tapsBuilt/vibeBase/pace/lostIncome`, Customer `tab/waitedLong`; optional `typeId` and order `taken`; `loans/servicesUsed/quests/requests` are created empty by `newGame`. Behaviour is unchanged: the old golden hash is reproduced once the new fields are stripped, and the golden was then re-recorded on purpose for the new shape. The Phase 1 projection in `newgame-golden.test.ts` removes the new fields.
+    - Built Nov 2026: required fields \player.license/supplyDeal/fitOutBudget\, pub \open/seatsBuilt/tapsBuilt/vibeBase/pace/lostIncome\, Customer \	ab/waitedLong\; optional \	ypeId\ and order \	aken\; \loans/servicesUsed/quests/requests\ created empty by \
+ewGame\. Behaviour is unchanged: the old golden hash is reproduced once the new fields are stripped, and the golden was then re-recorded on purpose for the new shape. The Phase 1 projection in \
+ewgame-golden.test.ts\ removes the new fields.
 
 - [ ] 42. Implement the Bar_Worker job
   - [ ] 42.1 Add layout anchors to data and the registry

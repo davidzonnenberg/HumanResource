@@ -47,6 +47,9 @@ export type Boost = z.infer<typeof S.boostSchema>;
 export type Modifier = z.infer<typeof S.modifierSchema>;
 export type SourceRef = z.infer<typeof S.sourceRefSchema>;
 export type TargetSelector = z.infer<typeof S.targetSelectorSchema>;
+export type Loan = z.infer<typeof S.loanSchema>;
+export type SupplyDealState = z.infer<typeof S.supplyDealStateSchema>;
+export type ServiceRequest = z.infer<typeof S.requestSchema>;
 export type ReputationPending = z.infer<typeof S.reputationPendingSchema>;
 
 export type LostReason = 'no_seat' | 'out_of_beer' | 'patience_expired';

@@ -24,6 +24,11 @@ function phase1Projection(state: SimState): SimState {
     Reflect.deleteProperty(b, 'recipes');
   }
   Reflect.deleteProperty(s.player, 'savings'); // added by the v3 bank app
+  // Phase 3 skeleton (schema v4): empty at the start, no behaviour yet
+  for (const k of ['license', 'supplyDeal', 'fitOutBudget'] as const) Reflect.deleteProperty(s.player, k);
+  for (const k of ['loans', 'servicesUsed', 'quests', 'requests'] as const) Reflect.deleteProperty(s, k);
+  for (const b of Object.values(s.businesses))
+    if (b.pub) for (const k of ['open', 'seatsBuilt', 'tapsBuilt', 'vibeBase', 'pace', 'lostIncome'] as const) Reflect.deleteProperty(b.pub, k);
   for (const v of Object.values(s.vehicles)) {
     Reflect.deleteProperty(v.cargo, 'hops');
     Reflect.deleteProperty(v.cargo, 'malt');

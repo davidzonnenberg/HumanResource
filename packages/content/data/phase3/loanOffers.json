@@ -1,0 +1,5 @@
+[
+  { "id": "sensible", "nameKey": "loan.sensible", "descriptionKey": "loan.sensible.desc", "principal": 100000, "fitOutBudget": 40000, "repaymentPerMinute": 1500, "interestBp": 500, "termMinutes": 75 },
+  { "id": "ambitious", "nameKey": "loan.ambitious", "descriptionKey": "loan.ambitious.desc", "principal": 200000, "fitOutBudget": 100000, "repaymentPerMinute": 3300, "interestBp": 1000, "termMinutes": 70 },
+  { "id": "visionary", "nameKey": "loan.visionary", "descriptionKey": "loan.visionary.desc", "principal": 400000, "fitOutBudget": 220000, "repaymentPerMinute": 7500, "interestBp": 2000, "termMinutes": 64 }
+]

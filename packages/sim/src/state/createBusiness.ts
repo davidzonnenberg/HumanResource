@@ -91,7 +91,7 @@ export function createBusiness(
       missing: [],
     }));
   if (def.pub) {
-    biz.pub = { drinkPrice: def.pub.defaultDrinkPrice, seats: new Array<string | null>(def.pub.seats).fill(null), orderQueue: [], bar: [], arrivalAcc: 0 };
+    biz.pub = { drinkPrice: def.pub.defaultDrinkPrice, seats: new Array<string | null>(def.pub.seats).fill(null), orderQueue: [], bar: [], arrivalAcc: 0, open: true, seatsBuilt: def.pub.seats, tapsBuilt: 1, vibeBase: 0, pace: 'normal', lostIncome: 0 };
     state.metrics.pubs[id] = emptyPubMetrics(reg.config.pubWindowSeconds);
   }
   state.businesses[id] = biz;

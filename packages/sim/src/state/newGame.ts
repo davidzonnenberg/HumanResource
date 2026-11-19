@@ -21,7 +21,7 @@ export function newGame(reg: DefinitionRegistry, seed: number): SimState {
     rng: seedRng(seed),
     idCounters: {},
     districts: Object.fromEntries(Object.entries(start.districts).map(([k, v]) => [k, { unlocked: v.unlocked }])),
-    player: { gold: start.gold, savings: 0, reputation: start.reputation, corporateResources: {}, availableBrands: [], recipes: [] },
+    player: { gold: start.gold, savings: 0, reputation: start.reputation, corporateResources: {}, availableBrands: [], recipes: [], license: null, supplyDeal: null, fitOutBudget: 0 },
     competitors: Object.fromEntries(start.competitors.map((c) => [c.id, { id: c.id, nameKey: c.nameKey, colorToken: c.colorToken }])),
     plots: {},
     businesses: {},
@@ -53,6 +53,11 @@ export function newGame(reg: DefinitionRegistry, seed: number): SimState {
     chains: { edges: {}, registered: {}, synergyCarry: 0 },
     boosts: [],
     reputationPending: [],
+    // Phase 3 sections (schema v4): empty at the start.
+    loans: [],
+    servicesUsed: {},
+    quests: {},
+    requests: {},
   };
 
   // Plots

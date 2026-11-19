@@ -70,6 +70,8 @@ export function customerArrivalsSystem(ctx: TickContext): void {
       servedAny: false,
       seatedTick: ctx.state.tick,
       currentLot: null,
+      tab: 0,
+      waitedLong: false,
     };
   }
 }

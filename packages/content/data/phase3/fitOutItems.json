@@ -1,0 +1,7 @@
+[
+  { "id": "table_small", "nameKey": "fitout.tableSmall", "kind": "table", "price": 6000, "seats": 2, "modelKey": null },
+  { "id": "table_large", "nameKey": "fitout.tableLarge", "kind": "table", "price": 10000, "seats": 4, "modelKey": null },
+  { "id": "tap_standard", "nameKey": "fitout.tapStandard", "kind": "tap", "price": 8000, "taps": 1, "modelKey": null },
+  { "id": "decor_plant", "nameKey": "fitout.decorPlant", "kind": "decoration", "price": 3000, "vibe": 5, "modelKey": null },
+  { "id": "decor_synergy_poster", "nameKey": "fitout.decorPoster", "kind": "decoration", "price": 5000, "vibe": 8, "modelKey": null }
+]

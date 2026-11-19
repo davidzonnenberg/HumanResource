@@ -1,0 +1,7534 @@
+{
+ "schemaVersion": 3,
+ "revision": 1,
+ "syncedRevision": 0,
+ "timestamp": "2026-11-19T12:00:00.000Z",
+ "profileId": "fixture-profile",
+ "slotId": "fixture-played",
+ "state": {
+  "tick": 3000,
+  "seed": 11,
+  "rng": [
+   3482887467,
+   2919135583,
+   2076955192,
+   3699325168
+  ],
+  "idCounters": {
+   "biz": 4,
+   "veh": 2,
+   "rte": 2,
+   "hum": 6,
+   "ord": 3,
+   "cus": 68
+  },
+  "districts": {
+   "old_town": {
+    "unlocked": true
+   },
+   "harbour": {
+    "unlocked": false
+   }
+  },
+  "player": {
+   "gold": 46640,
+   "savings": 0,
+   "reputation": 50,
+   "corporateResources": {},
+   "availableBrands": [],
+   "recipes": []
+  },
+  "competitors": {
+   "cmp_rival": {
+    "id": "cmp_rival",
+    "nameKey": "competitor.rival",
+    "colorToken": "rival"
+   }
+  },
+  "plots": {
+   "plot_west": {
+    "id": "plot_west",
+    "districtId": "old_town",
+    "status": "empty",
+    "owner": null,
+    "businessId": null,
+    "price": null
+   },
+   "plot_home": {
+    "id": "plot_home",
+    "districtId": "old_town",
+    "status": "occupied",
+    "owner": "player",
+    "businessId": "biz_0002",
+    "price": null
+   },
+   "plot_rival": {
+    "id": "plot_rival",
+    "districtId": "old_town",
+    "status": "occupied",
+    "owner": "cmp_rival",
+    "businessId": "biz_0003",
+    "price": null
+   },
+   "plot_depot": {
+    "id": "plot_depot",
+    "districtId": "old_town",
+    "status": "occupied",
+    "owner": "npc",
+    "businessId": "biz_0004",
+    "price": null
+   },
+   "plot_south": {
+    "id": "plot_south",
+    "districtId": "old_town",
+    "status": "empty",
+    "owner": null,
+    "businessId": null,
+    "price": null
+   },
+   "plot_for_sale": {
+    "id": "plot_for_sale",
+    "districtId": "old_town",
+    "status": "for_sale",
+    "owner": null,
+    "businessId": null,
+    "price": 600000
+   },
+   "plot_supplier": {
+    "id": "plot_supplier",
+    "districtId": "old_town",
+    "status": "occupied",
+    "owner": "npc",
+    "businessId": "biz_0001",
+    "price": null
+   },
+   "plot_harbour_dock": {
+    "id": "plot_harbour_dock",
+    "districtId": "harbour",
+    "status": "for_sale",
+    "owner": null,
+    "businessId": null,
+    "price": 1500000
+   },
+   "plot_harbour_shed": {
+    "id": "plot_harbour_shed",
+    "districtId": "harbour",
+    "status": "empty",
+    "owner": null,
+    "businessId": null,
+    "price": null
+   }
+  },
+  "businesses": {
+   "biz_0001": {
+    "id": "biz_0001",
+    "defId": "supplier_beer",
+    "owner": "npc",
+    "plotId": "plot_supplier",
+    "name": "Barrel & Sons Wholesale",
+    "storage": {},
+    "jobSlots": [],
+    "brandId": null,
+    "traits": [],
+    "sourcing": {},
+    "autoReorder": {}
+   },
+   "biz_0002": {
+    "id": "biz_0002",
+    "defId": "pub_cosy_local",
+    "owner": "player",
+    "plotId": "plot_home",
+    "name": "The Quarterly Pint",
+    "storage": {
+     "beer": {
+      "amount": 107,
+      "lots": [
+       {
+        "qty": 16,
+        "recipeId": null,
+        "arrivedTick": 0,
+        "origin": "start"
+       },
+       {
+        "qty": 30,
+        "recipeId": null,
+        "arrivedTick": 210,
+        "origin": "supplier"
+       },
+       {
+        "qty": 40,
+        "recipeId": null,
+        "arrivedTick": 2446,
+        "origin": "supplier"
+       },
+       {
+        "qty": 21,
+        "recipeId": null,
+        "arrivedTick": 2688,
+        "origin": "supplier"
+       }
+      ]
+     }
+    },
+    "jobSlots": [
+     {
+      "slotId": "bartender_1",
+      "jobId": "bartender",
+      "filledBy": {
+       "kind": "human",
+       "humanId": "hum_0001"
+      }
+     },
+     {
+      "slotId": "bartender_2",
+      "jobId": "bartender",
+      "filledBy": null
+     },
+     {
+      "slotId": "server_1",
+      "jobId": "server",
+      "filledBy": {
+       "kind": "human",
+       "humanId": "hum_0002"
+      }
+     },
+     {
+      "slotId": "server_2",
+      "jobId": "server",
+      "filledBy": null
+     }
+    ],
+    "brandId": null,
+    "traits": [],
+    "sourcing": {
+     "beer": "buy_external"
+    },
+    "autoReorder": {
+     "beer": {
+      "enabled": true,
+      "threshold": 60,
+      "failed": false
+     }
+    },
+    "pub": {
+     "drinkPrice": 500,
+     "seats": [
+      "cus_0054",
+      null,
+      null,
+      "cus_0066",
+      null,
+      "cus_0068",
+      null,
+      null,
+      null,
+      null
+     ],
+     "orderQueue": [],
+     "bar": [],
+     "arrivalAcc": 0
+    }
+   },
+   "biz_0003": {
+    "id": "biz_0003",
+    "defId": "pub_sports",
+    "owner": "cmp_rival",
+    "plotId": "plot_rival",
+    "name": "Big Corp Tavern",
+    "storage": {
+     "beer": {
+      "amount": 120,
+      "lots": [
+       {
+        "qty": 39,
+        "recipeId": null,
+        "arrivedTick": 0,
+        "origin": "start"
+       },
+       {
+        "qty": 40,
+        "recipeId": null,
+        "arrivedTick": 1259,
+        "origin": "supplier"
+       },
+       {
+        "qty": 40,
+        "recipeId": null,
+        "arrivedTick": 1437,
+        "origin": "supplier"
+       },
+       {
+        "qty": 1,
+        "recipeId": null,
+        "arrivedTick": 1582,
+        "origin": "supplier"
+       }
+      ]
+     }
+    },
+    "jobSlots": [
+     {
+      "slotId": "bartender_1",
+      "jobId": "bartender",
+      "filledBy": {
+       "kind": "human",
+       "humanId": "hum_0004"
+      }
+     },
+     {
+      "slotId": "bartender_2",
+      "jobId": "bartender",
+      "filledBy": null
+     },
+     {
+      "slotId": "server_1",
+      "jobId": "server",
+      "filledBy": {
+       "kind": "human",
+       "humanId": "hum_0005"
+      }
+     },
+     {
+      "slotId": "server_2",
+      "jobId": "server",
+      "filledBy": null
+     }
+    ],
+    "brandId": null,
+    "traits": [],
+    "sourcing": {
+     "beer": "buy_external"
+    },
+    "autoReorder": {
+     "beer": {
+      "enabled": true,
+      "threshold": 80,
+      "failed": false
+     }
+    },
+    "recipes": [
+     "badgers_bite"
+    ],
+    "pub": {
+     "drinkPrice": 550,
+     "seats": [
+      null,
+      "cus_0067",
+      "cus_0060",
+      null,
+      null,
+      null,
+      null,
+      null,
+      "cus_0061",
+      "cus_0062",
+      "cus_0063",
+      "cus_0064"
+     ],
+     "orderQueue": [
+      {
+       "customerId": "cus_0061",
+       "placedTick": 2947,
+       "poured": true,
+       "lot": {
+        "recipeId": null,
+        "origin": "start"
+       }
+      },
+      {
+       "customerId": "cus_0062",
+       "placedTick": 2987,
+       "poured": false
+      }
+     ],
+     "bar": [],
+     "arrivalAcc": 0
+    }
+   },
+   "biz_0004": {
+    "id": "biz_0004",
+    "defId": "market_depot",
+    "owner": "npc",
+    "plotId": "plot_depot",
+    "name": "Market Depot",
+    "storage": {},
+    "jobSlots": [],
+    "brandId": null,
+    "traits": [],
+    "sourcing": {},
+    "autoReorder": {}
+   }
+  },
+  "humans": {
+   "hum_0001": {
+    "id": "hum_0001",
+    "defId": "regular",
+    "name": "Jan",
+    "owner": "player",
+    "qualifications": [
+     "regular"
+    ],
+    "assignment": {
+     "kind": "business",
+     "id": "biz_0002",
+     "slotId": "bartender_1"
+    },
+    "status": "working",
+    "location": {
+     "kind": "at",
+     "x": -14,
+     "z": -12,
+     "insideBusinessId": "biz_0002"
+    },
+    "task": null,
+    "salaryCarry": 0
+   },
+   "hum_0002": {
+    "id": "hum_0002",
+    "defId": "regular",
+    "name": "Julia",
+    "owner": "player",
+    "qualifications": [
+     "regular"
+    ],
+    "assignment": {
+     "kind": "business",
+     "id": "biz_0002",
+     "slotId": "server_1"
+    },
+    "status": "working",
+    "location": {
+     "kind": "at",
+     "x": -14,
+     "z": -12,
+     "insideBusinessId": "biz_0002"
+    },
+    "task": null,
+    "salaryCarry": 0
+   },
+   "hum_0003": {
+    "id": "hum_0003",
+    "defId": "regular",
+    "name": "Thomas",
+    "owner": "player",
+    "qualifications": [
+     "regular"
+    ],
+    "assignment": {
+     "kind": "vehicle",
+     "id": "veh_0001",
+     "slotId": "driver_1"
+    },
+    "status": "working",
+    "location": {
+     "kind": "onVehicle",
+     "vehicleId": "veh_0001"
+    },
+    "task": null,
+    "salaryCarry": 0
+   },
+   "hum_0004": {
+    "id": "hum_0004",
+    "defId": "regular",
+    "name": "Lieke",
+    "owner": "cmp_rival",
+    "qualifications": [
+     "regular"
+    ],
+    "assignment": {
+     "kind": "business",
+     "id": "biz_0003",
+     "slotId": "bartender_1"
+    },
+    "status": "working",
+    "location": {
+     "kind": "at",
+     "x": 14,
+     "z": -12,
+     "insideBusinessId": "biz_0003"
+    },
+    "task": {
+     "kind": "pour",
+     "customerId": "cus_0061",
+     "doneTick": 3007
+    },
+    "salaryCarry": 0
+   },
+   "hum_0005": {
+    "id": "hum_0005",
+    "defId": "regular",
+    "name": "Roos",
+    "owner": "cmp_rival",
+    "qualifications": [
+     "regular"
+    ],
+    "assignment": {
+     "kind": "business",
+     "id": "biz_0003",
+     "slotId": "server_1"
+    },
+    "status": "working",
+    "location": {
+     "kind": "at",
+     "x": 14,
+     "z": -12,
+     "insideBusinessId": "biz_0003"
+    },
+    "task": null,
+    "salaryCarry": 0
+   },
+   "hum_0006": {
+    "id": "hum_0006",
+    "defId": "regular",
+    "name": "Charlotte",
+    "owner": "cmp_rival",
+    "qualifications": [
+     "regular"
+    ],
+    "assignment": {
+     "kind": "vehicle",
+     "id": "veh_0002",
+     "slotId": "driver_1"
+    },
+    "status": "working",
+    "location": {
+     "kind": "onVehicle",
+     "vehicleId": "veh_0002"
+    },
+    "task": null,
+    "salaryCarry": 0
+   }
+  },
+  "customers": {
+   "cus_0053": {
+    "id": "cus_0053",
+    "pubId": "biz_0002",
+    "seat": 6,
+    "state": "leaving",
+    "stateUntil": 3015,
+    "drinksConsumed": 2,
+    "servedAny": true,
+    "seatedTick": 2395,
+    "currentLot": null
+   },
+   "cus_0054": {
+    "id": "cus_0054",
+    "pubId": "biz_0002",
+    "seat": 0,
+    "state": "drinking",
+    "stateUntil": 3085,
+    "drinksConsumed": 1,
+    "servedAny": true,
+    "seatedTick": 2473,
+    "currentLot": {
+     "recipeId": null,
+     "origin": "start"
+    }
+   },
+   "cus_0060": {
+    "id": "cus_0060",
+    "pubId": "biz_0003",
+    "seat": 2,
+    "state": "drinking",
+    "stateUntil": 3147,
+    "drinksConsumed": 1,
+    "servedAny": true,
+    "seatedTick": 2526,
+    "currentLot": {
+     "recipeId": null,
+     "origin": "start"
+    }
+   },
+   "cus_0061": {
+    "id": "cus_0061",
+    "pubId": "biz_0003",
+    "seat": 8,
+    "state": "waiting",
+    "stateUntil": 2947,
+    "drinksConsumed": 1,
+    "servedAny": true,
+    "seatedTick": 2568,
+    "currentLot": null
+   },
+   "cus_0062": {
+    "id": "cus_0062",
+    "pubId": "biz_0003",
+    "seat": 9,
+    "state": "waiting",
+    "stateUntil": 2987,
+    "drinksConsumed": 1,
+    "servedAny": true,
+    "seatedTick": 2576,
+    "currentLot": null
+   },
+   "cus_0063": {
+    "id": "cus_0063",
+    "pubId": "biz_0003",
+    "seat": 10,
+    "state": "drinking",
+    "stateUntil": 3027,
+    "drinksConsumed": 0,
+    "servedAny": true,
+    "seatedTick": 2580,
+    "currentLot": {
+     "recipeId": null,
+     "origin": "start"
+    }
+   },
+   "cus_0064": {
+    "id": "cus_0064",
+    "pubId": "biz_0003",
+    "seat": 11,
+    "state": "drinking",
+    "stateUntil": 3067,
+    "drinksConsumed": 0,
+    "servedAny": true,
+    "seatedTick": 2605,
+    "currentLot": {
+     "recipeId": null,
+     "origin": "start"
+    }
+   },
+   "cus_0066": {
+    "id": "cus_0066",
+    "pubId": "biz_0002",
+    "seat": 3,
+    "state": "drinking",
+    "stateUntil": 3005,
+    "drinksConsumed": 0,
+    "servedAny": true,
+    "seatedTick": 2642,
+    "currentLot": {
+     "recipeId": null,
+     "origin": "start"
+    }
+   },
+   "cus_0067": {
+    "id": "cus_0067",
+    "pubId": "biz_0003",
+    "seat": 1,
+    "state": "drinking",
+    "stateUntil": 3107,
+    "drinksConsumed": 0,
+    "servedAny": true,
+    "seatedTick": 2689,
+    "currentLot": {
+     "recipeId": null,
+     "origin": "start"
+    }
+   },
+   "cus_0068": {
+    "id": "cus_0068",
+    "pubId": "biz_0002",
+    "seat": 5,
+    "state": "drinking",
+    "stateUntil": 3045,
+    "drinksConsumed": 0,
+    "servedAny": true,
+    "seatedTick": 2734,
+    "currentLot": {
+     "recipeId": null,
+     "origin": "start"
+    }
+   }
+  },
+  "vehicles": {
+   "veh_0001": {
+    "id": "veh_0001",
+    "defId": "delivery_van",
+    "owner": "player",
+    "name": "vehicle.deliveryVan",
+    "cargo": {
+     "beer": {
+      "amount": 0,
+      "lots": []
+     },
+     "hops": {
+      "amount": 0,
+      "lots": []
+     },
+     "malt": {
+      "amount": 0,
+      "lots": []
+     }
+    },
+    "jobSlots": [
+     {
+      "slotId": "driver_1",
+      "jobId": "driver",
+      "filledBy": {
+       "kind": "human",
+       "humanId": "hum_0003"
+      }
+     }
+    ],
+    "driverOnBoard": true,
+    "control": "auto",
+    "routeId": "rte_0001",
+    "routeSuspended": false,
+    "pose": {
+     "x": -11.1,
+     "z": 0,
+     "heading": 0,
+     "speed": 7
+    },
+    "path": {
+     "pts": [
+      [
+       -14,
+       -2
+      ],
+      [
+       -14,
+       0
+      ],
+      [
+       0,
+       0
+      ],
+      [
+       14,
+       0
+      ],
+      [
+       30,
+       0
+      ],
+      [
+       46,
+       0
+      ],
+      [
+       46,
+       2
+      ]
+     ],
+     "seg": 1,
+     "along": 2.900000000000001
+    },
+    "stopIndex": 0,
+    "phase": "driving",
+    "phaseUntil": 2901,
+    "retriedLoad": false
+   },
+   "veh_0002": {
+    "id": "veh_0002",
+    "defId": "delivery_van",
+    "owner": "cmp_rival",
+    "name": "vehicle.deliveryVan",
+    "cargo": {
+     "beer": {
+      "amount": 0,
+      "lots": []
+     },
+     "hops": {
+      "amount": 0,
+      "lots": []
+     },
+     "malt": {
+      "amount": 0,
+      "lots": []
+     }
+    },
+    "jobSlots": [
+     {
+      "slotId": "driver_1",
+      "jobId": "driver",
+      "filledBy": {
+       "kind": "human",
+       "humanId": "hum_0006"
+      }
+     }
+    ],
+    "driverOnBoard": true,
+    "control": "auto",
+    "routeId": "rte_0002",
+    "routeSuspended": false,
+    "pose": {
+     "x": 19.300000000000004,
+     "z": 0,
+     "heading": 0,
+     "speed": 7
+    },
+    "path": {
+     "pts": [
+      [
+       46,
+       2
+      ],
+      [
+       46,
+       0
+      ],
+      [
+       30,
+       0
+      ],
+      [
+       14,
+       0
+      ],
+      [
+       14,
+       -2
+      ]
+     ],
+     "seg": 2,
+     "along": 10.699999999999994
+    },
+    "stopIndex": 1,
+    "phase": "driving",
+    "phaseUntil": 2959,
+    "retriedLoad": false
+   }
+  },
+  "routes": {
+   "rte_0001": {
+    "id": "rte_0001",
+    "vehicleId": "veh_0001",
+    "owner": "player",
+    "stops": [
+     {
+      "businessId": "biz_0001",
+      "action": "pickup",
+      "resources": "all"
+     },
+     {
+      "businessId": "biz_0002",
+      "action": "dropoff",
+      "resources": "all"
+     }
+    ],
+    "waitSeconds": 10
+   },
+   "rte_0002": {
+    "id": "rte_0002",
+    "vehicleId": "veh_0002",
+    "owner": "cmp_rival",
+    "stops": [
+     {
+      "businessId": "biz_0001",
+      "action": "pickup",
+      "resources": "all"
+     },
+     {
+      "businessId": "biz_0003",
+      "action": "dropoff",
+      "resources": "all"
+     }
+    ],
+    "waitSeconds": 10
+   }
+  },
+  "orders": {},
+  "ceo": {
+   "x": -11,
+   "z": -4,
+   "heading": 0,
+   "insideBusinessId": null,
+   "drivingVehicleId": null
+  },
+  "scheduler": [],
+  "schedulerSeq": 0,
+  "metrics": {
+   "pubs": {
+    "biz_0002": {
+     "arrivals": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       123,
+       184,
+       -1,
+       -1,
+       247,
+       248,
+       249,
+       -1,
+       -1,
+       132,
+       -1,
+       -1,
+       -1,
+       16,
+       -1,
+       -1,
+       -1,
+       20,
+       261,
+       -1,
+       -1,
+       264,
+       -1,
+       -1,
+       87,
+       -1,
+       -1,
+       210,
+       -1,
+       152,
+       273,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       159,
+       -1,
+       221,
+       222,
+       -1,
+       -1,
+       165,
+       46,
+       227,
+       -1,
+       229,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       116,
+       -1,
+       -1,
+       239
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       1,
+       1,
+       0,
+       0,
+       1,
+       1,
+       2,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       2,
+       0,
+       0,
+       0,
+       1,
+       1,
+       0,
+       0,
+       1,
+       0,
+       0,
+       1,
+       0,
+       0,
+       1,
+       0,
+       1,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       1,
+       1,
+       0,
+       0,
+       1,
+       1,
+       1,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       1
+      ]
+     },
+     "lostNoSeat": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "lostOutOfBeer": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "lostPatience": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "waitSum": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       242,
+       -1,
+       -1,
+       125,
+       -1,
+       -1,
+       248,
+       129,
+       -1,
+       -1,
+       -1,
+       193,
+       -1,
+       -1,
+       -1,
+       -1,
+       258,
+       -1,
+       -1,
+       201,
+       262,
+       -1,
+       -1,
+       25,
+       266,
+       -1,
+       -1,
+       29,
+       270,
+       -1,
+       -1,
+       93,
+       274,
+       -1,
+       -1,
+       97,
+       -1,
+       219,
+       -1,
+       -1,
+       282,
+       -1,
+       -1,
+       -1,
+       286,
+       -1,
+       -1,
+       -1,
+       230,
+       -1,
+       -1,
+       -1,
+       234,
+       -1,
+       116,
+       57,
+       238,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       12.7,
+       0,
+       0,
+       9.8,
+       0,
+       0,
+       9.1,
+       10.5,
+       0,
+       0,
+       0,
+       9.1,
+       0,
+       0,
+       0,
+       0,
+       11.2,
+       0,
+       0,
+       14.5,
+       14.2,
+       0,
+       0,
+       9.1,
+       17,
+       0,
+       0,
+       12.9,
+       20.7,
+       0,
+       0,
+       9.1,
+       13.3,
+       0,
+       0,
+       10.6,
+       0,
+       9.1,
+       0,
+       0,
+       18.3,
+       0,
+       0,
+       0,
+       13.1,
+       0,
+       0,
+       0,
+       9.1,
+       0,
+       0,
+       0,
+       12.1,
+       0,
+       9.1,
+       10.8,
+       11.1,
+       0
+      ]
+     },
+     "waitCount": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       242,
+       -1,
+       -1,
+       125,
+       -1,
+       -1,
+       248,
+       129,
+       -1,
+       -1,
+       -1,
+       193,
+       -1,
+       -1,
+       -1,
+       -1,
+       258,
+       -1,
+       -1,
+       201,
+       262,
+       -1,
+       -1,
+       25,
+       266,
+       -1,
+       -1,
+       29,
+       270,
+       -1,
+       -1,
+       93,
+       274,
+       -1,
+       -1,
+       97,
+       -1,
+       219,
+       -1,
+       -1,
+       282,
+       -1,
+       -1,
+       -1,
+       286,
+       -1,
+       -1,
+       -1,
+       230,
+       -1,
+       -1,
+       -1,
+       234,
+       -1,
+       116,
+       57,
+       238,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       1,
+       0,
+       0,
+       1,
+       0,
+       0,
+       1,
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       1,
+       1,
+       0,
+       0,
+       1,
+       1,
+       0,
+       0,
+       1,
+       1,
+       0,
+       0,
+       1,
+       1,
+       0,
+       0,
+       1,
+       0,
+       1,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       1,
+       1,
+       1,
+       0
+      ]
+     },
+     "staff": {
+      "size": 60,
+      "secs": [
+       300,
+       241,
+       242,
+       243,
+       244,
+       245,
+       246,
+       247,
+       248,
+       249,
+       250,
+       251,
+       252,
+       253,
+       254,
+       255,
+       256,
+       257,
+       258,
+       259,
+       260,
+       261,
+       262,
+       263,
+       264,
+       265,
+       266,
+       267,
+       268,
+       269,
+       270,
+       271,
+       272,
+       273,
+       274,
+       275,
+       276,
+       277,
+       278,
+       279,
+       280,
+       281,
+       282,
+       283,
+       284,
+       285,
+       286,
+       287,
+       288,
+       289,
+       290,
+       291,
+       292,
+       293,
+       294,
+       295,
+       296,
+       297,
+       298,
+       299
+      ],
+      "values": [
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2
+      ]
+     }
+    },
+    "biz_0003": {
+     "arrivals": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       -1,
+       4,
+       -1,
+       -1,
+       -1,
+       68,
+       249,
+       250,
+       11,
+       252,
+       -1,
+       -1,
+       -1,
+       256,
+       257,
+       258,
+       139,
+       260,
+       141,
+       82,
+       263,
+       -1,
+       205,
+       146,
+       -1,
+       268,
+       -1,
+       30,
+       211,
+       -1,
+       -1,
+       -1,
+       155,
+       -1,
+       217,
+       98,
+       -1,
+       100,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       228,
+       -1,
+       110,
+       231,
+       -1,
+       173,
+       234,
+       -1,
+       116,
+       -1,
+       -1,
+       239
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1,
+       1,
+       1,
+       1,
+       1,
+       0,
+       0,
+       0,
+       1,
+       1,
+       1,
+       1,
+       1,
+       2,
+       1,
+       1,
+       0,
+       1,
+       1,
+       0,
+       1,
+       0,
+       1,
+       1,
+       0,
+       0,
+       0,
+       2,
+       0,
+       1,
+       1,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       2,
+       1,
+       0,
+       1,
+       1,
+       0,
+       1,
+       0,
+       0,
+       1
+      ]
+     },
+     "lostNoSeat": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       263,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "lostOutOfBeer": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "lostPatience": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "waitSum": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       242,
+       183,
+       -1,
+       -1,
+       246,
+       127,
+       188,
+       -1,
+       250,
+       -1,
+       -1,
+       13,
+       -1,
+       -1,
+       -1,
+       77,
+       258,
+       -1,
+       20,
+       81,
+       262,
+       -1,
+       -1,
+       85,
+       146,
+       -1,
+       -1,
+       209,
+       270,
+       91,
+       -1,
+       -1,
+       214,
+       -1,
+       -1,
+       -1,
+       278,
+       39,
+       220,
+       -1,
+       282,
+       -1,
+       -1,
+       -1,
+       286,
+       -1,
+       -1,
+       -1,
+       290,
+       111,
+       -1,
+       -1,
+       294,
+       115,
+       -1,
+       -1,
+       238,
+       119
+      ],
+      "values": [
+       0,
+       0,
+       11.5,
+       9.1,
+       0,
+       0,
+       12,
+       11.1,
+       9.1,
+       0,
+       11.3,
+       0,
+       0,
+       9.1,
+       0,
+       0,
+       0,
+       9.1,
+       9.1,
+       0,
+       9.1,
+       11.5,
+       12,
+       0,
+       0,
+       13.4,
+       9.1,
+       0,
+       0,
+       9.1,
+       18.1,
+       9.1,
+       0,
+       0,
+       9.1,
+       0,
+       0,
+       0,
+       21.9,
+       9.1,
+       9.1,
+       0,
+       25.1,
+       0,
+       0,
+       0,
+       28.7,
+       0,
+       0,
+       0,
+       30.2,
+       12.6,
+       0,
+       0,
+       25.8,
+       15.1,
+       0,
+       0,
+       9.7,
+       9.2
+      ]
+     },
+     "waitCount": {
+      "size": 60,
+      "secs": [
+       -1,
+       -1,
+       242,
+       183,
+       -1,
+       -1,
+       246,
+       127,
+       188,
+       -1,
+       250,
+       -1,
+       -1,
+       13,
+       -1,
+       -1,
+       -1,
+       77,
+       258,
+       -1,
+       20,
+       81,
+       262,
+       -1,
+       -1,
+       85,
+       146,
+       -1,
+       -1,
+       209,
+       270,
+       91,
+       -1,
+       -1,
+       214,
+       -1,
+       -1,
+       -1,
+       278,
+       39,
+       220,
+       -1,
+       282,
+       -1,
+       -1,
+       -1,
+       286,
+       -1,
+       -1,
+       -1,
+       290,
+       111,
+       -1,
+       -1,
+       294,
+       115,
+       -1,
+       -1,
+       238,
+       119
+      ],
+      "values": [
+       0,
+       0,
+       1,
+       1,
+       0,
+       0,
+       1,
+       1,
+       1,
+       0,
+       1,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1,
+       1,
+       0,
+       1,
+       1,
+       1,
+       0,
+       0,
+       1,
+       1,
+       0,
+       0,
+       1,
+       1,
+       1,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1,
+       1,
+       1,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1,
+       1,
+       0,
+       0,
+       1,
+       1,
+       0,
+       0,
+       1,
+       1
+      ]
+     },
+     "staff": {
+      "size": 60,
+      "secs": [
+       300,
+       241,
+       242,
+       243,
+       244,
+       245,
+       246,
+       247,
+       248,
+       249,
+       250,
+       251,
+       252,
+       253,
+       254,
+       255,
+       256,
+       257,
+       258,
+       259,
+       260,
+       261,
+       262,
+       263,
+       264,
+       265,
+       266,
+       267,
+       268,
+       269,
+       270,
+       271,
+       272,
+       273,
+       274,
+       275,
+       276,
+       277,
+       278,
+       279,
+       280,
+       281,
+       282,
+       283,
+       284,
+       285,
+       286,
+       287,
+       288,
+       289,
+       290,
+       291,
+       292,
+       293,
+       294,
+       295,
+       296,
+       297,
+       298,
+       299
+      ],
+      "values": [
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2
+      ]
+     }
+    }
+   },
+   "vehicles": {
+    "veh_0001": {
+     "deliveries": {
+      "size": 300,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       21,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       244,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       268,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "delivered": {
+      "size": 300,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       21,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       244,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       268,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       30,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       40,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       21,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    "veh_0002": {
+     "deliveries": {
+      "size": 300,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       125,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       143,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       158,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ]
+     },
+     "delivered": {
+      "size": 300,
+      "secs": [
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       125,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       143,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       158,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1,
+       -1
+      ],
+      "values": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       40,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       40,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ]
+     }
+    }
+   },
+   "routesBottleneck": {}
+  },
+  "finance": {
+   "buckets": [
+    {
+     "second": 1,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 2,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 3,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 4,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 5,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 6,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 7,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 8,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 9,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 10,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 11,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 12,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 13,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 14,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 15,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 16,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 17,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 18,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 19,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 20,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 21,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 22,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 23,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 24,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 25,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 26,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 27,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 28,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 29,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 30,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 31,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 32,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 33,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 34,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 35,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 36,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 37,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 38,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 39,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 40,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 41,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 42,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 43,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 44,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 45,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 46,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 47,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 48,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 49,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 50,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 51,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 52,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 53,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 54,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 55,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 56,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 57,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 58,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 59,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 60,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 61,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 62,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 63,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 64,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 65,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 66,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 67,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 68,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 69,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 1000
+     }
+    },
+    {
+     "second": 70,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 71,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 72,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 73,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 1000
+     }
+    },
+    {
+     "second": 74,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 75,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 76,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 77,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 78,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 79,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 80,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 81,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 82,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 83,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 84,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 85,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 86,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 87,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 88,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 89,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 90,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 91,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 92,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 93,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 94,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 95,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 96,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 97,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 98,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 99,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 100,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 101,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 102,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 103,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 104,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 105,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 106,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 107,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 108,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 109,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 110,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 111,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 112,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 113,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 114,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 115,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 116,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 117,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 118,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 119,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 120,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 121,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 122,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 123,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 124,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 125,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9,
+      "sales|biz_0002": 1500
+     }
+    },
+    {
+     "second": 126,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 127,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 128,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 129,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 130,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 131,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 132,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 133,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 134,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 135,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 136,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 137,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 138,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 139,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 140,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 141,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 1000
+     }
+    },
+    {
+     "second": 142,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 143,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 144,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 145,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 146,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 147,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 148,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 149,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 150,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 151,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 152,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 153,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 154,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 155,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 156,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 157,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 158,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 159,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 160,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 161,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 162,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 163,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 164,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 165,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 166,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 167,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 168,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 169,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 170,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 171,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 172,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 173,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 174,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 175,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 176,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 177,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 1000
+     }
+    },
+    {
+     "second": 178,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 179,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 180,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 181,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 182,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 183,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 184,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 185,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 186,
+     "byKey": {
+      "sales|biz_0002": 1000,
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 187,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 188,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 189,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 190,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 191,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 192,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 193,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 194,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 195,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 196,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 197,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 198,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 199,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 200,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 201,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 202,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 203,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 204,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 205,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 206,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9,
+      "sales|biz_0002": 1000
+     }
+    },
+    {
+     "second": 207,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 208,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 209,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 210,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 211,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 212,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 213,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 214,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 215,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 216,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 217,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 1000
+     }
+    },
+    {
+     "second": 218,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 219,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 220,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 221,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 222,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 223,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 224,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 225,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 1000
+     }
+    },
+    {
+     "second": 226,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 227,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 228,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "purchase|biz_0002": -15860
+     }
+    },
+    {
+     "second": 229,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 230,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 231,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 232,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 233,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 234,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 235,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 236,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 237,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 238,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 239,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 240,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 241,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 242,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 243,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 244,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 245,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 246,
+     "byKey": {
+      "sales|biz_0002": 1000,
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 247,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 248,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 249,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 250,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 251,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 252,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 253,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 254,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 255,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 256,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 257,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 258,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 259,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 260,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 261,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 262,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 263,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 264,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 265,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 266,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 267,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 268,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 269,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 270,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 271,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 272,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 273,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 274,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 1000
+     }
+    },
+    {
+     "second": 275,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 276,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 277,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 278,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 279,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 280,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 281,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 282,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 283,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 284,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 285,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 286,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 287,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 288,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 289,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 290,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 291,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 292,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 293,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 294,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 500
+     }
+    },
+    {
+     "second": 295,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 296,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 297,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8
+     }
+    },
+    {
+     "second": 298,
+     "byKey": {
+      "salary|hum_0001": -8,
+      "salary|hum_0002": -8,
+      "salary|hum_0003": -8,
+      "sales|biz_0002": 1000
+     }
+    },
+    {
+     "second": 299,
+     "byKey": {
+      "salary|hum_0001": -9,
+      "salary|hum_0002": -9,
+      "salary|hum_0003": -9
+     }
+    },
+    {
+     "second": 300,
+     "byKey": {
+      "salary|hum_0001": -1,
+      "salary|hum_0002": -1,
+      "salary|hum_0003": -1
+     }
+    }
+   ]
+  },
+  "resourceTotals": {
+   "beer": 227,
+   "hops": 0,
+   "malt": 0
+  },
+  "alerts": {},
+  "reveals": {
+   "fired": []
+  },
+  "achievements": [],
+  "news": [],
+  "market": {
+   "prices": {
+    "beer": {
+     "buy": 250,
+     "sell": 230,
+     "history": []
+    },
+    "hops": {
+     "buy": 115,
+     "sell": 105,
+     "history": []
+    },
+    "malt": {
+     "buy": 95,
+     "sell": 85,
+     "history": []
+    }
+   },
+   "nextUpdateTick": 300
+  },
+  "acquisitions": {
+   "offers": {},
+   "nextOfferTick": 1800
+  },
+  "questionable": {
+   "offers": {},
+   "running": {},
+   "nextRefreshTick": 1200
+  },
+  "chains": {
+   "edges": {},
+   "registered": {},
+   "synergyCarry": 0
+  },
+  "boosts": [],
+  "reputationPending": []
+ }
+}

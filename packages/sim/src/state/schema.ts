@@ -56,13 +56,25 @@ export const pubRuntimeSchema = z.object({
       customerId: id,
       placedTick: nonNegInt,
       poured: z.boolean(),
+      /** A Bar_Worker has taken this order (task 42.3). Absent on orders from before Phase 3. */
+      taken: z.boolean().optional(),
       lot: z.object({ recipeId: id.nullable(), origin: lotOriginSchema }).optional(),
     }),
   ),
   bar: z.array(z.object({ customerId: id, recipeId: id.nullable(), origin: lotOriginSchema })),
   arrivalAcc: finite,
-  /** Phase 3 (task 43.2) opens and closes the Pub. Absent = open. */
-  open: z.boolean().optional(),
+  /** Opens and closes the Pub (task 43.2). Closed stops arrivals; seated Customers finish. */
+  open: z.boolean(),
+  // ---- Phase 3 pub runtime (schema v4; tasks 43 and 44 give the fields their behaviour) ----
+  /** Seats and Taps the fit-out has built so far (task 48.3). */
+  seatsBuilt: nonNegInt,
+  tapsBuilt: nonNegInt,
+  /** Vibe the fit-out decorations give before Modifiers (task 44.2). */
+  vibeBase: int,
+  /** Worker pace id (task 43.2); maps to workSpeed Modifiers from data. */
+  pace: id,
+  /** Tab income lost to Walkouts (task 44.2). */
+  lostIncome: goldSchema,
 });
 
 /** One production rule's runtime (Phase 2). `missing` holds `input:<res>` / `workers:<job>` / `output:<res>`. */
@@ -126,6 +138,13 @@ export const customerSchema = z.object({
   currentLot: z.object({ recipeId: id.nullable(), origin: lotOriginSchema }).nullable(),
   /** Sum over finished drinks of (price stat - 10000) in basis points; omitted while 0 (Phase 1 behaviour). */
   priceBpExtra: int.optional(),
+  // ---- Phase 3 (schema v4; tasks 44.1 and 44.2) ----
+  /** Gold of the drinks served so far; paid when the Customer leaves, lost on a Walkout. */
+  tab: goldSchema,
+  /** Customer type id from customerTypes data; absent = the default type. */
+  typeId: id.optional(),
+  /** The Customer waited longer than the limit once (task 44.2). */
+  waitedLong: z.boolean(),
 });
 
 export const vehicleSchema = z.object({
@@ -306,7 +325,26 @@ export const modifierSchema = z.object({
   untilTick: nonNegInt.optional(),
 });
 // Minimal shapes of Phase 3 records that Conditions read (tasks 41.3, 46.1, 48.1 extend them).
-export const loanSchema = z.object({ id, remaining: goldSchema });
+/** A running Loan (Requirement 63). emaining counts the principal plus interest still to repay; carry is the exact per-Tick remainder. */
+export const loanSchema = z.object({
+  id,
+  offerId: id,
+  principal: goldSchema,
+  remaining: goldSchema,
+  repaymentPerMinute: goldSchema,
+  carry: finite,
+  startTick: nonNegInt,
+});
+/** A municipality or bank request waiting for its deadline (Requirement 68). */
+export const requestSchema = z.object({ id, defId: id, businessId: id, expiresTick: nonNegInt });
+/** The signed Supplier deal (Requirement 65). Prices are per Keg; the unit of account stays the drink. */
+export const supplyDealStateSchema = z.object({
+  dealId: id,
+  kegDrinks: int.positive(),
+  pricePerKeg: goldSchema,
+  contractFeePerMinute: goldSchema,
+  feeCarry: finite,
+});
 export const questProgressSchema = z.object({ stepsDone: z.array(id) });
 export const reputationPendingSchema = z.object({ delta: int, causeKey: z.string() });
 
@@ -330,8 +368,12 @@ export const simStateSchema = z.object({
     corporateResources: z.record(z.string(), finite),
     availableBrands: z.array(id),
     recipes: z.array(id),
-    /** Phase 3 (task 48.2): the active license tier, or absent/null. */
-    license: id.nullable().optional(),
+    /** Active License_Tier id (task 48.2), or null. While null the Pub has 0 Seats (62.6). */
+    license: id.nullable(),
+    /** Signed keg deal (task 48.4), or null. */
+    supplyDeal: supplyDealStateSchema.nullable(),
+    /** Fit-out budget from the Loan; not Gold, it can only be spent on the fit-out (64.3). */
+    fitOutBudget: goldSchema,
   }),
   competitors: z.record(
     z.string(),
@@ -375,4 +417,6 @@ export const simStateSchema = z.object({
   servicesUsed: z.record(z.string(), nonNegInt).optional(),
   loans: z.array(loanSchema).optional(),
   quests: z.record(z.string(), questProgressSchema).optional(),
+  /** Open municipality and bank requests (task 51.1), by id. */
+  requests: z.record(z.string(), requestSchema).optional(),
 });

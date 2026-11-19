@@ -1,0 +1,4 @@
+[
+  { "id": "regular", "nameKey": "customerType.regular", "weight": 80 },
+  { "id": "night_owl", "nameKey": "customerType.nightOwl", "weight": 20 }
+]

@@ -3,6 +3,7 @@
 import { CURRENT_SCHEMA_VERSION } from '../saveDocument';
 import { v1ToV2 } from './v1_to_v2';
 import { v2ToV3 } from './v2_to_v3';
+import { v3ToV4 } from './v3_to_v4';
 
 export interface Migration {
   from: number;
@@ -12,7 +13,7 @@ export interface Migration {
 }
 
 /** Ordered steps. Add a new file per version and bump CURRENT_SCHEMA_VERSION together with it. */
-export const MIGRATIONS: readonly Migration[] = [v1ToV2, v2ToV3];
+export const MIGRATIONS: readonly Migration[] = [v1ToV2, v2ToV3, v3ToV4];
 
 export type MigrationResult =
   | { ok: true; doc: Record<string, unknown>; applied: string[] }

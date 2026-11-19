@@ -1296,8 +1296,9 @@ interface FinanceState { minutes: { minute: number; byKey: Record<string, Gold> 
 |---|---|---|
 | v1 | Phase 1 | Built. |
 | v2 | Phase 6 foundation step | Built. Market, acquisitions, questionable, chains, boosts, reputationPending, sourcing defaults, depot Plot and Business. |
-| v3 | Start of Phase 3 | One migration for everything Phases 2 and 3 need (below). |
-| v4 | Phase 4 | Gold minute buckets keyed by category and Business (Requirement 70), with its own v3 → v4 step. |
+| v3 | Bank app (savings account) | Built. `player.savings`. Took the number the first plan gave to Phase 3. |
+| v4 | Start of Phase 3 | One migration for everything Phases 2 and 3 need (below; the text below still says v3, read v4). Skeleton built in task 41.3, completed in 52.1. |
+| v5 | Phase 4 | Gold minute buckets keyed by category and Business (Requirement 70), with its own v4 → v5 step. |
 
 Rule: once v3 saves can exist, the v2 → v3 step is never edited again. Every later state change gets its own version and step (59.7).
 
