@@ -21,7 +21,7 @@ export function newGame(reg: DefinitionRegistry, seed: number): SimState {
     rng: seedRng(seed),
     idCounters: {},
     districts: Object.fromEntries(Object.entries(start.districts).map(([k, v]) => [k, { unlocked: v.unlocked }])),
-    player: { gold: start.gold, reputation: start.reputation, corporateResources: {}, availableBrands: [], recipes: [] },
+    player: { gold: start.gold, savings: 0, reputation: start.reputation, corporateResources: {}, availableBrands: [], recipes: [] },
     competitors: Object.fromEntries(start.competitors.map((c) => [c.id, { id: c.id, nameKey: c.nameKey, colorToken: c.colorToken }])),
     plots: {},
     businesses: {},

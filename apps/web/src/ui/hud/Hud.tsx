@@ -112,14 +112,14 @@ export function Hud() {
 
   const rows = alertRows(alerts);
   const installed = useInstalledApps();
-  const hasLedgr = installed.some((a) => a.id === 'ledgr');
+  const moneyApp = installed.find((a) => a.id === 'ledgr') ?? installed.find((a) => a.id === 'bank');
   const goldClass = `gold ${gold < 0 ? 'debt' : ''}`;
   return (
     <div className="hud">
       <div className="hud-top-left">
-        {/* Money pill opens Ledgr once it is installed (7.4). */}
-        {hasLedgr ? (
-          <button type="button" className={goldClass} onClick={() => openPhoneAppIfInstalled('ledgr')}>
+        {/* Money pill opens Ledgr once it is installed (7.4), else the bank app. */}
+        {moneyApp ? (
+          <button type="button" className={goldClass} onClick={() => openPhoneAppIfInstalled(moneyApp.id)}>
             {t('hud.gold', { amount: goldToWholeFloor(gold).toLocaleString() })}
           </button>
         ) : (

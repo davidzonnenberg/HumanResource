@@ -23,6 +23,7 @@ function phase1Projection(state: SimState): SimState {
     }
     Reflect.deleteProperty(b, 'recipes');
   }
+  Reflect.deleteProperty(s.player, 'savings'); // added by the v3 bank app
   for (const v of Object.values(s.vehicles)) {
     Reflect.deleteProperty(v.cargo, 'hops');
     Reflect.deleteProperty(v.cargo, 'malt');

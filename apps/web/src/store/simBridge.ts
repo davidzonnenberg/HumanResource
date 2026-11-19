@@ -91,6 +91,7 @@ export function publish(force: boolean): void {
   const revealed = s.reveals.fired.flatMap((id) => loop.sim.reg.revealTriggers[id]?.reveals ?? []);
   const patch: Parameters<typeof hud.set>[0] = {};
   if (hud.gold !== s.player.gold) patch.gold = s.player.gold;
+  if (hud.savings !== s.player.savings) patch.savings = s.player.savings;
   if (changedAlerts) patch.alerts = alerts.map((a) => (a.variant !== undefined ? { key: a.key, type: a.type, objectId: a.objectId, variant: a.variant } : { key: a.key, type: a.type, objectId: a.objectId }));
   if (caChanged) patch.contextAction = ca;
   if (revealed.length !== hud.revealed.length) patch.revealed = revealed;

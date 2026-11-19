@@ -67,6 +67,8 @@ export function checkGoldLimit(state: SimState): InvariantViolation[] {
     if (!Number.isInteger(g) || Math.abs(g) > GOLD_LIMIT) out.push({ code: 'gold_limit_exceeded', path, message: `Gold value ${g} outside ±2^50 hundredths` });
   };
   check('player.gold', state.player.gold);
+  check('player.savings', state.player.savings);
+  if (state.player.savings < 0) out.push({ code: 'savings_negative', path: 'player.savings', message: 'savings below zero' });
   for (const b of Object.values(state.businesses)) if (b.pub) check(`businesses.${b.id}.pub.drinkPrice`, b.pub.drinkPrice);
   state.finance.buckets.forEach((bk, i) => {
     for (const [k, g] of Object.entries(bk.byKey)) check(`finance.buckets.${i}.byKey.${k}`, g);

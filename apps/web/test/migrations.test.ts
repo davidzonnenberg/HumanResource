@@ -18,8 +18,8 @@ const dir = join(__dirname, '..', '..', '..', 'packages', 'shared', 'test', 'fix
 const fixture = (name: string): Record<string, unknown> => JSON.parse(readFileSync(join(dir, `${name}.json`), 'utf8')) as Record<string, unknown>;
 
 describe('v1 -> v2 migration', () => {
-  it('current schema version is 2', () => {
-    expect(CURRENT_SCHEMA_VERSION).toBe(2);
+  it('current schema version is 3', () => {
+    expect(CURRENT_SCHEMA_VERSION).toBe(3);
   });
 
   for (const name of ['new-game', 'played', 'in-debt']) {
@@ -27,7 +27,7 @@ describe('v1 -> v2 migration', () => {
       const old = fixture(name);
       expect(old.schemaVersion).toBe(1);
       const m = migrate(old);
-      expect(m).toMatchObject({ ok: true, applied: ['v1_to_v2_phase2_sections'] });
+      expect(m).toMatchObject({ ok: true, applied: ['v1_to_v2_phase2_sections', 'v2_to_v3_savings'] });
       expect(old.schemaVersion).toBe(1); // input untouched
 
       const res = deserialize(JSON.parse(JSON.stringify(old)), reg);
@@ -35,7 +35,8 @@ describe('v1 -> v2 migration', () => {
       if (!res.ok) return;
       expect(res.migrated).toBe(true);
       const state: SimState = res.doc.state;
-      expect(res.doc.schemaVersion).toBe(2);
+      expect(res.doc.schemaVersion).toBe(3);
+      expect(state.player.savings).toBe(0);
       expect(checkInvariants(state, reg)).toEqual([]);
 
       // Phase 2 sections and the Market_Depot exist

@@ -294,6 +294,8 @@ export const simStateSchema = z.object({
   districts: z.record(z.string(), z.object({ unlocked: z.boolean() })),
   player: z.object({
     gold: goldSchema,
+    /** Direct Sparen at the bank app. Part of the player's money but not spendable until moved back. */
+    savings: goldSchema,
     reputation: int.min(0).max(100),
     corporateResources: z.record(z.string(), finite),
     availableBrands: z.array(id),

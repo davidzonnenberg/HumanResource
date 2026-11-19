@@ -1,0 +1,896 @@
+{
+  "house_canal_bell": {
+    "style": "dutch_row",
+    "archetype": "merchant",
+    "district": "old_town",
+    "width": 4.4,
+    "depth": 6,
+    "bays": 3,
+    "groundFloorHeight": 2.8,
+    "floorHeights": [
+      2.6
+    ],
+    "facade": "brick",
+    "corners": "none",
+    "taper": 0.02,
+    "corniceOverhang": 0.2,
+    "bodyRadius": 0.12,
+    "gable": {
+      "kind": "bell",
+      "height": 3.4,
+      "rim": true,
+      "finials": true,
+      "window": true,
+      "hoistBeam": false,
+      "ornaments": false
+    },
+    "ground": {
+      "kind": "door",
+      "steps": 2,
+      "doorArch": false,
+      "awning": false,
+      "sign": false
+    },
+    "windows": {
+      "upperBays": 2,
+      "style": "cross",
+      "arch": "none",
+      "flowerBoxes": 0.8,
+      "shutters": false
+    },
+    "roof": {
+      "tiles": true,
+      "dormers": false
+    },
+    "focal": "gableStone",
+    "identity": "none",
+    "signText": null,
+    "props": {
+      "ivy": false,
+      "bike": true,
+      "flatTyreBike": false,
+      "wallAnchors": true,
+      "kliko": false,
+      "gardenStrip": false,
+      "doormat": true,
+      "parcel": false,
+      "laundry": false,
+      "satellite": false,
+      "kingsFlag": false,
+      "xmasLights": false,
+      "birdNest": false,
+      "pigeon": false,
+      "posters": false,
+      "mattress": false,
+      "teKoop": false,
+      "weeds": false,
+      "neeNee": false,
+      "yearStone": true,
+      "synergyPlate": false,
+      "linkedInBanner": false,
+      "solarPanels": false
+    },
+    "windowLife": {
+      "share": 0.4,
+      "kinds": [
+        "plant",
+        "cat",
+        "lace"
+      ]
+    },
+    "boarded": 0,
+    "weathering": 0.3,
+    "sideWindows": true,
+    "chimney": false,
+    "drainpipe": true,
+    "apron": false,
+    "imperfection": 0.6,
+    "colours": {
+      "brick": "#7a3a2c",
+      "band": "#f0d9ae",
+      "trim": "#f4e3c1",
+      "ledge": "#6b5d5f",
+      "roof": "#5d6170",
+      "glass": "#33557e",
+      "lit": "#ffcf70",
+      "door": "#6b3f2a",
+      "accent": "owner"
+    },
+    "litFraction": 0.5,
+    "seed": 1,
+    "extras": []
+  },
+  "pub_cosy_local": {
+    "style": "dutch_row",
+    "archetype": "pub",
+    "district": "old_town",
+    "width": 5.2,
+    "depth": 7,
+    "bays": 3,
+    "groundFloorHeight": 2.8,
+    "floorHeights": [
+      2.6,
+      2.4
+    ],
+    "facade": "brick",
+    "corners": "quoins",
+    "taper": 0.03,
+    "corniceOverhang": 0.25,
+    "bodyRadius": 0.12,
+    "gable": {
+      "kind": "step",
+      "height": 3.2,
+      "rim": true,
+      "finials": false,
+      "window": true,
+      "hoistBeam": true,
+      "ornaments": false
+    },
+    "ground": {
+      "kind": "pub",
+      "steps": 0,
+      "doorArch": false,
+      "awning": true,
+      "sign": true
+    },
+    "windows": {
+      "style": "grid",
+      "arch": "segment",
+      "flowerBoxes": 0.7,
+      "shutters": true
+    },
+    "roof": {
+      "tiles": true,
+      "dormers": false
+    },
+    "focal": "none",
+    "identity": "pub",
+    "signText": "COSY LOCAL",
+    "props": {
+      "ivy": true,
+      "bike": true,
+      "flatTyreBike": false,
+      "wallAnchors": true,
+      "kliko": false,
+      "gardenStrip": false,
+      "doormat": false,
+      "parcel": false,
+      "laundry": false,
+      "satellite": false,
+      "kingsFlag": false,
+      "xmasLights": false,
+      "birdNest": true,
+      "pigeon": true,
+      "posters": false,
+      "mattress": false,
+      "teKoop": false,
+      "weeds": false,
+      "neeNee": false,
+      "yearStone": false,
+      "synergyPlate": false,
+      "linkedInBanner": false,
+      "solarPanels": false
+    },
+    "windowLife": {
+      "share": 0.5,
+      "kinds": [
+        "lamp",
+        "plant",
+        "person"
+      ]
+    },
+    "boarded": 0,
+    "weathering": 0.35,
+    "sideWindows": true,
+    "chimney": true,
+    "drainpipe": true,
+    "apron": true,
+    "imperfection": 0.7,
+    "colours": {
+      "brick": "#9c4a32",
+      "band": "#f0d9ae",
+      "trim": "#f4e3c1",
+      "ledge": "#6b5d5f",
+      "roof": "#5d6170",
+      "glass": "#33557e",
+      "lit": "#ffcf70",
+      "door": "#6b3f2a",
+      "accent": "owner"
+    },
+    "litFraction": 0.8,
+    "seed": 11,
+    "extras": []
+  },
+  "pub_sports": {
+    "style": "dutch_row",
+    "archetype": "sports_fan",
+    "district": "old_town",
+    "width": 5.8,
+    "depth": 7,
+    "bays": 4,
+    "groundFloorHeight": 2.8,
+    "floorHeights": [
+      2.6
+    ],
+    "facade": "plaster",
+    "corners": "pilaster",
+    "taper": 0.02,
+    "corniceOverhang": 0.2,
+    "bodyRadius": 0.18,
+    "gable": {
+      "kind": "neck",
+      "height": 3,
+      "rim": true,
+      "finials": true,
+      "window": true,
+      "hoistBeam": false,
+      "ornaments": true
+    },
+    "ground": {
+      "kind": "pub",
+      "steps": 0,
+      "doorArch": false,
+      "awning": true,
+      "sign": true
+    },
+    "windows": {
+      "style": "cross",
+      "arch": "none",
+      "flowerBoxes": 0,
+      "shutters": false
+    },
+    "roof": {
+      "tiles": true,
+      "dormers": false
+    },
+    "focal": "none",
+    "identity": "pub",
+    "signText": "SPORTCAFÉ",
+    "props": {
+      "ivy": false,
+      "bike": false,
+      "flatTyreBike": false,
+      "wallAnchors": false,
+      "kliko": false,
+      "gardenStrip": false,
+      "doormat": false,
+      "parcel": false,
+      "laundry": false,
+      "satellite": true,
+      "kingsFlag": true,
+      "xmasLights": false,
+      "birdNest": false,
+      "pigeon": false,
+      "posters": true,
+      "mattress": false,
+      "teKoop": false,
+      "weeds": false,
+      "neeNee": false,
+      "yearStone": false,
+      "synergyPlate": false,
+      "linkedInBanner": false,
+      "solarPanels": false
+    },
+    "windowLife": {
+      "share": 0.5,
+      "kinds": [
+        "scarf",
+        "person"
+      ]
+    },
+    "boarded": 0,
+    "weathering": 0.3,
+    "sideWindows": true,
+    "chimney": false,
+    "drainpipe": true,
+    "apron": true,
+    "imperfection": 0.45,
+    "colours": {
+      "brick": "#f2e3c6",
+      "band": "#f0d9ae",
+      "trim": "#ffffff",
+      "ledge": "#6b5d5f",
+      "roof": "#5d6170",
+      "glass": "#33557e",
+      "lit": "#ffcf70",
+      "door": "#6b3f2a",
+      "accent": "#2f6fa8"
+    },
+    "litFraction": 0.5,
+    "seed": 12,
+    "extras": []
+  },
+  "municipality": {
+    "style": "dutch_row",
+    "archetype": "grand",
+    "district": "centre",
+    "width": 9,
+    "depth": 8,
+    "bays": 3,
+    "groundFloorHeight": 3.4,
+    "floorHeights": [
+      3.2
+    ],
+    "facade": "brick",
+    "corners": "quoins",
+    "taper": 0,
+    "corniceOverhang": 0.35,
+    "bodyRadius": 0.1,
+    "gable": {
+      "kind": "step",
+      "height": 4.6,
+      "rim": true,
+      "finials": false,
+      "window": true,
+      "hoistBeam": false,
+      "ornaments": true
+    },
+    "ground": {
+      "kind": "door",
+      "steps": 3,
+      "doorArch": true,
+      "awning": false,
+      "sign": false
+    },
+    "windows": {
+      "upperBays": 3,
+      "style": "grid",
+      "arch": "round",
+      "flowerBoxes": 0,
+      "shutters": false
+    },
+    "roof": {
+      "tiles": true,
+      "dormers": true
+    },
+    "focal": "none",
+    "identity": "municipality",
+    "signText": "GEMEENTE",
+    "props": {
+      "ivy": false,
+      "bike": false,
+      "flatTyreBike": false,
+      "wallAnchors": false,
+      "kliko": false,
+      "gardenStrip": false,
+      "doormat": false,
+      "parcel": false,
+      "laundry": false,
+      "satellite": false,
+      "kingsFlag": false,
+      "xmasLights": false,
+      "birdNest": false,
+      "pigeon": true,
+      "posters": false,
+      "mattress": false,
+      "teKoop": false,
+      "weeds": false,
+      "neeNee": false,
+      "yearStone": false,
+      "synergyPlate": false,
+      "linkedInBanner": false,
+      "solarPanels": false
+    },
+    "windowLife": {
+      "share": 0.2,
+      "kinds": [
+        "person",
+        "plant"
+      ]
+    },
+    "boarded": 0,
+    "weathering": 0.15,
+    "sideWindows": true,
+    "chimney": false,
+    "drainpipe": false,
+    "apron": true,
+    "imperfection": 0.3,
+    "colours": {
+      "brick": "#a95638",
+      "band": "#f4e3c1",
+      "trim": "#f4e3c1",
+      "ledge": "#6b5d5f",
+      "roof": "#6d7380",
+      "glass": "#33557e",
+      "lit": "#ffcf70",
+      "door": "#7a3a22",
+      "accent": "owner"
+    },
+    "litFraction": 0.3,
+    "seed": 21,
+    "extras": [
+      {
+        "shape": "cylinder",
+        "size": [
+          0.55,
+          0.16,
+          0
+        ],
+        "axis": "z",
+        "pos": [
+          0,
+          10.15,
+          4.16
+        ],
+        "colour": "trim"
+      },
+      {
+        "shape": "cylinder",
+        "size": [
+          0.44,
+          0.18,
+          0
+        ],
+        "axis": "z",
+        "pos": [
+          0,
+          10.15,
+          4.2
+        ],
+        "colour": "#fffaf0"
+      },
+      {
+        "shape": "torus",
+        "size": [
+          0.44,
+          0.05,
+          0
+        ],
+        "axis": "z",
+        "pos": [
+          0,
+          10.15,
+          4.3
+        ],
+        "colour": "#7a3a22"
+      },
+      {
+        "shape": "roundedBox",
+        "size": [
+          0.06,
+          0.3,
+          0.04
+        ],
+        "pos": [
+          0,
+          10.27,
+          4.33
+        ],
+        "colour": "#3a2a22"
+      },
+      {
+        "shape": "roundedBox",
+        "size": [
+          0.22,
+          0.06,
+          0.04
+        ],
+        "pos": [
+          0.09,
+          10.15,
+          4.33
+        ],
+        "colour": "#3a2a22"
+      },
+      {
+        "shape": "cylinder",
+        "size": [
+          0.75,
+          1.2,
+          0
+        ],
+        "pos": [
+          -2.9,
+          8.2,
+          1.2
+        ],
+        "colour": "band"
+      },
+      {
+        "shape": "cylinder",
+        "size": [
+          0.62,
+          1,
+          0
+        ],
+        "pos": [
+          -2.9,
+          9.2,
+          1.2
+        ],
+        "colour": "brick",
+        "group": "brick"
+      },
+      {
+        "shape": "torus",
+        "size": [
+          0.66,
+          0.1,
+          0
+        ],
+        "pos": [
+          -2.9,
+          9.72,
+          1.2
+        ],
+        "colour": "trim"
+      },
+      {
+        "shape": "dome",
+        "size": [
+          0.7,
+          0.9,
+          0
+        ],
+        "pos": [
+          -2.9,
+          9.75,
+          1.2
+        ],
+        "colour": "trim"
+      },
+      {
+        "shape": "cylinder",
+        "size": [
+          0.08,
+          0.5,
+          0
+        ],
+        "pos": [
+          -2.9,
+          10.6,
+          1.2
+        ],
+        "colour": "ledge"
+      },
+      {
+        "shape": "dome",
+        "size": [
+          0.3,
+          1.3,
+          0
+        ],
+        "pos": [
+          -2.9,
+          10.75,
+          1.2
+        ],
+        "rot": [
+          3.141592653589793,
+          0,
+          0
+        ],
+        "colour": "#a8682e",
+        "group": "gloss"
+      },
+      {
+        "shape": "sphere",
+        "size": [
+          0.07,
+          0,
+          0
+        ],
+        "pos": [
+          -2.9,
+          10.42,
+          1.2
+        ],
+        "colour": "#7a4a1e"
+      },
+      {
+        "shape": "cylinder",
+        "size": [
+          0.03,
+          0.9,
+          0
+        ],
+        "pos": [
+          -2.9,
+          11.3,
+          1.2
+        ],
+        "colour": "ledge"
+      }
+    ]
+  },
+  "bank": {
+    "style": "dutch_row",
+    "archetype": "grand",
+    "district": "centre",
+    "width": 7,
+    "depth": 7,
+    "bays": 3,
+    "groundFloorHeight": 3.4,
+    "floorHeights": [
+      3
+    ],
+    "facade": "plaster",
+    "corners": "quoins",
+    "taper": 0,
+    "corniceOverhang": 0.4,
+    "bodyRadius": 0.08,
+    "gable": {
+      "kind": "cornice",
+      "height": 0,
+      "rim": true,
+      "finials": false,
+      "window": false,
+      "hoistBeam": false,
+      "ornaments": false
+    },
+    "ground": {
+      "kind": "door",
+      "steps": 3,
+      "doorArch": true,
+      "awning": false,
+      "sign": false
+    },
+    "windows": {
+      "upperBays": 4,
+      "style": "grid",
+      "arch": "round",
+      "flowerBoxes": 0,
+      "shutters": false
+    },
+    "roof": {
+      "tiles": false,
+      "dormers": false
+    },
+    "focal": "none",
+    "identity": "bank",
+    "signText": "BANK",
+    "props": {
+      "ivy": false,
+      "bike": false,
+      "flatTyreBike": false,
+      "wallAnchors": false,
+      "kliko": false,
+      "gardenStrip": false,
+      "doormat": false,
+      "parcel": false,
+      "laundry": false,
+      "satellite": false,
+      "kingsFlag": false,
+      "xmasLights": false,
+      "birdNest": false,
+      "pigeon": false,
+      "posters": false,
+      "mattress": false,
+      "teKoop": false,
+      "weeds": false,
+      "neeNee": false,
+      "yearStone": false,
+      "synergyPlate": false,
+      "linkedInBanner": false,
+      "solarPanels": false
+    },
+    "windowLife": {
+      "share": 0.15,
+      "kinds": [
+        "person",
+        "lamp"
+      ]
+    },
+    "boarded": 0,
+    "weathering": 0.05,
+    "sideWindows": false,
+    "chimney": false,
+    "drainpipe": false,
+    "apron": true,
+    "imperfection": 0.2,
+    "colours": {
+      "brick": "#d8d0bf",
+      "band": "#f6efe0",
+      "trim": "#ffffff",
+      "ledge": "#6b6f78",
+      "roof": "#5d6170",
+      "glass": "#33557e",
+      "lit": "#ffcf70",
+      "door": "#1f4f63",
+      "accent": "owner"
+    },
+    "litFraction": 0.2,
+    "seed": 31,
+    "extras": []
+  },
+  "supplier_beer": {
+    "style": "dutch_row",
+    "archetype": "warehouse_loft",
+    "district": "harbour",
+    "width": 7,
+    "depth": 9,
+    "bays": 3,
+    "groundFloorHeight": 3.4,
+    "floorHeights": [
+      2.8
+    ],
+    "facade": "brick",
+    "corners": "pilaster",
+    "taper": -0.02,
+    "corniceOverhang": 0.2,
+    "bodyRadius": 0.12,
+    "gable": {
+      "kind": "spout",
+      "height": 3.8,
+      "rim": true,
+      "finials": false,
+      "window": true,
+      "hoistBeam": true,
+      "ornaments": false
+    },
+    "ground": {
+      "kind": "warehouse",
+      "steps": 0,
+      "doorArch": false,
+      "awning": false,
+      "sign": true
+    },
+    "windows": {
+      "style": "grid",
+      "arch": "segment",
+      "flowerBoxes": 0,
+      "shutters": true
+    },
+    "roof": {
+      "tiles": true,
+      "dormers": false
+    },
+    "focal": "none",
+    "identity": "brewery",
+    "signText": "BROUWERIJ",
+    "props": {
+      "ivy": true,
+      "bike": false,
+      "flatTyreBike": false,
+      "wallAnchors": true,
+      "kliko": false,
+      "gardenStrip": false,
+      "doormat": false,
+      "parcel": false,
+      "laundry": false,
+      "satellite": false,
+      "kingsFlag": false,
+      "xmasLights": false,
+      "birdNest": false,
+      "pigeon": true,
+      "posters": false,
+      "mattress": false,
+      "teKoop": false,
+      "weeds": true,
+      "neeNee": false,
+      "yearStone": false,
+      "synergyPlate": false,
+      "linkedInBanner": false,
+      "solarPanels": false
+    },
+    "windowLife": {
+      "share": 0.1,
+      "kinds": [
+        "lamp"
+      ]
+    },
+    "boarded": 0,
+    "weathering": 0.6,
+    "sideWindows": false,
+    "chimney": false,
+    "drainpipe": true,
+    "apron": false,
+    "imperfection": 0.8,
+    "colours": {
+      "brick": "#6e3a30",
+      "band": "#f0d9ae",
+      "trim": "#f4e3c1",
+      "ledge": "#6b5d5f",
+      "roof": "#5d6170",
+      "glass": "#33557e",
+      "lit": "#ffcf70",
+      "door": "#8a5a2e",
+      "accent": "#2f6b4f"
+    },
+    "litFraction": 0.2,
+    "seed": 41,
+    "extras": []
+  },
+  "synergy_office": {
+    "style": "dutch_row",
+    "archetype": "consultant",
+    "district": "modern",
+    "width": 7.5,
+    "depth": 8,
+    "bays": 3,
+    "groundFloorHeight": 3.2,
+    "floorHeights": [
+      3,
+      3,
+      3
+    ],
+    "facade": "plaster",
+    "corners": "none",
+    "taper": 0.02,
+    "corniceOverhang": 0.12,
+    "bodyRadius": 0.28,
+    "gable": {
+      "kind": "flat",
+      "height": 0,
+      "rim": false,
+      "finials": false,
+      "window": false,
+      "hoistBeam": false,
+      "ornaments": false
+    },
+    "ground": {
+      "kind": "door",
+      "steps": 1,
+      "doorArch": false,
+      "awning": false,
+      "sign": false
+    },
+    "windows": {
+      "upperBays": 3,
+      "style": "modern",
+      "arch": "none",
+      "flowerBoxes": 0,
+      "shutters": false
+    },
+    "roof": {
+      "tiles": false,
+      "dormers": false
+    },
+    "focal": "balcony",
+    "identity": "synergy",
+    "signText": "SYNERGY",
+    "props": {
+      "ivy": false,
+      "bike": false,
+      "flatTyreBike": false,
+      "wallAnchors": false,
+      "kliko": false,
+      "gardenStrip": false,
+      "doormat": false,
+      "parcel": false,
+      "laundry": false,
+      "satellite": false,
+      "kingsFlag": false,
+      "xmasLights": false,
+      "birdNest": false,
+      "pigeon": false,
+      "posters": false,
+      "mattress": false,
+      "teKoop": false,
+      "weeds": false,
+      "neeNee": false,
+      "yearStone": false,
+      "synergyPlate": true,
+      "linkedInBanner": true,
+      "solarPanels": true
+    },
+    "windowLife": {
+      "share": 0.3,
+      "kinds": [
+        "plant",
+        "person"
+      ]
+    },
+    "boarded": 0,
+    "weathering": 0,
+    "sideWindows": false,
+    "chimney": false,
+    "drainpipe": false,
+    "apron": true,
+    "imperfection": 0.05,
+    "colours": {
+      "brick": "#f4f1ea",
+      "band": "#e6dcc8",
+      "trim": "#c9a66b",
+      "ledge": "#3a3540",
+      "roof": "#4a4552",
+      "glass": "#33557e",
+      "lit": "#ffcf70",
+      "door": "#2b2b2e",
+      "accent": "#6a4fa8"
+    },
+    "litFraction": 0.6,
+    "seed": 51,
+    "extras": []
+  }
+}

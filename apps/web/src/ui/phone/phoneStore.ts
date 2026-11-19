@@ -9,6 +9,8 @@ interface PhoneStore extends PhoneNav {
   /** Alert keys already seen per app; the badge counts only Alerts outside this list. */
   badgeSeen: Record<AppId, string[]>;
   notifications: PhoneNotification[];
+  /** AMROBOT login: any 5 digits unlock it for the rest of the session (a parody of the real app). */
+  bankUnlocked: boolean;
   toggle(): void;
   setOpen(open: boolean): void;
   openApp(app: AppId, opts?: { tab?: string; id?: string }): void;
@@ -23,6 +25,7 @@ interface PhoneStore extends PhoneNav {
   markSeen(app: AppId, keys: string[]): void;
   pushNotification(n: Omit<PhoneNotification, 'id'>): void;
   clearNotifications(): void;
+  setBankUnlocked(v: boolean): void;
   reset(): void;
 }
 
@@ -36,6 +39,7 @@ export const usePhone = create<PhoneStore>((set, get) => {
     ...initialNav(),
     badgeSeen: {},
     notifications: [],
+    bankUnlocked: false,
     toggle: () => apply((n) => navSetOpen(n, !n.open)),
     setOpen: (open) => apply((n) => navSetOpen(n, open)),
     openApp: (app, opts) => apply((n) => navOpen(n, app, opts)),
@@ -50,6 +54,7 @@ export const usePhone = create<PhoneStore>((set, get) => {
     markSeen: (app, keys) => set((s) => ({ badgeSeen: { ...s.badgeSeen, [app]: keys } })),
     pushNotification: (n) => set((s) => ({ notifications: addNotification(s.notifications, { ...n, id: nextNotificationId++ }) })),
     clearNotifications: () => set({ notifications: [] }),
-    reset: () => set({ ...initialNav(), badgeSeen: {}, notifications: [] }),
+    setBankUnlocked: (v) => set({ bankUnlocked: v }),
+    reset: () => set({ ...initialNav(), badgeSeen: {}, notifications: [], bankUnlocked: false }),
   };
 });

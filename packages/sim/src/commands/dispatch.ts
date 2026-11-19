@@ -3,6 +3,7 @@ import type { TickContext } from '../core/context';
 import type { Command, CommandEnvelope, CommandResult, Rejection } from './types';
 import { handleAssign, handleFire, handleHire, handleUnassign } from '../systems/humans';
 import { handleSetDrinkPrice } from '../systems/pub';
+import { handleTransferSavings } from '../money/savings';
 import {
   handleEndManualDriving,
   handleManualLoad,
@@ -44,6 +45,8 @@ function dispatch(ctx: TickContext, env: CommandEnvelope): Rejection | null {
       return handleUnassign(ctx, cmd);
     case 'fire':
       return handleFire(ctx, cmd);
+    case 'transferSavings':
+      return handleTransferSavings(ctx, cmd);
     case 'setDrinkPrice':
       return handleSetDrinkPrice(ctx, cmd);
     case 'placeOrder':

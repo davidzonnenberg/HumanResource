@@ -1,5 +1,19 @@
 [
   {
+    "id": "bank",
+    "nameKey": "app.bank.name",
+    "icon": "🏦",
+    "colour": "#004c4c",
+    "revealFeature": null,
+    "tabs": [
+      { "id": "overview", "labelKey": "app.bank.tab.overview", "icon": "🏦" },
+      { "id": "savings", "labelKey": "app.bank.tab.savings", "icon": "🐷" },
+      { "id": "invest", "labelKey": "app.bank.tab.invest", "icon": "📈" }
+    ],
+    "dock": 0,
+    "order": 10
+  },
+  {
     "id": "news",
     "nameKey": "app.news.name",
     "icon": "📰",

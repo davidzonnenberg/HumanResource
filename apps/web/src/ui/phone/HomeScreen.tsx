@@ -30,7 +30,8 @@ function AppIcon({ app, showName }: { app: PhoneApp; showName: boolean }) {
 
 export function HomeScreen({ installed, elapsed }: { installed: readonly PhoneApp[]; elapsed: string }) {
   const gold = useHud((h) => h.gold);
-  const ledgr = installed.find((a) => a.id === 'ledgr');
+  // The money widget opens Ledgr once it exists, otherwise the bank app (the way to see your money).
+  const ledgr = installed.find((a) => a.id === 'ledgr') ?? installed.find((a) => a.id === 'bank');
   const money = (
     <>
       <b>{t('phone.home.money', { amount: goldToWholeFloor(gold).toLocaleString() })}</b>

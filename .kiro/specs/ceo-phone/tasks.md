@@ -160,6 +160,16 @@ No commits or pushes unless the user asks.
     - Built together with the human-resource-mvp Services, offices and permits work (Requirements 51, 60, 72). Desk screens use `useService` with hold-to-confirm.
     - _Requirements: 8.1–8.5_
 
+- [x] 7. AMROBOT bank app (user request, Nov 2026; ported from the scrapcode game)
+  - Balance account and savings account (`player.savings`, Command `transferSavings`, save schema v3 with migration `v2_to_v3`), Overview / Savings / Investing tabs, a 5-digit login that accepts any 5 digits, transfers between the two accounts, money pill and Home widget open it.
+  - Not built (wishlist): stocks, per-day income statements, interest, Synergy storyline (`docs/synergy-lore.md`).
+  - Files: `apps/web/src/ui/phone/apps/BankApp.tsx`, `bankLogic.ts`, `packages/sim/src/money/savings.ts`, `packages/shared/src/migrations/v2_to_v3.ts`.
+  - Tests: `packages/sim/test/savings.test.ts`, `apps/web/test/bank.test.ts`, `apps/web/test/migrations.test.ts`.
+- [x] 7. AMROBOT bank app (user request, Nov 2026; ported from the scrapcode game)
+  - Balance account and savings account (`player.savings`, Command `transferSavings`, save schema v3 with migration `v2_to_v3`), Overview / Savings / Investing tabs, a 5-digit login that accepts any 5 digits, transfers between the two accounts, money pill and Home widget open it.
+  - Not built (wishlist): stocks, per-day income statements, interest, Synergy storyline (`docs/synergy-lore.md`).
+  - Files: `apps/web/src/ui/phone/apps/BankApp.tsx`, `bankLogic.ts`, `packages/sim/src/money/savings.ts`, `packages/shared/src/migrations/v2_to_v3.ts`.
+  - Tests: `packages/sim/test/savings.test.ts`, `apps/web/test/bank.test.ts`, `apps/web/test/migrations.test.ts`.
 ## Simulation prerequisites (separate tasks; each bumps the save schema with a migration)
 
 These change `packages/sim` and `packages/shared`. Don't build them as part of a phone task. Each follows architecture.md: a pure migration, fixtures, and round-trip and migration property tests.

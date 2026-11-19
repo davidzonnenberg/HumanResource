@@ -18,6 +18,8 @@ export type Command =
   | { type: 'unassign'; humanId: Id }
   | { type: 'fire'; humanId: Id }
   // Pub and supply (Requirements 6, 10)
+  // Bank app: move money between the balance account (player.gold) and savings. mount is Gold in hundredths.
+  | { type: 'transferSavings'; direction: 'toSavings' | 'toBalance'; amount: Gold }
   | { type: 'setDrinkPrice'; businessId: Id; price: Gold }
   | { type: 'placeOrder'; supplierId: Id; destinationId: Id; resourceId: string; quantity: number }
   | { type: 'setAutoReorder'; businessId: Id; resourceId: string; enabled: boolean; threshold: number }

@@ -49,6 +49,11 @@ Ideas that are nowhere near implementation. They are not part of the spec and mu
   - A street is closed for a while and van routes take detours, which makes your route bottlenecks visible.
   - Implementation idea: `pathCacheFor` takes a `closedEdges` set from state, so it stays deterministic. The cache key must include the closed set.
 
+## Bank and Synergy (user, Nov 2026)
+- **Stocks in AMROBOT.** The Investing tab is a preview with a decorative chart. Later: real shares of the other companies in the game, bought with Gold, moving with the world (prices follow what happens in the sim, not real time). Needs sim state (holdings, prices), a Command, and a save migration.
+- **Daily income statements.** The bank shows no income or statements for now, because money arrives constantly. Later: separate statements per day (or per in-game period) with categories and a spending breakdown. The finance buckets already record Gold per category and source, so this is mostly a view. A per-day bucket (see ceo-phone S1) comes first.
+- **Interest on Direct Sparen** and savings that are protected from some bad events.
+- **Synergy as the evil illuminati.** Synergy starts as a friendly corporate group and slowly turns out to be a cult. It owns stocks in everything, offers other kinds of loans (with drawbacks), and lobbies all the time. Nothing is decided about mechanics. It is mostly story that returns from time to time and gets heavier late game, when you get more involved. Story lines to draw from live in `docs/synergy-lore.md`. Hooks that already exist: the Synergy corporate resource, the "Synergy!" achievement, the pub name "The Synergy Arms", CVs that say "passionate about synergy", and the placeholder stock "Synergy Group (SYNR)" in the bank app.
 ## Logistics
 
 - Traffic and congestion, road capacity, delivery scheduling.

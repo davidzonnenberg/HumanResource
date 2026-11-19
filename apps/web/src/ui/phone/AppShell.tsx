@@ -5,11 +5,13 @@ import type { PhoneApp } from './appsSchema';
 import { usePhone } from './phoneStore';
 import { SettingsApp } from './apps/SettingsApp';
 import { NewsApp } from './apps/NewsApp';
+import { BankApp } from './apps/BankApp';
 
 /** App id → body component. An app without a body is never installed in apps.json. */
 export const APP_BODIES: Record<string, ComponentType<{ tab: string | undefined; id: string | undefined }>> = {
   set: SettingsApp,
   news: NewsApp,
+  bank: BankApp,
 };
 
 export function AppShell({ app, tab, id }: { app: PhoneApp; tab: string | undefined; id: string | undefined }) {

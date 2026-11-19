@@ -137,6 +137,7 @@ Verified with typecheck, lint, unit and property tests and `vite build`. "Playab
 - Q, or the 📱 HUD button, opens the phone as a right-docked side panel, at most 40% of the screen width.
 - Home has elapsed game time, money and a quest placeholder, plus the app grid and dock. Navigation covers Back/Home/Recents and keyboard focus. While the phone has focus, the CEO doesn't move.
 - Apps: Settings (dark mode, text size, reduced motion, Do Not Disturb, quest pings; stored per device) and a minimal LinkedOut, installed by `news_feed`.
+- AMROBOT (Nov 2026) is the bank app, docked on the phone and the way to see your money: a balance account, a savings account (Direct Sparen, `player.savings`, save schema v3) with transfers, and an Investing tab that is a preview only. No daily statements and no stocks yet (`docs/wishlist.md`). The HUD money pill and the Home money widget open it.
 - The app registry is `packages/content/data/ui/apps.json`. The notification shade, badges and the other apps are next (ceo-phone tasks 2–6).
 
 ### Recent polish (Nov 2026, task 34)

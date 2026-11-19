@@ -19,6 +19,7 @@ export interface Toast {
 
 interface HudState {
   gold: number; // hundredths
+  savings: number; // hundredths (bank app, Direct Sparen)
   alerts: { key: string; type: string; objectId: string; variant?: string }[];
   clientAlerts: ClientAlert[];
   contextAction: ContextAction | null;
@@ -34,6 +35,7 @@ interface HudState {
 let toastSeq = 0;
 export const useHud = create<HudState>((set, get) => ({
   gold: 0,
+  savings: 0,
   alerts: [],
   clientAlerts: [],
   contextAction: null,

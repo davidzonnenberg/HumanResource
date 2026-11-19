@@ -183,6 +183,63 @@ input[type='range'] { width: 100%; height: var(--touch); }
 .ph-shade-head { display: flex; align-items: center; justify-content: space-between; padding-right: 12px; }
 .ph-notif { display: block; width: calc(100% - 24px); margin: 6px 12px; padding: 12px 14px; min-height: 44px; border: 0; border-radius: 18px; background: var(--card); color: var(--fg); text-align: left; }
 .ph-notif:disabled { cursor: default; }
+/* AMROBOT bank app (a Dutch-bank parody: dark teal, yellow buttons). Own palette, whatever the phone theme. */
+.phone .amr { --teal: #004c4c; --teal2: #00716b; --green: #00857a; --yellow: #ffd200; --ink: #1a1a1a; --grey: #5f6368; display: flex; flex-direction: column; min-height: 100%; background: #f2f2f2; color: var(--ink); }
+.phone .amr-logo { display: inline-block; flex: none; }
+.phone .amr-logo.sm { width: 22px; height: 25px; }
+.phone .amr-logo.lg { width: 64px; height: 72px; }
+.phone .amr-head { background: var(--teal); color: #fff; padding: 10px 16px 14px; flex: none; }
+.phone .amr-head-row { display: flex; align-items: center; gap: 10px; }
+.phone .amr-brand-sm { font-weight: 700; letter-spacing: 1.5px; }
+.phone .amr-logout { margin-left: auto; min-height: 44px; padding: 0 6px; border: 0; background: none; color: #fff; font-weight: 600; }
+.phone .amr-head h2 { margin: 6px 0 0; font-size: 1.9em; font-weight: 400; }
+.phone .amr-page { flex: 1; padding-bottom: 12px; }
+.phone .amr-sec { margin: 16px 16px 6px; font-size: 1.05em; font-weight: 600; }
+.phone .amr-note { margin: 6px 16px; color: var(--grey); font-size: 0.85em; }
+.phone .amr-note.neg, .phone .amr-money.neg { color: #c42b1c; }
+.phone .amr-note.soon { color: #7a5f00; }
+.phone .amr-acct { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 12px 16px; border: 0; background: #fff; text-align: left; color: var(--ink); }
+.phone .amr-acct:hover, .phone .amr-card:hover { background: #f7fbfa; }
+.phone .amr-acct-ic { font-size: 24px; }
+.phone .amr-acct-nm { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.phone .amr-acct-nm b { color: var(--teal); font-weight: 500; }
+.phone .amr-acct-nm small { color: var(--grey); }
+.phone .amr-money { font-weight: 600; white-space: nowrap; }
+.phone .amr-money sup { font-size: 0.65em; }
+.phone .amr-total { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0 16px; padding: 12px 14px; border-radius: 8px; background: #fff; }
+.phone .amr-card { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: calc(100% - 32px); margin: 0 16px; min-height: 44px; padding: 12px 14px; border: 0; border-radius: 8px; background: #fff; text-align: left; color: var(--ink); }
+.phone .amr-card b { color: var(--teal); font-weight: 500; }
+.phone .amr-card small { color: var(--grey); }
+.phone .amr-card.soon { opacity: 0.75; }
+.phone .amr-card-ic { font-size: 26px; }
+.phone .amr-foot { flex: none; padding: 10px 14px 12px; background: #f2f2f2; border-top: 1px solid #e3e3e3; position: sticky; bottom: 0; }
+.phone .amr-yellow { min-height: 44px; border: 0; border-radius: 4px; background: var(--yellow); color: var(--ink); font-weight: 500; padding: 0 18px; }
+.phone .amr-yellow:hover { filter: brightness(0.96); }
+.phone .amr-yellow.wide { width: 100%; }
+.phone .amr-link { min-height: 44px; border: 0; background: none; color: var(--teal2); text-decoration: underline; }
+.phone .amr-login { background: var(--teal); color: #fff; align-items: center; justify-content: center; gap: 18px; padding: 24px 16px; }
+.phone .amr-login-top { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.phone .amr-brand { font-size: 1.8em; font-weight: 700; letter-spacing: 2px; }
+.phone .amr-login-card { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: 100%; padding: 16px; border-radius: 10px; background: #fff; color: var(--ink); }
+.phone .amr-login-card p { margin: 0; color: var(--grey); text-align: center; }
+.phone .amr-pin { font: 600 22px Consolas, monospace; letter-spacing: 8px; text-align: center; min-height: 48px; border: 2px solid #c9d6d4; border-radius: 6px; color: var(--ink); background: #fff; }
+.phone .amr-pin.bad { border-color: #c42b1c; }
+.phone .amr-pin-msg { min-height: 18px; margin: 0; color: #c42b1c; font-size: 0.85em; text-align: center; }
+.phone .amr-pin-msg.ok { color: var(--green); }
+.phone .amr .amr-seg { display: flex; border: 1px solid #c9d6d4; border-radius: 22px; overflow: hidden; background: #fff; }
+.phone .amr .amr-seg button { flex: 1; min-height: 44px; border: 0; background: #fff; color: var(--ink); }
+.phone .amr .amr-seg button.on { background: var(--teal); color: #fff; }
+.phone .amr-form { display: flex; flex-direction: column; gap: 10px; margin: 0 16px; padding: 14px; background: #fff; border-radius: 8px; }
+.phone .amr-form label { display: flex; flex-direction: column; gap: 4px; color: var(--grey); font-size: 0.85em; }
+.phone .amr-flow { margin: 0; color: var(--grey); font-size: 0.85em; text-align: center; }
+.phone .amr-input { min-height: 44px; padding: 6px 10px; border: 1px solid #c9d6d4; border-radius: 4px; font-size: 1.2em; font-weight: 600; color: var(--ink); background: #fff; }
+.phone .amr-chips { display: flex; gap: 8px; }
+.phone .amr-chip { min-height: 44px; min-width: 44px; padding: 0 14px; border: 1px solid #c9d6d4; border-radius: 22px; background: #fff; color: var(--teal); }
+.phone .amr-invest { margin: 12px 16px; padding: 14px; background: #fff; border-radius: 8px; }
+.phone .amr-coin { display: flex; justify-content: space-between; gap: 8px; }
+.phone .amr-coin .up { color: var(--green); font-weight: 600; }
+.phone .amr-fakegraph { opacity: 0.45; margin: 8px 0; }
+.phone .amr-soonbox { text-align: center; font-weight: 600; color: var(--teal); padding: 10px; border: 2px dashed #c9d6d4; border-radius: 6px; }
 /* Controls */
 .ph-switch { width: 52px; height: 44px; border: 0; background: none; padding: 6px 0; flex: none; }
 .ph-switch-track { display: block; position: relative; width: 52px; height: 32px; border-radius: 16px; background: var(--chip); border: 2px solid var(--mut); }
