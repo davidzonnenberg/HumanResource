@@ -191,7 +191,11 @@ function Van({ vehicleId }: { vehicleId: string }) {
     let throttle = (gasKey ? 1 : 0) - (brakeKey ? 1 : 0);
     let steer = (keys.has('a') || keys.has('arrowleft') ? 1 : 0) - (keys.has('d') || keys.has('arrowright') ? 1 : 0);
     const handbrake = keys.has(' ') || inputState.driftHeld;
-    if (!gasKey && !brakeKey && steer === 0 && (inputState.stickX !== 0 || inputState.stickY !== 0)) {
+    if (!gasKey && !brakeKey && steer === 0 && (inputState.stickX !== 0 || inputState.stickY !== 0) && useSession.getState().driveCam === 'cab') {
+      // Cab camera: the screen turns with the van, so the stick is relative (up = gas, sideways = steer).
+      throttle = Math.abs(inputState.stickY) > 0.15 ? Math.sign(inputState.stickY) : 0;
+      steer = Math.abs(inputState.stickX) > 0.15 ? -Math.sign(inputState.stickX) : 0;
+    } else if (!gasKey && !brakeKey && steer === 0 && (inputState.stickX !== 0 || inputState.stickY !== 0)) {
       const want = screenToWorld(inputState.stickX, inputState.stickY);
       const d = stickToDrive(want.x, want.z, fwd.x, fwd.z);
       throttle = d.throttle;
@@ -227,7 +231,7 @@ function Van({ vehicleId }: { vehicleId: string }) {
 
     // Upright / out-of-bounds resets with cargo intact (13.14, 13.15)
     const t = b.translation();
-    camState.physicsPose = { x: t.x, z: t.z };
+    camState.physicsPose = { x: t.x, z: t.z, fx: fwd.x, fz: fwd.z };
     const cache = lp.sim.paths();
     const verdict = updateUpright(monitor.current, up.y, cache.drivable(t.x, t.z), dt * 1000);
     driveDebug(dt, () => {

@@ -7,6 +7,7 @@ import { useSession, useSimVersion, useUi } from '../store/stores';
 import { CameraController } from './CameraController';
 import { Building, BuildingShadows, Ground, Landmarks, Plots, Roads, Sidewalks, UnloadingZones, type LandmarkDef } from './World';
 import { landmarks } from '@hr/content';
+import { FillerStreets } from './procedural/buildings/FillerStreets';
 import { Figures } from './Figures';
 import { Vehicles } from './Vehicles';
 import { HumanLabels, ManagementOverlay } from './Overlays';
@@ -39,6 +40,7 @@ function WorldContent() {
       <BuildingShadows reg={reg} state={s} />
       <Landmarks list={landmarks as LandmarkDef[]} districts={s.districts} />
       <UnloadingZones reg={reg} state={s} />
+      <FillerStreets reg={reg} districts={s.districts} />
       {Object.values(s.businesses).map((b) => (
         <Building key={b.id} reg={reg} state={s} b={b} open={false} />
       ))}

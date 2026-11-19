@@ -10,7 +10,7 @@ import { openPhoneApp, openPhoneAppIfInstalled, togglePhone } from '../phone/pho
 import { alertTarget } from '../phone/phoneAlerts';
 import { useInstalledApps } from '../phone/useInstalledApps';
 import { Joystick } from '../../input/Joystick';
-import { runContextAction, setPauseMenu, setSpeed, speedsAvailable, toggleSpeedPause, toggleViewMode, zoomIn, zoomOut } from '../../input/actions';
+import { runContextAction, setPauseMenu, setSpeed, speedsAvailable, toggleDriveCamera, toggleSpeedPause, toggleViewMode, zoomIn, zoomOut } from '../../input/actions';
 import { alertRows } from './alertText';
 import type { GameSpeed } from '../../loop/gameSpeed';
 
@@ -46,6 +46,17 @@ function SpeedControl() {
   );
 }
 
+/** Camera switch while driving: overview or the cab camera on the van (C key). */
+function CameraButton() {
+  useSimVersion((v) => v.v);
+  const cab = useSession((s) => s.driveCam === 'cab');
+  if (!bridge.loop?.sim.state.ceo.drivingVehicleId) return null;
+  return (
+    <button type="button" className={`icon-button camera-button${cab ? ' on' : ''}`} aria-pressed={cab} aria-label={t('hud.camera')} onClick={toggleDriveCamera}>
+      🎥
+    </button>
+  );
+}
 /** Held handbrake for touch while driving (34.5): drift, or donuts with the joystick at low speed. */
 function DriftButton() {
   useSimVersion((v) => v.v);
@@ -169,6 +180,7 @@ export function Hud() {
         <button className="icon-button" onClick={zoomOut} aria-label={t('hud.zoomOut')}>
           −
         </button>
+        <CameraButton />
         <DriftButton />
         {/* CEO Phone (ceo-phone 9.1, 9.2): right column, outside the left joystick zone; Q on PC. */}
         <button type="button" className="icon-button phone-button" onClick={togglePhone} aria-label={t('phone.button')}>

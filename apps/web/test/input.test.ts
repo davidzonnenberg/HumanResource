@@ -21,6 +21,7 @@ vi.mock('../src/input/actions', () => ({
   stepGameSpeed: vi.fn(),
   toggleSpeedPause: vi.fn(),
   toggleViewMode: vi.fn(),
+  toggleDriveCamera: vi.fn(),
   zoomIn: vi.fn(),
   zoomOut: vi.fn(),
 }));
@@ -59,6 +60,10 @@ afterEach(() => {
 });
 
 describe('keyboard bindings (18.6)', () => {
+  it('C switches the driving camera', () => {
+    keydown('c');
+    expect(actions.toggleDriveCamera).toHaveBeenCalledTimes(1);
+  });
   it('number keys 1, 2 and 3 select 1x, 2x and 4x', () => {
     keydown('1');
     expect(actions.setSpeed).toHaveBeenLastCalledWith(1);

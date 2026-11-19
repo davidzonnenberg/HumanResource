@@ -83,6 +83,14 @@ export function toggleViewMode(): void {
   }
 }
 
+/** C key / HUD button: switch the driving camera between the overview and the cab camera. Only while driving. */
+export function toggleDriveCamera(): void {
+  if (!bridge.loop?.sim.state.ceo.drivingVehicleId) return;
+  const s = useSession.getState();
+  const next = s.driveCam === 'cab' ? 'overview' : 'cab';
+  if (next === 'cab') camState.cabDir = { x: camState.physicsPose?.fx ?? 0, z: camState.physicsPose?.fz ?? -1 };
+  s.set({ driveCam: next });
+}
 export function devModeOn(): boolean {
   return isDevMode(window.location.search, import.meta.env.DEV, useSession.getState().devTesting);
 }

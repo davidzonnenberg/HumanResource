@@ -72,3 +72,7 @@ Read `triangles` (static + movers). Targets: hero ≤ 180k (high), filler ≤ 80
 - New business identity: add an `IdentityKind`, a marker function in `props.ts` and its call in `buildBuilding`; add sign text to `SIGN_TEXTS` if needed.
 - New gable / ground floor / focal: code in `gables.ts` / `buildingGeometry.ts` / `facade.ts` + schema enum + tests.
 - Never special-case a Business id in the renderer.
+
+## Way of working
+
+The agreed process lives in `docs/buildings.md`: important buildings are fixed recipes in `buildings.recipes.json`; normal streets are generated per gap from stable ids and are **pinned** into `pinned-streets.json` once final; seeds come from string ids only; buildings are never saved. Follow it when adding or changing buildings.

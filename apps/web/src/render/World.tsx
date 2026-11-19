@@ -16,7 +16,7 @@ import { GltfBuilding, gltfMaxHeight, ModelBoundary } from './assets/GltfBuildin
 import { useUi } from '../store/stores';
 import { footprint, setFootprint } from './footprints';
 
-const ROAD_W = 6;
+import { ROAD_W, SIDEWALK_W } from './roadConstants';
 
 function polygonBox(poly: readonly (readonly [number, number])[]) {
   const xs = poly.map((p) => p[0]);
@@ -431,7 +431,6 @@ export function UnloadingZones({ reg, state }: { reg: DefinitionRegistry; state:
 
 // ---- Raised sidewalks + fake contact shadows (no shadow maps) ----------------------------------
 const CURB_H = 0.24;
-const SIDEWALK_W = 1.5; // narrow strip hugging the road edge
 const CURB_COLOR = new Color('#c89b88');
 const SIDEWALK_TINT = new Color(1.55, 1.45, 1.4); // same bricks as the road, a bit lighter
 

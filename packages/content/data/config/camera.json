@@ -1,10 +1,12 @@
 {
   "yawDeg": 0,
   "fovDeg": 35,
-  "tiltNearDeg": 52,
-  "tiltFarDeg": 68,
+  "tiltNearDeg": 36,
+  "tiltFarDeg": 72,
   "dMin": 8,
   "dMax": 260,
+  "drivingMax": 120,
+  "cab": { "eyeHeight": 3.3, "eyeForward": 0.4, "lookAhead": 16, "lookHeight": 1.8, "fovDeg": 62, "smoothing": 8 },
   "startDistance": 16,
   "bands": [
     { "id": "person", "max": 14 },

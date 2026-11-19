@@ -1,0 +1,23 @@
+[
+  {
+    "id": "old_town:west_street_east",
+    "district": "old_town",
+    "style": "old_town",
+    "side": "left",
+    "line": [[-30, -32], [-30, 32]]
+  },
+  {
+    "id": "old_town:west_street_west",
+    "district": "old_town",
+    "style": "old_town",
+    "side": "right",
+    "line": [[-30, -32], [-30, 32]]
+  },
+  {
+    "id": "old_town:north_left_of_hall",
+    "district": "old_town",
+    "style": "old_town",
+    "side": "left",
+    "line": [[-34.5, -32], [-10, -32]]
+  }
+]

@@ -3,12 +3,13 @@
 // Also drives the GameLoop once per rendered frame (priority -1 runs before other useFrames).
 import { useFrame, useThree } from '@react-three/fiber';
 import { useRef } from 'react';
+import type { PerspectiveCamera } from 'three';
 import { clampDistance, unlockedDistricts, pathCacheFor } from '@hr/sim';
 import { bridge, publish } from '../store/simBridge';
-import { useUi } from '../store/stores';
+import { useSession, useUi } from '../store/stores';
 import { inputState } from '../input/inputState';
-import { camState } from './cameraState';
-import { businessBandMax, camCfg, screenToWorld, tiltFor, YAW } from './theme';
+import { cabCameraPose, camState } from './cameraState';
+import { camCfg, screenToWorld, tiltFor, YAW } from './theme';
 import { interiorRect } from './interiorView';
 
 export function CameraController() {
@@ -26,7 +27,7 @@ export function CameraController() {
     const driving = s.ceo.drivingVehicleId !== null;
 
     // Zoom (continuous, smoothed) with the driving clamp (15.2, 15.7)
-    camState.targetDistance = clampDistance(camState.targetDistance, camCfg.dMin, maxDistance(size.width / size.height), driving, businessBandMax);
+    camState.targetDistance = clampDistance(camState.targetDistance, camCfg.dMin, maxDistance(size.width / size.height), driving, camCfg.drivingMax);
     const k = 1 - Math.exp(-camCfg.zoomSmoothing * dt);
     camState.distance += (camState.targetDistance - camState.distance) * k;
 
@@ -60,12 +61,33 @@ export function CameraController() {
       camState.target.z = Math.min(room.z + room.d / 2, Math.max(room.z - room.d / 2, camState.target.z));
     }
 
-    // Place the camera: fixed yaw, tilt grows with distance (no rotation input exists, 15.12)
-    const tilt = tiltFor(camState.distance);
+    // Driving camera: the cab camera only exists while driving; leaving the van resets it.
+    const session = useSession.getState();
+    if (!driving && session.driveCam !== 'overview') session.set({ driveCam: 'overview' });
+    const cab = driving && session.driveCam === 'cab' && camState.physicsPose?.fx !== undefined;
+    const persp = camera as PerspectiveCamera;
+    const wantFov = cab ? camCfg.cab.fovDeg : camCfg.fovDeg;
+    if (persp.isPerspectiveCamera && persp.fov !== wantFov) {
+      persp.fov = wantFov;
+      persp.updateProjectionMatrix();
+    }
     const d = camState.distance;
-    const horiz = d * Math.cos(tilt);
-    camera.position.set(camState.target.x + Math.sin(YAW) * horiz, d * Math.sin(tilt), camState.target.z + Math.cos(YAW) * horiz);
-    camera.lookAt(camState.target.x, 0, camState.target.z);
+    if (cab && camState.physicsPose) {
+      // Smooth the facing so drifts and donuts don't whip the view around.
+      const pose = camState.physicsPose;
+      const ks = 1 - Math.exp(-camCfg.cab.smoothing * dt);
+      camState.cabDir.x += ((pose.fx ?? 0) - camState.cabDir.x) * ks;
+      camState.cabDir.z += ((pose.fz ?? -1) - camState.cabDir.z) * ks;
+      const c = cabCameraPose(pose.x, pose.z, camState.cabDir.x, camState.cabDir.z, camCfg.cab);
+      camera.position.set(c.eye.x, c.eye.y, c.eye.z);
+      camera.lookAt(c.look.x, c.look.y, c.look.z);
+    } else {
+      // Place the camera: fixed yaw, tilt grows with the log of the distance (no rotation input exists, 15.12)
+      const tilt = tiltFor(d);
+      const horiz = d * Math.cos(tilt);
+      camera.position.set(camState.target.x + Math.sin(YAW) * horiz, d * Math.sin(tilt), camState.target.z + Math.cos(YAW) * horiz);
+      camera.lookAt(camState.target.x, 0, camState.target.z);
+    }
 
     const now = performance.now();
     if (Math.abs(ui.cameraDistance - d) > 0.5 && now - lastUi.current > 150) {

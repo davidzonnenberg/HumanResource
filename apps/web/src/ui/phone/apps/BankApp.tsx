@@ -3,7 +3,7 @@
 // (player.savings, "Direct Sparen"). Transfers go to the Simulation as a Command. There are no daily
 // income statements and no stock trading yet; see docs/wishlist.md.
 import { useState } from 'react';
-import { t } from '../../../text/t';
+import { t, tDynamic } from '../../../text/t';
 import { bridge } from '../../../store/simBridge';
 import { useHud } from '../../../store/stores';
 import { usePhone } from '../phoneStore';
@@ -66,7 +66,7 @@ function Login() {
           aria-label={t('app.bank.pin.label')}
           aria-invalid={bad !== null}
           aria-describedby="amr-pin-msg"
-          placeholder="• • • • •"
+          placeholder={t('app.bank.pin.placeholder')}
           value={pin}
           onChange={(e) => {
             setPin(e.target.value);
@@ -112,8 +112,8 @@ function AccountRow({ account, onOpen }: { account: BankAccount; onOpen: () => v
         {account === 'balance' ? '👛' : '🐷'}
       </span>
       <span className="amr-acct-nm">
-        <b>{t(`app.bank.account.${account}`)}</b>
-        <small>{t(`app.bank.iban.${account}`)}</small>
+        <b>{tDynamic(`app.bank.account.${account}`)}</b>
+        <small>{tDynamic(`app.bank.iban.${account}`)}</small>
       </span>
       <Money amount={account === 'balance' ? gold : savings} />
     </button>
@@ -196,12 +196,12 @@ function Savings() {
           <div className="amr-seg" role="group" aria-label={t('app.bank.transfer.from')}>
             {(['balance', 'savings'] as const).map((a) => (
               <button key={a} type="button" className={from === a ? 'on' : ''} aria-pressed={from === a} onClick={() => setFrom(a)}>
-                {t(`app.bank.account.${a}`)}
+                {tDynamic(`app.bank.account.${a}`)}
               </button>
             ))}
           </div>
           <p className="amr-flow">
-            {t('app.bank.transfer.flow', { from: t(`app.bank.account.${from}`), to: t(`app.bank.account.${to}`) })}
+            {t('app.bank.transfer.flow', { from: tDynamic(`app.bank.account.${from}`), to: tDynamic(`app.bank.account.${to}`) })}
           </p>
           <label>
             {t('app.bank.transfer.amount')}
@@ -227,7 +227,7 @@ function Savings() {
             {t('app.bank.transfer.go')}
           </button>
           <p className={`amr-pin-msg${msg?.ok ? ' ok' : ''}`} role="status">
-            {msg ? t(msg.key) : ''}
+            {msg ? tDynamic(msg.key) : ''}
           </p>
         </form>
         <p className="amr-note soon">{t('app.bank.savings.soon')}</p>
@@ -244,7 +244,7 @@ function Invest() {
         <div className="amr-invest">
           <div className="amr-coin">
             <b>{t('app.bank.invest.coin')}</b>
-            <span className="up">▲ 3,2%</span>
+            <span className="up">{t('app.bank.invest.change')}</span>
           </div>
           <svg className="amr-fakegraph" viewBox="0 0 300 110" width="100%" height="110" aria-hidden="true">
             <polyline fill="rgba(0,133,122,.12)" stroke="none" points="0,110 0,80 25,72 50,78 75,60 100,66 125,40 150,52 175,30 200,44 225,24 250,38 275,18 300,26 300,110" />

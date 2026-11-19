@@ -81,6 +81,8 @@ interface SessionState {
   speedPaused: boolean;
   devTesting: boolean; // Pause_Menu "Testing" toggle (per device)
   physicsFailed: boolean;
+  /** Driving camera: the usual overview, or the cab camera on top of the van (C key / HUD button). */
+  driveCam: 'overview' | 'cab';
   set(p: Partial<Omit<SessionState, 'set'>>): void;
 }
 
@@ -89,6 +91,7 @@ export const useSession = create<SessionState>((set) => ({
   speedPaused: false,
   devTesting: false,
   physicsFailed: false,
+  driveCam: 'overview',
   set: (p) => set(p),
 }));
 

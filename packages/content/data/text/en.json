@@ -64,6 +64,7 @@
   "hud.mode.ceo": "CEO Mode",
   "hud.mode.management": "Management View",
   "hud.mode.toggle": "Switch view",
+  "hud.camera": "Switch camera (C)",
   "hud.zoomIn": "Zoom in",
   "hud.zoomOut": "Zoom out",
   "hud.notSynced": "Not synced",

@@ -35,6 +35,7 @@ These rules keep the foundation stable so new features are additive. Follow them
 - Never special-case an id like `"beer"` or `"pub_cosy_local"` in systems. Use definition fields (`type`, `inputs`, `outputs`, `storage`, `humanRequirements`, `productionRules`).
 - Every numeric tunable lives in data (`config/sim.json`, definitions), not in code.
 - Every Business and Vehicle has an `owner`. Competitors run through exactly the same systems as the player.
+- Buildings (fixed recipes, generated streets, pinned streets) follow docs/buildings.md and .kiro/steering/procedural-buildings.md: data in packages/content, seeds from stable ids, nothing stored in saves.
 
 ## Money
 

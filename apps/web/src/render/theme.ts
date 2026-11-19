@@ -29,8 +29,9 @@ export function bandOf(distance: number): string {
   return camCfg.bands[camCfg.bands.length - 1]?.id ?? 'city';
 }
 
+/** Elevation angle: flatter when zoomed in, steeper when zoomed out, changing with the logarithm of the distance. */
 export function tiltFor(distance: number): number {
-  const t = Math.min(1, Math.max(0, (distance - camCfg.dMin) / (camCfg.dMax - camCfg.dMin)));
+  const t = Math.min(1, Math.max(0, Math.log(Math.max(distance, camCfg.dMin) / camCfg.dMin) / Math.log(camCfg.dMax / camCfg.dMin)));
   return (camCfg.tiltNearDeg + (camCfg.tiltFarDeg - camCfg.tiltNearDeg) * t) * DEG;
 }
 
