@@ -2,7 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import { cameraConfig } from '@hr/content';
 import { clampDistance } from '@hr/sim';
-import { cabCameraPose } from '../src/render/cameraState';
+import { cabCameraPose, chaseBlend, zoomBy, camState } from '../src/render/cameraState';
+import { useSession } from '../src/store/stores';
 import { camCfg, tiltFor } from '../src/render/theme';
 
 const deg = (r: number) => (r * 180) / Math.PI;
@@ -45,6 +46,29 @@ describe('cab camera', () => {
     expect(p.eye.y).toBeCloseTo(cab.eyeHeight);
     expect(p.look.z).toBeCloseTo(20 - cab.lookAhead);
     expect(p.look.y).toBeLessThan(p.eye.y);
+  });
+  it('pulling back moves the camera behind and higher and turns it towards the van', () => {
+    const roof = cabCameraPose(0, 0, 0, -1, cab, 0);
+    const chase = cabCameraPose(0, 0, 0, -1, cab, 10);
+    expect(chase.eye.z).toBeGreaterThan(roof.eye.z); // behind (+z when facing -z)
+    expect(chase.eye.y).toBeGreaterThan(roof.eye.y);
+    expect(Math.abs(chase.look.z)).toBeLessThan(Math.abs(roof.look.z)); // looks at the van, not far ahead
+    expect(chaseBlend(0, cab)).toBe(0);
+    expect(chaseBlend(cab.chaseFullAt * 3, cab)).toBe(1);
+  });
+  it('zoom moves the camera back and forth while the cab camera is on, not the overview distance', () => {
+    useSession.getState().set({ driveCam: 'cab' });
+    camState.cabBackTarget = 0;
+    const overview = camState.targetDistance;
+    zoomBy(1.3);
+    expect(camState.cabBackTarget).toBeGreaterThan(0);
+    zoomBy(1 / 1.3);
+    zoomBy(1 / 1.3);
+    expect(camState.cabBackTarget).toBe(0);
+    for (let i = 0; i < 50; i++) zoomBy(1.5);
+    expect(camState.cabBackTarget).toBe(cab.maxBack);
+    expect(camState.targetDistance).toBe(overview);
+    useSession.getState().set({ driveCam: 'overview' });
   });
   it('normalises the facing and survives a zero vector', () => {
     const p = cabCameraPose(0, 0, 3, 4, cab);

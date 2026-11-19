@@ -8,7 +8,7 @@ import { clampDistance, unlockedDistricts, pathCacheFor } from '@hr/sim';
 import { bridge, publish } from '../store/simBridge';
 import { useSession, useUi } from '../store/stores';
 import { inputState } from '../input/inputState';
-import { cabCameraPose, camState } from './cameraState';
+import { cabCameraPose, camState, chaseBlend } from './cameraState';
 import { camCfg, screenToWorld, tiltFor, YAW } from './theme';
 import { interiorRect } from './interiorView';
 
@@ -66,8 +66,11 @@ export function CameraController() {
     if (!driving && session.driveCam !== 'overview') session.set({ driveCam: 'overview' });
     const cab = driving && session.driveCam === 'cab' && camState.physicsPose?.fx !== undefined;
     const persp = camera as PerspectiveCamera;
-    const wantFov = cab ? camCfg.cab.fovDeg : camCfg.fovDeg;
-    if (persp.isPerspectiveCamera && persp.fov !== wantFov) {
+    // Zoom in the cab camera moves the camera behind the van (smoothed).
+    camState.cabBack += (camState.cabBackTarget - camState.cabBack) * k;
+    const blend = chaseBlend(camState.cabBack, camCfg.cab);
+    const wantFov = cab ? camCfg.cab.fovDeg + (camCfg.cab.chaseFovDeg - camCfg.cab.fovDeg) * blend : camCfg.fovDeg;
+    if (persp.isPerspectiveCamera && Math.abs(persp.fov - wantFov) > 0.01) {
       persp.fov = wantFov;
       persp.updateProjectionMatrix();
     }
@@ -75,10 +78,21 @@ export function CameraController() {
     if (cab && camState.physicsPose) {
       // Smooth the facing so drifts and donuts don't whip the view around.
       const pose = camState.physicsPose;
-      const ks = 1 - Math.exp(-camCfg.cab.smoothing * dt);
+      // The chase view turns and follows more lazily than the roof view, and ignores the van's physics jitter.
+      const turn = camCfg.cab.smoothing + (camCfg.cab.chaseTurnSmoothing - camCfg.cab.smoothing) * blend;
+      const ks = 1 - Math.exp(-turn * dt);
       camState.cabDir.x += ((pose.fx ?? 0) - camState.cabDir.x) * ks;
       camState.cabDir.z += ((pose.fz ?? -1) - camState.cabDir.z) * ks;
-      const c = cabCameraPose(pose.x, pose.z, camState.cabDir.x, camState.cabDir.z, camCfg.cab);
+      const anchor = camState.cabAnchor;
+      if (!anchor.set) {
+        anchor.x = pose.x;
+        anchor.z = pose.z;
+        anchor.set = true;
+      }
+      const follow = 1 - Math.exp(-(60 + (camCfg.cab.chaseFollowSmoothing - 60) * blend) * dt);
+      anchor.x += (pose.x - anchor.x) * follow;
+      anchor.z += (pose.z - anchor.z) * follow;
+      const c = cabCameraPose(anchor.x, anchor.z, camState.cabDir.x, camState.cabDir.z, camCfg.cab, camState.cabBack);
       camera.position.set(c.eye.x, c.eye.y, c.eye.z);
       camera.lookAt(c.look.x, c.look.y, c.look.z);
     } else {

@@ -88,7 +88,10 @@ export function toggleDriveCamera(): void {
   if (!bridge.loop?.sim.state.ceo.drivingVehicleId) return;
   const s = useSession.getState();
   const next = s.driveCam === 'cab' ? 'overview' : 'cab';
-  if (next === 'cab') camState.cabDir = { x: camState.physicsPose?.fx ?? 0, z: camState.physicsPose?.fz ?? -1 };
+  if (next === 'cab') {
+    camState.cabDir = { x: camState.physicsPose?.fx ?? 0, z: camState.physicsPose?.fz ?? -1 };
+    camState.cabAnchor.set = false;
+  }
   s.set({ driveCam: next });
 }
 export function devModeOn(): boolean {
