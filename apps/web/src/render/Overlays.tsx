@@ -8,6 +8,10 @@ import { displayName, type DefinitionRegistry, type SimState } from '@hr/sim';
 import { bridge, onDomainEvents } from '../store/simBridge';
 import { useUi } from '../store/stores';
 import { camCfg, ownerColor, palette } from './theme';
+import { groundHeightAt } from './World';
+
+/** Capsule top of a figure (centre 0.65 + half height 0.6) plus a small gap, so the tag sits on the head. */
+const LABEL_ABOVE_GROUND = 1.6;
 
 export function ManagementOverlay({ reg, state }: { reg: DefinitionRegistry; state: SimState }) {
   const viewMode = useUi((u) => u.viewMode);
@@ -89,7 +93,8 @@ export function HumanLabels() {
       g.visible = item !== undefined;
       el.style.display = item ? 'block' : 'none';
       if (item) {
-        g.position.set(item.p.x, 1.9, item.p.z);
+        const lift = room ? 0 : groundHeightAt(loop.sim.reg, item.p.x, item.p.z); // curb height under the figure
+        g.position.set(item.p.x, lift + LABEL_ABOVE_GROUND, item.p.z);
         const name = displayName(item.h);
         if (el.textContent !== name) el.textContent = name;
       }

@@ -19,7 +19,8 @@ describe('frontage slots on screen', () => {
   it('the town hall is a Landmark taken from its double-width slot; landmarks.json holds only off-street ones', () => {
     expect(landmarks).toEqual([]);
     const hall = slotLandmarks(reg).find((l) => l.id === 'city_hall');
-    expect(hall).toEqual({ id: 'city_hall', district: 'old_town', modelKey: 'building_town_hall', x: 0, z: -43, w: 20, d: 12, facing: 1 });
+    expect(hall).toMatchObject({ id: 'city_hall', district: 'old_town', modelKey: 'building_town_hall', x: 0, w: 20, d: 12, facing: 1 });
+    expect(hall?.z).toBeCloseTo(-42.6, 6);
   });
   it('every model-less filler slot gets one generated house of exactly its width, deterministically', () => {
     const houses = layoutSlotHouses(reg);

@@ -38,7 +38,7 @@
   "plots": [],
   "streets": [
     {
-      "id": "main_north_west", "from": "w_end", "to": "e_end", "side": "left", "start": 0, "setback": 6, "depth": 12, "tags": ["commercial"],
+      "id": "main_north_west", "from": "w_end", "to": "e_end", "side": "left", "start": 0, "setback": 4.6, "depth": 12, "tags": ["commercial"],
       "slots": [
         { "kind": "filler", "id": "fl_n01", "width": 6 },
         { "kind": "plot", "id": "plot_west", "width": 16, "initial": { "kind": "empty" } },
@@ -46,7 +46,7 @@
       ]
     },
     {
-      "id": "main_north_centre", "from": "w_end", "to": "e_end", "side": "left", "start": 34.5, "setback": 6, "depth": 12, "tags": ["commercial"],
+      "id": "main_north_centre", "from": "w_end", "to": "e_end", "side": "left", "start": 34.5, "setback": 4.6, "depth": 12, "tags": ["commercial"],
       "slots": [
         { "kind": "filler", "id": "fl_n03", "width": 3.5 },
         { "kind": "business", "id": "plot_home", "width": 16 },
@@ -56,7 +56,7 @@
       ]
     },
     {
-      "id": "main_north_east", "from": "w_end", "to": "e_end", "side": "left", "start": 94.5, "setback": 6, "depth": 12, "tags": ["commercial"],
+      "id": "main_north_east", "from": "w_end", "to": "e_end", "side": "left", "start": 94.5, "setback": 4.6, "depth": 12, "tags": ["commercial"],
       "slots": [
         { "kind": "filler", "id": "fl_n06", "width": 4.5 },
         { "kind": "business", "id": "plot_depot", "width": 14, "tags": ["market"], "unloadingZone": { "d": 4, "offset": 3 } },
@@ -64,7 +64,7 @@
       ]
     },
     {
-      "id": "main_south_west", "from": "w_end", "to": "e_end", "side": "right", "start": 0, "setback": 7, "depth": 12, "tags": ["commercial"],
+      "id": "main_south_west", "from": "w_end", "to": "e_end", "side": "right", "start": 0, "setback": 4.6, "depth": 12, "tags": ["commercial"],
       "slots": [
         { "kind": "filler", "id": "fl_s01", "width": 8.5 },
         { "kind": "filler", "id": "fl_s02", "width": 8.5 },
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "id": "main_south_centre", "from": "w_end", "to": "e_end", "side": "right", "start": 34.5, "setback": 7, "depth": 12, "tags": ["commercial"],
+      "id": "main_south_centre", "from": "w_end", "to": "e_end", "side": "right", "start": 34.5, "setback": 4.6, "depth": 12, "tags": ["commercial"],
       "slots": [
         { "kind": "filler", "id": "fl_s04", "width": 3.5 },
         { "kind": "plot", "id": "plot_south", "width": 16, "initial": { "kind": "empty" } },
@@ -82,15 +82,15 @@
       ]
     },
     {
-      "id": "main_south_east", "from": "w_end", "to": "e_end", "side": "right", "start": 94.5, "setback": 7, "depth": 12, "tags": ["commercial"],
+      "id": "main_south_east", "from": "w_end", "to": "e_end", "side": "right", "start": 94.5, "setback": 4.6, "depth": 12, "tags": ["commercial"],
       "slots": [
         { "kind": "filler", "id": "fl_s07", "width": 2.5 },
-        { "kind": "business", "id": "plot_supplier", "width": 18, "depth": 14, "setback": 6, "tags": ["industrial"] },
+        { "kind": "business", "id": "plot_supplier", "width": 18, "depth": 14, "setback": 4.6, "tags": ["industrial"] },
         { "kind": "filler", "id": "fl_s08", "width": 5 }
       ]
     },
     {
-      "id": "north_street", "from": "nw", "to": "ne", "side": "left", "start": 20, "setback": 5, "depth": 12,
+      "id": "north_street", "from": "nw", "to": "ne", "side": "left", "start": 20, "setback": 4.6, "depth": 12,
       "slots": [
         { "kind": "filler", "id": "city_hall", "width": 20, "modelKey": "building_town_hall" }
       ]

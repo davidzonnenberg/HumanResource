@@ -26,7 +26,9 @@ describe('Plot ids and geometry survive the street conversion (task 39.4)', () =
       expect(now, `Plot ${id} is gone`).toBeDefined();
       expect(now?.districtId).toBe(snap.districtId);
       expect(now?.accessNode).toBe(snap.accessNode);
-      expect(now?.def).toEqual(snap.def);
+      // Nov 2026: the Plots moved to the road (setback 4.6 = road + sidewalk + 0.1), so only z differs from the old layout.
+      expect({ ...now?.def, z: 0 }).toEqual({ ...snap.def, z: 0 });
+      if (snap.districtId === 'old_town') expect(Math.abs(now?.def.z ?? 0) - (now?.def.d ?? 0) / 2).toBeCloseTo(4.6, 6); // near edge hugs the sidewalk of the main road
     }
     // No old Plot id was renamed, so there is no old -> new mapping for the save migration (54.10).
     expect(Object.keys(reg.world.plots).sort()).toEqual(Object.keys(before).sort());
@@ -34,7 +36,8 @@ describe('Plot ids and geometry survive the street conversion (task 39.4)', () =
   it('Old Town is built from streets: hand-placed Plots are gone, the town hall is a double-width slot', () => {
     const reg = registry();
     const hall = reg.world.slots.city_hall;
-    expect(hall).toMatchObject({ kind: 'filler', modelKey: 'building_town_hall', rect: { x: 0, z: -43, w: 20, d: 12 }, facing: { x: 0, z: 1 } });
+    expect(hall).toMatchObject({ kind: 'filler', modelKey: 'building_town_hall', rect: { x: 0, w: 20, d: 12 }, facing: { x: 0, z: 1 } });
+    expect(hall?.rect.z).toBeCloseTo(-42.6, 6);
     expect(reg.world.districts.old_town?.def.plots).toEqual([]);
     expect(reg.world.slots.plot_home).toMatchObject({ kind: 'business', plotId: 'plot_home' });
     expect(reg.world.slots.fl_n01?.hitbox).not.toBeNull();

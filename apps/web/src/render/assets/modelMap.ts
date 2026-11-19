@@ -27,7 +27,7 @@ export const MODEL_MAP: Record<string, ModelEntry> = {
   crate_hops: { kind: 'primitive', shape: 'crate', size: [0.55, 0.45, 0.55], color: 'crate' },
   crate_malt: { kind: 'primitive', shape: 'crate', size: [0.55, 0.45, 0.55], color: 'crate' },
   // Test models (files in apps/web/public/models, made by `npm run models:optimize`).
-  building_pub: { kind: 'gltf', url: '/models/ComfyUI_00012.glb', scale: 0.9, offset: [0, 0, 2.7], rotationY: 0, brightness: 3.6 },
+  building_pub: { kind: 'gltf', url: '/models/ComfyUI_00012.glb', scale: 0.9, offset: [0, 0, 0], rotationY: 0, brightness: 3.6 },
   building_pub_rival: { kind: 'gltf', url: '/models/ComfyUI_00010.glb', scale: 1, offset: [0, 0, 0], rotationY: 0 },
   building_supplier: { kind: 'primitive', shape: 'box', size: [1, 4.5, 1], color: 'owner' },
   // Landmark (render-only for now, placed by content/data/maps/landmarks.json). Taller cap than a

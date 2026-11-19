@@ -1,8 +1,8 @@
 // Static world: ground per District, roads, plots, buildings with removable roof/front wall for
 // the interior view (14.3), owner colours and names (16.1–16.3, 17.2, 48.9).
 import { Html, useTexture } from '@react-three/drei';
-import type { ThreeEvent } from '@react-three/fiber';
-import { Suspense, useLayoutEffect, useMemo } from 'react';
+import { useFrame, type ThreeEvent } from '@react-three/fiber';
+import { Suspense, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { BoxGeometry, CanvasTexture, Color, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace } from 'three';
 import type { Business, DefinitionRegistry, SimState } from '@hr/sim';
 import { frontSign } from '@hr/sim';
@@ -14,7 +14,7 @@ import { makeRoadField, roadFieldGlsl } from './assets/roadField';
 import type { RoadField } from './assets/roadField';
 import { GltfBuilding, gltfMaxHeight, ModelBoundary } from './assets/GltfBuilding';
 import { useUi } from '../store/stores';
-import { footprint, setFootprint } from './footprints';
+import { footprint, footprintVersion, setFootprint } from './footprints';
 
 import { ROAD_W, SIDEWALK_W } from './roadConstants';
 
@@ -337,12 +337,34 @@ export function Building({ reg, state, b, open }: { reg: DefinitionRegistry; sta
   return (
     <group onClick={select('business', b.id)}>
       {gltf ? <GltfBuilding entry={gltf} plot={plot} frontSign={s} fallback={shell} onFootprint={(f) => setFootprint(b.id, f)} /> : shell}
-      <Html position={[plot.x, labelHeight + 1.4, plot.z]} center distanceFactor={40} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-        <div className="world-label" style={{ borderColor: color }}>
-          {b.name}
-        </div>
-      </Html>
+      <BuildingLabel id={b.id} fallback={{ x: plot.x, z: plot.z, top: labelHeight }} name={b.name} color={color} />
     </group>
+  );
+}
+
+/**
+ * Name tag above the DRAWN model: centred on its hitbox (which follows the fitted, scaled model) and
+ * lifted from its real top, so it never floats over the empty rest of the plot. Falls back to the plot
+ * until the model has reported its footprint.
+ */
+function BuildingLabel({ id, fallback, name, color }: { id: string; fallback: { x: number; z: number; top: number }; name: string; color: string }) {
+  const [at, setAt] = useState(fallback);
+  const seen = useRef(-1);
+  useFrame(() => {
+    const v = footprintVersion();
+    if (v === seen.current) return;
+    seen.current = v;
+    const f = footprint(id);
+    if (!f) return;
+    const next = { x: (f.minX + f.maxX) / 2, z: (f.minZ + f.maxZ) / 2, top: f.height };
+    setAt((old) => (old.x === next.x && old.z === next.z && old.top === next.top ? old : next));
+  });
+  return (
+    <Html position={[at.x, at.top + 1.2, at.z]} center distanceFactor={40} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+      <div className="world-label" style={{ borderColor: color }}>
+        {name}
+      </div>
+    </Html>
   );
 }
 
