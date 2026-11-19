@@ -6,6 +6,7 @@ import { t, tDynamic } from '../../text/t';
 import { bridge } from '../../store/simBridge';
 import { useUi } from '../../store/stores';
 import { Bar, Card, Panel, PanelButton, Row } from '../components/Card';
+import { CapacityCard } from '../components/CapacityCard';
 import { ServicesCard } from '../components/ServicesCard';
 import { StatBreakdownCard } from '../components/StatBreakdown';
 import { hire, placeOrder, setAutoReorder, setDrinkPrice } from './panelActions';
@@ -37,9 +38,13 @@ export function PubPanel({ reg, state, b, onClose }: { reg: DefinitionRegistry; 
           <Row label={t('panel.staff')} value={`${metrics.serviceHumans} / ${metrics.recommendedServiceHumans}`} />
           <Row label={t('panel.metrics.wait', { value: '' }).replace('{value}', '').trim()} value={metrics.averageWaitSeconds.toFixed(0)} />
           <Row label={t('panel.metrics.lost', { value: '' }).replace('{value}', '').trim()} value={`${metrics.lostPct.toFixed(0)}%`} />
+          <Row label={t('panel.vibe')} value={String(metrics.vibe)} />
+          <Row label={t('panel.walkouts')} value={metrics.walkoutsPerMinute.toFixed(1)} />
+          <Row label={t('panel.openTabs')} value={String(metrics.openTabs)} />
         </Card>
       )}
 
+      <CapacityCard reg={reg} state={state} b={b} />
       <ServicesCard reg={reg} state={state} b={b} />
       {owned && <StatBreakdownCard reg={reg} state={state} stat="demand" businessId={b.id} />}
       {owned && <StatBreakdownCard reg={reg} state={state} stat="repeatOrderChance" businessId={b.id} />}

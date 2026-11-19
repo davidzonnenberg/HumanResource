@@ -1,0 +1,88 @@
+[
+  {
+    "id": "municipality",
+    "type": "office",
+    "nameTable": "names.municipality",
+    "inputs": [],
+    "outputs": [],
+    "storage": {},
+    "humanRequirements": [],
+    "productionRules": [],
+    "brand": null,
+    "traits": [],
+    "locationConstraints": {
+      "plotTags": [
+        "commercial"
+      ]
+    },
+    "owner": "npc",
+    "automation": {
+      "autoReorderAvailable": false,
+      "defaultSourcing": "buy_external"
+    },
+    "loadRatePerSecond": 10,
+    "modelKey": "building_municipality",
+    "layoutKey": "office_small",
+    "role": "municipality",
+    "office": {
+      "queueTickets": 30
+    },
+    "services": []
+  },
+  {
+    "id": "bank",
+    "type": "office",
+    "nameTable": "names.bank",
+    "inputs": [],
+    "outputs": [],
+    "storage": {},
+    "humanRequirements": [],
+    "productionRules": [],
+    "brand": null,
+    "traits": [],
+    "locationConstraints": {
+      "plotTags": [
+        "commercial"
+      ]
+    },
+    "owner": "npc",
+    "automation": {
+      "autoReorderAvailable": false,
+      "defaultSourcing": "buy_external"
+    },
+    "loadRatePerSecond": 10,
+    "modelKey": "building_bank",
+    "layoutKey": "office_small",
+    "role": "bank",
+    "office": {},
+    "services": []
+  },
+  {
+    "id": "job_centre",
+    "type": "office",
+    "nameTable": "names.jobCentre",
+    "inputs": [],
+    "outputs": [],
+    "storage": {},
+    "humanRequirements": [],
+    "productionRules": [],
+    "brand": null,
+    "traits": [],
+    "locationConstraints": {
+      "plotTags": [
+        "commercial"
+      ]
+    },
+    "owner": "npc",
+    "automation": {
+      "autoReorderAvailable": false,
+      "defaultSourcing": "buy_external"
+    },
+    "loadRatePerSecond": 10,
+    "modelKey": "building_job_centre",
+    "layoutKey": "office_small",
+    "role": "job_centre",
+    "office": {},
+    "services": []
+  }
+]

@@ -21,6 +21,8 @@ export type Command =
   // Bank app: move money between the balance account (player.gold) and savings. mount is Gold in hundredths.
   | { type: 'transferSavings'; direction: 'toSavings' | 'toBalance'; amount: Gold }
   | { type: 'setDrinkPrice'; businessId: Id; price: Gold }
+  | { type: 'setWorkerPace'; businessId: Id; pace: string }
+  | { type: 'setPubOpen'; businessId: Id; open: boolean }
   | { type: 'placeOrder'; supplierId: Id; destinationId: Id; resourceId: string; quantity: number }
   | { type: 'setAutoReorder'; businessId: Id; resourceId: string; enabled: boolean; threshold: number }
   // Routes and vehicles (Requirements 12, 13)
@@ -37,6 +39,8 @@ export type Command =
   | { type: 'ceoEnter'; businessId: Id; doorX?: number; doorZ?: number }
   | { type: 'ceoExit'; x?: number; z?: number }
   | { type: 'uiEvent'; event: 'managementViewOpened' }
+  /** The CEO opened an office counter. Starts the office's ticket queue on the first visit only (60.5). */
+  | { type: 'uiEvent'; event: 'officeVisited'; businessId: Id }
   // Districts (Requirement 48) - system issuer only
   | { type: 'unlockDistrict'; districtId: string }
   // Phase 2 (handlers arrive with Phase 2 tasks; rejected with not_available until then)
@@ -84,6 +88,7 @@ export const REASON_CODES = [
   'not_qualified',
   'not_allowed',
   'not_available',
+  'limit_reached',
   // Services (Requirement 51)
   'not_present',
   'conditions_not_met',

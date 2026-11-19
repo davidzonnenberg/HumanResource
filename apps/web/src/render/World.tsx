@@ -271,7 +271,7 @@ export function Building({ reg, state, b, open }: { reg: DefinitionRegistry; sta
   const s = frontSign(reg, b.plotId);
   const { w, d } = plot;
   const pub = def.pub;
-  const layout = pub ? pubLayout(reg, b.plotId, pub.seats) : null;
+  const layout = pub ? pubLayout(reg, b.plotId, b.defId) : null;
   const shell = (
     <>
       {!open && <PlotFootprint id={b.id} x={plot.x} z={plot.z} w={w} d={d} h={height} />}

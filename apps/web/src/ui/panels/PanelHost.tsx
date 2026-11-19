@@ -3,6 +3,7 @@
 import { type DefinitionRegistry, type SimState } from '@hr/sim';
 import { bridge } from '../../store/simBridge';
 import { useSimVersion, useUi } from '../../store/stores';
+import { OfficePanel } from './OfficePanel';
 import { PubPanel } from './PubPanel';
 import { SlotPicker } from './SlotPicker';
 import { CompetitorPanel, CustomerPanel, FinancePanel, HumanPanel, PlotPanel, SupplierPanel, VehiclePanel } from './InfoPanels';
@@ -25,6 +26,7 @@ export function PanelHost() {
     case 'business': {
       const b = state.businesses[selection.id];
       if (!b) return null;
+      if (reg.businesses[b.defId]?.office !== undefined) return <OfficePanel reg={reg} state={state} b={b} onClose={close} />;
       if (reg.businesses[b.defId]?.supplier) return <SupplierPanel reg={reg} state={state} b={b} onClose={close} />;
       if (b.owner !== 'player' && reg.businesses[b.defId]?.pub) return <CompetitorPanel reg={reg} state={state} b={b} onClose={close} />;
       if (reg.businesses[b.defId]?.pub) return <PubPanel reg={reg} state={state} b={b} onClose={close} />;

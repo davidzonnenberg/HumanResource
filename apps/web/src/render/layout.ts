@@ -1,43 +1,38 @@
-// Pub interior layout anchors (entrance, seats, bar) derived from plot geometry. Customers and
-// staff animate between these anchors (4.13, 5.7). Pure functions, shared by figures and labels.
-import { entrance, frontSign, type DefinitionRegistry } from '@hr/sim';
-
+// Pub interior anchors (entrance, seats, bar) read from the layout data (`phase3/layouts.json`) via the
+// sim's anchor helpers, so the Renderer and the Simulation use the same points (4.13, 5.7, 55.5).
+// Pure functions, shared by figures and labels.
+import { anchorWorld, entrance, layoutOf, type DefinitionRegistry } from '@hr/sim';
 export interface PubLayout {
   door: { x: number; z: number };
   bar: { x: number; z: number; w: number };
   seats: { x: number; z: number }[];
   barSpot(i: number): { x: number; z: number };
+  /** Tap anchors (where a worker stands to pour), the idle cleaning spot and the till. */
+  taps: { x: number; z: number }[];
+  cleanSpot: { x: number; z: number };
+  till: { x: number; z: number };
 }
-
-const cache = new Map<string, PubLayout>();
-
-export function pubLayout(reg: DefinitionRegistry, plotId: string, seats: number): PubLayout {
-  const key = `${plotId}:${seats}`;
-  const hit = cache.get(key);
+const cache = new WeakMap<DefinitionRegistry, Map<string, PubLayout>>();
+export function pubLayout(reg: DefinitionRegistry, plotId: string, defId: string): PubLayout {
+  let byKey = cache.get(reg);
+  if (!byKey) cache.set(reg, (byKey = new Map()));
+  const key = `${plotId}:${defId}`;
+  const hit = byKey.get(key);
   if (hit) return hit;
   const p = reg.world.plots[plotId]?.def;
-  if (!p) throw new Error(`unknown plot ${plotId}`);
-  const s = frontSign(reg, plotId); // +1: road at +z
-  const back = p.z - (s * p.d) / 2;
-  const barZ = back + s * 1.4;
-  const cols = Math.ceil(Math.sqrt(seats * (p.w / p.d)));
-  const rows = Math.ceil(seats / cols);
-  const seatPts: { x: number; z: number }[] = [];
-  const x0 = p.x - p.w / 2 + 1.6;
-  const x1 = p.x + p.w / 2 - 1.6;
-  const z0 = barZ + s * 2.4;
-  const z1 = p.z + (s * p.d) / 2 - s * 1.6;
-  for (let i = 0; i < seats; i++) {
-    const c = i % cols;
-    const r = Math.floor(i / cols);
-    seatPts.push({ x: cols === 1 ? p.x : x0 + ((x1 - x0) * c) / (cols - 1), z: rows === 1 ? (z0 + z1) / 2 : z0 + ((z1 - z0) * r) / (rows - 1) });
-  }
+  const data = layoutOf(reg, defId);
+  if (!p || !data) throw new Error(`no layout for plot ${plotId} / ${defId}`);
+  const at = (a: { u: number; v: number }) => anchorWorld(reg, plotId, a);
   const layout: PubLayout = {
     door: entrance(reg, plotId),
-    bar: { x: p.x, z: barZ, w: p.w * 0.6 },
-    seats: seatPts,
-    barSpot: (i) => ({ x: p.x - p.w * 0.2 + (i % 3) * p.w * 0.2, z: back + s * 0.7 }),
+    bar: { ...at(data.bar), w: p.w * 0.6 },
+    seats: data.seats.map(at),
+    // Bartenders stand behind the bar at the taps; a worker beyond the last tap shares a spot.
+    taps: data.taps.map(at),
+    cleanSpot: at(data.cleanSpot),
+    till: at(data.till),
+    barSpot: (i) => at(data.taps[i % data.taps.length] ?? data.bar),
   };
-  cache.set(key, layout);
+  byKey.set(key, layout);
   return layout;
 }

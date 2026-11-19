@@ -95,7 +95,7 @@ describe('Human allocation (Requirement 7)', () => {
   it('a Headcount_Fill counts as working capacity (49.3)', () => {
     const sim = freshSim(1);
     const pub = Object.values(sim.state.businesses).find((b) => b.owner === 'player');
-    const slot = pub?.jobSlots.find((s) => s.jobId === 'bartender' && s.filledBy === null);
+    const slot = pub?.jobSlots.find((s) => s.jobId === 'bar_worker' && s.filledBy === null);
     if (!slot) throw new Error('setup');
     slot.filledBy = { kind: 'headcount', count: 1, humanDefId: 'regular' };
     expect(slotCapacity(slot, sim.state)).toBe(1);

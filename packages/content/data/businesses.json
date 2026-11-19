@@ -1,14 +1,14 @@
 [
   {
     "id": "pub_cosy_local",
+    "role": "pub",
     "type": "pub",
     "nameTable": "names.pub",
     "inputs": ["beer"],
     "outputs": [],
     "storage": { "beer": 120 },
     "humanRequirements": [
-      { "jobId": "bartender", "slots": 2, "requiredForProduction": 0 },
-      { "jobId": "server", "slots": 2, "requiredForProduction": 0 }
+      { "jobId": "bar_worker", "slots": 4, "requiredForProduction": 0 }
     ],
     "productionRules": [],
     "brand": null,
@@ -32,6 +32,7 @@
       "paySeconds": 2,
       "leaveSeconds": 3,
       "serveDistance": 5,
+      "maxTaps": 3,
       "minDrinkPrice": 100,
       "maxDrinkPrice": 1500,
       "defaultDrinkPrice": 500,
@@ -48,14 +49,14 @@
   },
   {
     "id": "pub_sports",
+    "role": "pub",
     "type": "pub",
     "nameTable": "names.rivalPub",
     "inputs": ["beer"],
     "outputs": [],
     "storage": { "beer": 160 },
     "humanRequirements": [
-      { "jobId": "bartender", "slots": 2, "requiredForProduction": 0 },
-      { "jobId": "server", "slots": 2, "requiredForProduction": 0 }
+      { "jobId": "bar_worker", "slots": 4, "requiredForProduction": 0 }
     ],
     "productionRules": [],
     "brand": null,
@@ -65,7 +66,7 @@
     "automation": { "autoReorderAvailable": true, "defaultSourcing": "buy_external" },
     "loadRatePerSecond": 10,
     "modelKey": "building_pub_rival",
-    "layoutKey": "pub_small",
+    "layoutKey": "pub_sports",
     "construction": { "cost": 550000, "seconds": 60 },
     "acquisition": { "askingPrice": 500000 },
     "recipes": ["badgers_bite"],
@@ -80,6 +81,7 @@
       "paySeconds": 2,
       "leaveSeconds": 3,
       "serveDistance": 5,
+      "maxTaps": 3,
       "minDrinkPrice": 100,
       "maxDrinkPrice": 1500,
       "defaultDrinkPrice": 550,
@@ -96,6 +98,7 @@
   },
   {
     "id": "supplier_beer",
+    "role": "supplier",
     "type": "supplier",
     "nameTable": "names.supplier",
     "inputs": [],
@@ -117,6 +120,16 @@
         { "resourceId": "hops", "unitPrice": 120 },
         { "resourceId": "malt", "unitPrice": 100 }
       ]
-    }
+    },
+    "services": [
+      {
+        "id": "buy_tap",
+        "nameKey": "service.buyTap",
+        "cost": 8000,
+        "access": "presence",
+        "conditions": [{ "condition": { "kind": "tapsBelowMax" }, "reason": "limit_reached" }],
+        "effects": [{ "kind": "domain", "op": "buyTap" }]
+      }
+    ]
   }
 ]

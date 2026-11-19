@@ -64,6 +64,13 @@ export function evaluateCondition(c: Condition, state: SimState, events: readonl
       }
       return n >= c.count;
     }
+    case 'counterAtLeast':
+      return (state.counters?.[c.counter] ?? 0) >= c.count;
+    case 'tapsBelowMax': {
+      const b = c.businessId !== undefined ? state.businesses[c.businessId] : firstPlayerPub(reg, state);
+      const max = b ? reg.businesses[b.defId]?.pub?.maxTaps : undefined;
+      return b?.pub !== undefined && max !== undefined && b.pub.tapsBuilt < max;
+    }
     case 'serviceUsed':
       return (state.servicesUsed?.[c.serviceId] ?? 0) > 0;
     case 'questStepDone':

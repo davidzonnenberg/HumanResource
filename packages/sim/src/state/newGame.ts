@@ -12,6 +12,11 @@ import type { Business, Human, SimState, Vehicle } from './types';
 
 export { emptyPubMetrics } from './createBusiness';
 
+/** The signed deal of a start state, copied from the `supplyDeals` data. */
+function dealOf(reg: DefinitionRegistry, id: string | undefined): SimState['player']['supplyDeal'] {
+  const d = id === undefined ? undefined : reg.phase3.supplyDeals[id];
+  return d ? { dealId: d.id, kegDrinks: d.kegDrinks, pricePerKeg: d.pricePerKeg, contractFeePerMinute: d.contractFeePerMinute ?? 0, feeCarry: 0 } : null;
+}
 export function newGame(reg: DefinitionRegistry, seed: number): SimState {
   const start = reg.startState;
   const cfg = reg.config;
@@ -21,7 +26,7 @@ export function newGame(reg: DefinitionRegistry, seed: number): SimState {
     rng: seedRng(seed),
     idCounters: {},
     districts: Object.fromEntries(Object.entries(start.districts).map(([k, v]) => [k, { unlocked: v.unlocked }])),
-    player: { gold: start.gold, savings: 0, reputation: start.reputation, corporateResources: {}, availableBrands: [], recipes: [], license: null, supplyDeal: null, fitOutBudget: 0 },
+    player: { gold: start.gold, savings: 0, reputation: start.reputation, corporateResources: {}, availableBrands: [], recipes: [], license: start.license ?? null, supplyDeal: dealOf(reg, start.supplyDeal), fitOutBudget: 0 },
     competitors: Object.fromEntries(start.competitors.map((c) => [c.id, { id: c.id, nameKey: c.nameKey, colorToken: c.colorToken }])),
     plots: {},
     businesses: {},
@@ -58,6 +63,7 @@ export function newGame(reg: DefinitionRegistry, seed: number): SimState {
     servicesUsed: {},
     quests: {},
     requests: {},
+    counters: {},
   };
 
   // Plots

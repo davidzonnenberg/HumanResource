@@ -2,6 +2,7 @@
 import type { DefinitionRegistry } from '../defs/registry';
 import { recommendedServiceHumans } from '../defs/formulas';
 import { ringCount, ringSum } from '../metrics/ring';
+import { getStat } from '../stats/getStat';
 import type { LostReason, SimState } from '../state/types';
 
 export interface PubMetricsView {
@@ -14,6 +15,11 @@ export interface PubMetricsView {
   lostInWindow: number;
   topLostReason: LostReason;
   popularity: 'low' | 'medium' | 'high';
+  /** Walkouts per Game_Minute over the window (57.7). */
+  walkoutsPerMinute: number;
+  /** Customers who still owe a Tab. */
+  openTabs: number;
+  vibe: number;
 }
 
 export function pubMetricsView(reg: DefinitionRegistry, state: SimState, pubId: string): PubMetricsView | null {
@@ -47,6 +53,9 @@ export function pubMetricsView(reg: DefinitionRegistry, state: SimState, pubId: 
     lostPct: arrivals > 0 ? (lost / arrivals) * 100 : 0, // 0% when nobody arrived (6.2)
     lostInWindow: lost,
     topLostReason: top,
+    walkoutsPerMinute: ((m.walkouts ? ringSum(m.walkouts, now) : 0) * 60) / Math.max(1, elapsed),
+    openTabs: Object.values(state.customers).filter((c) => c.pubId === pubId && c.tab > 0).length,
+    vibe: getStat({ state, reg }, 'vibe', { businessId: pubId }),
     popularity: arrivalsPerMinute < bands.low ? 'low' : arrivalsPerMinute > bands.high ? 'high' : 'medium',
   };
 }

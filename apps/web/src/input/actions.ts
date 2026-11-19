@@ -15,6 +15,12 @@ export function runContextAction(ca: ContextAction | null): void {
     case 'enter':
       {
         const b = sim.state.businesses[ca.targetId];
+        if (b && sim.reg.businesses[b.defId]?.office !== undefined) {
+          // An office is not walked into: its counter screen opens at the door (60.3).
+          sim.submit({ type: 'uiEvent', event: 'officeVisited', businessId: b.id });
+          useUi.getState().set({ selection: { kind: 'business', id: b.id } });
+          break;
+        }
         const door = b ? exteriorDoorPoint(b.id, frontSign(sim.reg, b.plotId)) : undefined;
         sim.submit(door ? { type: 'ceoEnter', businessId: ca.targetId, doorX: door.x, doorZ: door.z } : { type: 'ceoEnter', businessId: ca.targetId });
       }

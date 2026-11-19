@@ -24,6 +24,12 @@ export function setDrinkPrice(businessId: string, price: number): void {
   sim()?.submit({ type: 'setDrinkPrice', businessId, price });
 }
 
+export function setWorkerPace(businessId: string, pace: string): void {
+  sim()?.submit({ type: 'setWorkerPace', businessId, pace });
+}
+export function setPubOpen(businessId: string, open: boolean): void {
+  sim()?.submit({ type: 'setPubOpen', businessId, open });
+}
 export function placeOrder(supplierId: string, destinationId: string, resourceId: string, quantity: number): void {
   sim()?.submit({ type: 'placeOrder', supplierId, destinationId, resourceId, quantity });
 }

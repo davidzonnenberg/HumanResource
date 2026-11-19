@@ -1,6 +1,8 @@
 [
   { "commandType": "setDrinkPrice", "access": "remote" },
   { "commandType": "setAutoReorder", "access": "remote" },
+  { "commandType": "setWorkerPace", "access": "remote" },
+  { "commandType": "setPubOpen", "access": "remote" },
   { "commandType": "setSourcingPolicy", "access": "remote" },
   { "commandType": "setProductionRecipe", "access": "remote" }
 ]

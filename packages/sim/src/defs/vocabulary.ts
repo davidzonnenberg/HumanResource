@@ -3,7 +3,7 @@
 // new entry is added in exactly one place and an unknown entry is rejected with a precise error.
 
 /** Stats a system reads through `getStat`. A stat that no system reads must not be listed (50.3). */
-export const STAT_IDS = ['demand', 'premiumPrice', 'repeatOrderChance'] as const;
+export const STAT_IDS = ['demand', 'premiumPrice', 'repeatOrderChance', 'workSpeed', 'seats', 'taps', 'vibe'] as const;
 export type StatId = (typeof STAT_IDS)[number];
 
 export const CONDITION_KINDS = [
@@ -25,6 +25,8 @@ export const CONDITION_KINDS = [
   'humanCountAtLeast',
   'serviceUsed',
   'questStepDone',
+  'tapsBelowMax',
+  'counterAtLeast',
 ] as const;
 export type ConditionKind = (typeof CONDITION_KINDS)[number];
 

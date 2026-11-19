@@ -29,9 +29,11 @@ export const arbLeafCondition: fc.Arbitrary<Condition> = fc.oneof(
   fc.constant<Condition>({ kind: 'pubOpen' }),
   fc.record({ kind: fc.constant('pubOpen' as const), businessId: fc.constantFrom('biz_0001', 'biz_9999') }),
   fc.record({ kind: fc.constant('humanCountAtLeast' as const), count: fc.integer({ min: 0, max: 6 }) }),
-  fc.record({ kind: fc.constant('humanCountAtLeast' as const), count: fc.integer({ min: 0, max: 6 }), jobId: fc.constantFrom('bartender', 'server', 'driver') }),
+  fc.record({ kind: fc.constant('humanCountAtLeast' as const), count: fc.integer({ min: 0, max: 6 }), jobId: fc.constantFrom('bar_worker', 'driver') }),
   fc.record({ kind: fc.constant('serviceUsed' as const), serviceId: word }),
   fc.record({ kind: fc.constant('questStepDone' as const), questId: word, stepId: word }),
+  fc.constant<Condition>({ kind: 'tapsBelowMax' }),
+  fc.record({ kind: fc.constant('counterAtLeast' as const), counter: word, count: fc.integer({ min: 0, max: 500 }) }),
 );
 
 /** Conditions nested up to `depth` levels through all / any / not. */

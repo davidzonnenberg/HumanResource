@@ -7,6 +7,7 @@ export type DomainEvent =
   | { type: 'drinkPoured'; pubId: Id; owner: OwnerId }
   | { type: 'drinkServed'; pubId: Id; owner: OwnerId; customerId: Id }
   | { type: 'customerPaid'; pubId: Id; owner: OwnerId; amount: Gold }
+  | { type: 'customerWalkout'; pubId: Id; owner: OwnerId; customerId: Id; amount: Gold }
   | { type: 'storageFull'; businessId: Id; owner: OwnerId; resourceId: string }
   | { type: 'storageEmpty'; businessId: Id; owner: OwnerId; resourceId: string }
   | { type: 'vehicleLoaded'; vehicleId: Id; owner: OwnerId; businessId: Id; resourceId: string; qty: number }
@@ -23,6 +24,7 @@ export type DomainEvent =
   | { type: 'achievementAwarded'; achievementId: string }
   // Phase 2 (reveal conditions and UI banners read these by name)
   | { type: 'serviceUsed'; businessId: Id; serviceId: string }
+  | { type: 'questStepDone'; questId: string; stepId: string }
   | { type: 'chainRegistered'; length: number; routeIds: Id[] }
   | { type: 'reputationChanged'; delta: number; causeKey: string };
 

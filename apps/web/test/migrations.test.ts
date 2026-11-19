@@ -79,12 +79,18 @@ describe('v3 -> v4 migration skeleton', () => {
       const state: SimState = res.doc.state;
       expect(res.migrated).toBe(true);
       expect(res.doc.schemaVersion).toBe(4);
-      expect(state.player).toMatchObject({ license: null, supplyDeal: null, fitOutBudget: 0 });
+      expect(state.player).toMatchObject({ license: 'pub', supplyDeal: { dealId: 'small_flexible', kegDrinks: 20 }, fitOutBudget: 0 });
       expect(state.loans).toEqual([]);
       expect(state.quests).toEqual({});
       expect(state.requests).toEqual({});
       for (const b of Object.values(state.businesses)) if (b.pub) expect(b.pub).toMatchObject({ open: true, seatsBuilt: b.pub.seats.length, vibeBase: 0, lostIncome: 0 });
-      for (const c of Object.values(state.customers)) expect(c).toMatchObject({ tab: 0, waitedLong: false });
+      for (const c of Object.values(state.customers)) {
+        expect(c.waitedLong).toBe(false);
+        expect(c.tab).toBeGreaterThanOrEqual(0);
+        expect(c).not.toHaveProperty('priceBpExtra');
+        // a Customer who has been served owes at least the drink he is holding
+        if (c.servedAny) expect(c.tab).toBeGreaterThan(0);
+      }
       expect(checkInvariants(state, reg)).toEqual([]);
       const sim = new Simulation(reg, state);
       for (let t = 0; t < 300; t++) sim.tick();

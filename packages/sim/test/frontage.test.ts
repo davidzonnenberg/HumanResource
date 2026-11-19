@@ -31,7 +31,8 @@ describe('Plot ids and geometry survive the street conversion (task 39.4)', () =
       if (snap.districtId === 'old_town') expect(Math.abs(now?.def.z ?? 0) - (now?.def.d ?? 0) / 2).toBeCloseTo(4.6, 6); // near edge hugs the sidewalk of the main road
     }
     // No old Plot id was renamed, so there is no old -> new mapping for the save migration (54.10).
-    expect(Object.keys(reg.world.plots).sort()).toEqual(Object.keys(before).sort());
+    // Only the three offices (task 47.2) were added to the old layout.
+    expect(Object.keys(reg.world.plots).sort()).toEqual([...Object.keys(before), 'plot_bank', 'plot_job_centre', 'plot_municipality'].sort());
   });
   it('Old Town is built from streets: hand-placed Plots are gone, the town hall is a double-width slot', () => {
     const reg = registry();

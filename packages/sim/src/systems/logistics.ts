@@ -12,6 +12,7 @@ import { addToStock, emptyStock, freeCapacity, takeFromStock } from '../storage/
 import type { Business, Lot, LotOrigin, Route, Vehicle } from '../state/types';
 import { PLAYER } from '../state/types';
 import { inUnloadingZone, isBusinessInUnlockedDistrict, parkingPoint, plotInfo } from '../world/geometry';
+import { affordableQty, orderCost } from '../storage/containers';
 import { cargoTotal, nextDropoffIndex, pendingQuantity, storageCapacity, supplierFor } from '../world/queries';
 import { sendToJob } from './humans';
 import { jobCapacity } from '../staffing/capacity';
@@ -266,11 +267,11 @@ export function logisticsSystem(ctx: TickContext): void {
 
 // ---------------- Orders and auto-reorder (10) ----------------
 
-function placeOrderInternal(ctx: TickContext, owner: string, supplier: Business, dest: Business, res: string, qty: number, unitPrice: number): string {
+function placeOrderInternal(ctx: TickContext, owner: string, supplier: Business, dest: Business, res: string, qty: number, cost: number): string {
   const id = nextId(ctx.state, 'ord');
   ctx.state.orders[id] = { id, owner, sourceId: supplier.id, destinationId: dest.id, resourceId: res, remaining: qty, placedTick: ctx.state.tick };
   ledgerChange(ctx, res, qty, 'order_placed');
-  gold(ctx, owner, -(unitPrice * qty), 'purchase', dest.id);
+  gold(ctx, owner, -cost, 'purchase', dest.id);
   ctx.events.push({ type: 'orderPlaced', orderId: id, owner, qty });
   return id;
 }
@@ -285,10 +286,10 @@ export function handlePlaceOrder(ctx: TickContext, cmd: Extract<Command, { type:
   if (!isBusinessInUnlockedDistrict(ctx.reg, ctx.state, supplier) || !isBusinessInUnlockedDistrict(ctx.reg, ctx.state, dest)) return { reason: 'district_locked' };
   if (!Number.isInteger(cmd.quantity) || cmd.quantity <= 0) return { reason: 'invalid_quantity', field: 'quantity' };
   if (storageCapacity(ctx.reg, dest, cmd.resourceId) <= 0) return { reason: 'invalid_quantity', field: 'resourceId' };
-  const cost = sale.unitPrice * cmd.quantity;
+  const cost = orderCost(ctx.reg, ctx.state, PLAYER, cmd.resourceId, sale.unitPrice, cmd.quantity);
   const check = requireGold(ctx.state, PLAYER, cost);
   if (!check.ok) return { reason: check.reason, missingGold: check.missingGold };
-  placeOrderInternal(ctx, PLAYER, supplier, dest, cmd.resourceId, cmd.quantity, sale.unitPrice);
+  placeOrderInternal(ctx, PLAYER, supplier, dest, cmd.resourceId, cmd.quantity, cost);
   return null;
 }
 
@@ -330,14 +331,14 @@ export function sourcingSystem(ctx: TickContext): void {
       let want = cap - amount - pending;
       if (policy === 'internal_first') want -= internalAvailable(ctx.reg, ctx.state, b, res);
       if (!offer || want <= 0) continue;
-      const affordable = b.owner === PLAYER ? Math.floor(Math.max(0, ctx.state.player.gold) / offer.unitPrice) : Infinity;
-      const qty = Math.min(want, affordable);
+      const costOf = (n: number): number => orderCost(ctx.reg, ctx.state, b.owner, res, offer.unitPrice, n);
+      const qty = b.owner === PLAYER ? affordableQty(costOf, want, Math.max(0, ctx.state.player.gold)) : want;
       if (qty <= 0) {
         ar.failed = true; // retried every Tick (10.10)
         continue;
       }
       ar.failed = false;
-      placeOrderInternal(ctx, b.owner, offer.supplier, b, res, qty, offer.unitPrice);
+      placeOrderInternal(ctx, b.owner, offer.supplier, b, res, qty, costOf(qty));
     }
   }
 }

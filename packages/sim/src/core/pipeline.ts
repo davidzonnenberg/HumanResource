@@ -12,11 +12,12 @@ import { marketSystem } from '../systems/phase2/market';
 import { productionSystem } from '../systems/phase2/production';
 import { achievementsSystem } from '../systems/phase2/achievements';
 import { modifiersSystem } from '../stats/modifiers';
+import { questsSystem } from '../systems/quests';
 import { schedulerSystem } from './scheduler';
 
 export interface SystemEntry {
   id: string;
-  phase: 1 | 2;
+  phase: 1 | 2 | 3;
   run(ctx: TickContext): void;
 }
 
@@ -44,6 +45,8 @@ export const PIPELINE: readonly SystemEntry[] = [
   { id: 'finance', phase: 1, run: financeSystem },
   { id: 'chains', phase: 2, run: noop },
   { id: 'reputation', phase: 2, run: noop },
+  // Slot 20.5: quest steps advance after everything they can depend on has run this Tick (73.2).
+  { id: 'quests', phase: 3, run: questsSystem },
   { id: 'metrics', phase: 1, run: metricsSystem },
   { id: 'alerts', phase: 1, run: alertsSystem },
   { id: 'reveals', phase: 1, run: revealsSystem },

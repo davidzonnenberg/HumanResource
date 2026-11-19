@@ -70,14 +70,14 @@
   },
   {
     "id": "pub_student",
+    "role": "pub",
     "type": "pub",
     "nameTable": "names.studentPub",
     "inputs": ["beer"],
     "outputs": [],
     "storage": { "beer": 140 },
     "humanRequirements": [
-      { "jobId": "bartender", "slots": 2, "requiredForProduction": 0 },
-      { "jobId": "server", "slots": 2, "requiredForProduction": 0 }
+      { "jobId": "bar_worker", "slots": 4, "requiredForProduction": 0 }
     ],
     "productionRules": [],
     "brand": "brand_penny_pint",
@@ -87,7 +87,7 @@
     "automation": { "autoReorderAvailable": true, "defaultSourcing": "buy_external" },
     "loadRatePerSecond": 10,
     "modelKey": "building_pub",
-    "layoutKey": "pub_small",
+    "layoutKey": "pub_student",
     "acquisition": { "askingPrice": 400000 },
     "pub": {
       "venueType": "student_bar",
@@ -100,6 +100,7 @@
       "paySeconds": 2,
       "leaveSeconds": 3,
       "serveDistance": 5,
+      "maxTaps": 3,
       "minDrinkPrice": 100,
       "maxDrinkPrice": 1200,
       "defaultDrinkPrice": 400,

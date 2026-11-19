@@ -33,8 +33,9 @@ function ticksForOnePatienceWindow(): number {
 describe('patience expiry reasons (4.8, 4.9)', () => {
   it('stock present but nobody pouring: Customers leave with patience_expired, not out_of_beer', () => {
     const sim = freshSim(7);
-    // Jan is the only Bartender; with him unassigned no drink is ever poured, Beer stays in Storage.
+    // Jan and Julia are the only Bar_Workers; with both unassigned no drink is ever poured, Beer stays in Storage.
     sim.submit({ type: 'unassign', humanId: humanId(sim.state, 'Jan') });
+    sim.submit({ type: 'unassign', humanId: humanId(sim.state, 'Julia') });
     const reasons = lostReasons(run(sim, [], ticksForOnePatienceWindow()).outputs);
     expect(reasons).toContain('patience_expired');
     expect(reasons).not.toContain('out_of_beer');

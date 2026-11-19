@@ -24,6 +24,8 @@ export const MODEL_MAP: Record<string, ModelEntry> = {
   customer: { kind: 'primitive', shape: 'capsule', size: [0.3, 0.62, 0.3], color: 'customer' },
   ceo: { kind: 'primitive', shape: 'capsule', size: [0.36, 0.78, 0.36], color: 'ceo' },
   crate_beer: { kind: 'primitive', shape: 'crate', size: [0.55, 0.45, 0.55], color: 'crate' },
+  // A Keg is the same box, taller and narrower (a display and pricing unit only, 58.1).
+  keg_beer: { kind: 'primitive', shape: 'crate', size: [0.45, 0.7, 0.45], color: 'crate' },
   crate_hops: { kind: 'primitive', shape: 'crate', size: [0.55, 0.45, 0.55], color: 'crate' },
   crate_malt: { kind: 'primitive', shape: 'crate', size: [0.55, 0.45, 0.55], color: 'crate' },
   // Test models (files in apps/web/public/models, made by `npm run models:optimize`).
@@ -35,6 +37,10 @@ export const MODEL_MAP: Record<string, ModelEntry> = {
   building_town_hall: { kind: 'gltf', url: '/models/cityhall_00002.glb', scale: 1, offset: [0, 0, 0], rotationY: 0, maxHeight: 22, brightness: 2.6 },
   building_brewery: { kind: 'primitive', shape: 'box', size: [1, 4.2, 1], color: 'owner' },
   building_warehouse: { kind: 'primitive', shape: 'box', size: [1, 3.0, 1], color: 'owner' },
+  // Offices: placeholder boxes until real models exist (60.4).
+  building_municipality: { kind: 'primitive', shape: 'box', size: [1, 4.0, 1], color: 'owner' },
+  building_bank: { kind: 'primitive', shape: 'box', size: [1, 3.6, 1], color: 'owner' },
+  building_job_centre: { kind: 'primitive', shape: 'box', size: [1, 3.2, 1], color: 'owner' },
   building_market_depot: { kind: 'primitive', shape: 'box', size: [1, 2.6, 1], color: 'owner' },
   plot_empty: { kind: 'primitive', shape: 'flat', size: [1, 0.05, 1], color: 'plotEmpty' },
   plot_for_sale: { kind: 'primitive', shape: 'flat', size: [1, 0.05, 1], color: 'plotForSale' },

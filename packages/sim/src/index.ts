@@ -16,6 +16,7 @@ export { slotCapacity, jobCapacity, workingHumans, isJobUnstaffed } from './staf
 export { contextActionFor, type ContextAction, type ContextActionKind } from './interaction/contextAction';
 export { nextViewMode, clampDistance, type ViewMode, type ViewModeConfig } from './interaction/viewMode';
 export { checkInvariants, checkGoldLimit, physicalTotals, type InvariantViolation } from './invariants/check';
+export { pubCapacity, seatsOf, tapsOf, type CapacityKind, type PubCapacity } from './systems/pubCapacity';
 export { pubMetricsView, vehicleDeliveriesPerMinute, type PubMetricsView } from './selectors/metrics';
 export { isRevealed } from './systems/observe';
 export { evaluateCondition } from './conditions/evaluate';
@@ -27,6 +28,10 @@ export { STAT_IDS, CONDITION_KINDS, EFFECT_KINDS, DOMAIN_OPS, FINANCE_CATEGORIES
 export { REASON_CODES } from './commands/types';
 export { serviceParamsValid } from './commands/useService';
 export { isCeoPresent, requireAccess, type AccessTag } from './world/access';
+export { officeVisitKey } from './commands/dispatch';
+export { questComplete } from './systems/quests';
+export { affordableQty, fromContainers, orderCost, toContainers, unitsPerContainer } from './storage/containers';
+export { anchorDistance, anchorWorld, layoutOf, type Anchor, type AnchorName } from './layout/anchors';
 export { entrance, parkingPoint, plotCenter, inUnloadingZone, frontSign, isBusinessInUnlockedDistrict } from './world/geometry';
 export { humanPosition, pendingQuantity, supplierFor, storageCapacity, cargoTotal, vehicleNextDropoff, firstPlayerPub } from './world/queries';
 export { emptyStock, addToStock, takeFromStock, freeCapacity } from './storage/stock';

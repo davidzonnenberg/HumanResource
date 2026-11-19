@@ -4,7 +4,7 @@
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { useRef, type RefObject } from 'react';
 import type * as THREE from 'three';
-import type { SimState, Vehicle } from '@hr/sim';
+import { toContainers, unitsPerContainer, type SimState, type Vehicle } from '@hr/sim';
 import { bridge } from '../store/simBridge';
 import { useUi } from '../store/stores';
 import { ownerColor, palette, theme } from './theme';
@@ -70,7 +70,7 @@ export const renderHeadings = new Map<string, number>();
 export function crateCount(v: Vehicle): number {
   const reg = bridge.reg;
   let n = 0;
-  for (const [res, st] of Object.entries(v.cargo)) n += Math.ceil(st.amount / (reg?.resources[res]?.crateUnits ?? 10));
+  for (const [res, st] of Object.entries(v.cargo)) n += reg ? toContainers(st.amount, unitsPerContainer(reg, bridge.loop?.sim.state, res)) : Math.ceil(st.amount / 10);
   return n;
 }
 

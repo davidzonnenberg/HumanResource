@@ -57,7 +57,8 @@ export function contextActionFor(state: SimState, reg: DefinitionRegistry, exter
     if (!isBusinessInUnlockedDistrict(reg, state, b)) continue; // 48.9
     const door = exteriorDoor?.(b.id) ?? entrance(reg, b.plotId);
     // Owned Businesses are entered at the door (Enter / E); rival ones can only be inspected.
-    consider({ kind: b.owner === PLAYER ? 'enter' : 'inspect', targetKind: 'business', targetId: b.id }, dist2d(ceo.x, ceo.z, door.x, door.z));
+    const enterable = b.owner === PLAYER || reg.businesses[b.defId]?.office !== undefined; // offices open their counter (60.3)
+    consider({ kind: enterable ? 'enter' : 'inspect', targetKind: 'business', targetId: b.id }, dist2d(ceo.x, ceo.z, door.x, door.z));
   }
   for (const p of Object.values(state.plots)) {
     if (p.status !== 'for_sale' || !state.districts[p.districtId]?.unlocked) continue;

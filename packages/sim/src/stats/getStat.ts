@@ -39,14 +39,20 @@ interface StatDef {
   rounding: 'floor' | 'ceil';
   /** Lower bound of the result. */
   min: number;
+  /** Upper bound of the result, if any. */
+  max?: number;
 }
 export const STAT_DEFS: Record<StatId, StatDef> = {
   demand: { rounding: 'floor', min: 0 },
   premiumPrice: { rounding: 'floor', min: 0 },
   repeatOrderChance: { rounding: 'floor', min: 0 },
+  seats: { rounding: 'floor', min: 0 },
+  taps: { rounding: 'floor', min: 0 },
+  vibe: { rounding: 'floor', min: 0, max: 100 },
+  workSpeed: { rounding: 'floor', min: 1000 }, // never below x0.1, so a step always ends
 };
-/** Boost stat -> StatId. `serviceSpeed` becomes `workSpeed` when a system reads it (task 43.1). */
-export const BOOST_STAT: Readonly<Record<string, StatId | undefined>> = { serviceSpeed: undefined };
+/** Boost stat -> StatId. `serviceSpeed` is `workSpeed` (read by the Bar_Worker state machine). */
+export const BOOST_STAT: Readonly<Record<string, StatId | undefined>> = { serviceSpeed: 'workSpeed' };
 
 /** Ids are `<prefix>_<n>` with a zero-padded counter; compare by length first so `mod_10000` sorts after `mod_9999`. */
 export function compareIds(a: string, b: string): number {
@@ -58,7 +64,14 @@ function baseOf(env: StatEnv, stat: StatId, b: Business | undefined): number {
   switch (stat) {
     case 'demand':
     case 'premiumPrice':
+    case 'workSpeed':
       return 10000;
+    case 'vibe':
+      return env.reg.config.vibeBase + (b?.pub?.vibeBase ?? 0);
+    case 'seats':
+      return b?.pub?.seatsBuilt ?? 0; // whole Seats, unlike the basis-point stats
+    case 'taps':
+      return b?.pub?.tapsBuilt ?? 0;
     case 'repeatOrderChance':
       return pub ? Math.round(pub.repeatOrderChance * 10000) : 0;
   }
@@ -144,7 +157,7 @@ export function explainStat(env: StatEnv, stat: StatId, target: StatTarget = {})
   }
   const d = STAT_DEFS[stat];
   const scaled = d.rounding === 'floor' ? mulDivFloor(base, bp, 10000) : mulDivCeil(base, bp, 10000);
-  return { stat, base, entries, flat, bp, total: Math.max(d.min, base + flat + scaled) };
+  return { stat, base, entries, flat, bp, total: Math.min(d.max ?? Number.POSITIVE_INFINITY, Math.max(d.min, base + flat + scaled)) };
 }
 
 /** The value of `stat` for `target`. Pure: reads state and Definitions only, never the RNG. */

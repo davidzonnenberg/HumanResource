@@ -22,5 +22,17 @@
   "financeWindowSeconds": 300,
   "newsLimit": 50,
   "commandLogTailLimit": 2000,
-  "stateHashEveryTicks": 100
+  "stateHashEveryTicks": 100,
+  "barWorkerPriority": ["takePayment", "deliver", "pour", "takeOrder"],
+  "payWaitSeconds": 10,
+  "longWaitSeconds": 25,
+  "longWaitVibePenalty": 10,
+  "longWaitVibeSeconds": 120,
+  "walkoutVibeBelow": 30,
+  "walkoutPct": 50,
+  "vibeBase": 50,
+  "cleanSeconds": 6,
+  "defaultWalkDistance": 6,
+  "defaultPace": "normal",
+  "paces": { "relaxed": -1000, "normal": 0, "hustle": 1500 }
 }

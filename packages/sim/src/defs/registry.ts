@@ -499,7 +499,17 @@ export function loadRegistry(raw: RawContentInput): Result<DefinitionRegistry, D
     if (settings[s.commandType]) errors.push({ definition: 'settings', field: s.commandType, message: 'duplicate setting' });
     settings[s.commandType] = s.access;
   }
-  const phase3 = loadPhase3(raw.phase3, { jobIds: new Set(Object.keys(jobs)), modelKeys, serviceIds: new Set(Object.keys(services)), textRef }, errors);
+  const phase3 = loadPhase3(raw.phase3, { jobIds: new Set(Object.keys(jobs)), modelKeys, serviceIds: new Set(Object.keys(services)), revealFeatures, textRef }, errors);
+  // Pub layouts: every Pub names a layout whose Seat anchors match its Seat count and that has at least one Tap (55.5).
+  for (const b of Object.values(businesses)) {
+    if (!b.pub) continue;
+    const layout = phase3.layouts[b.layoutKey];
+    const def = `businesses#${b.id}`;
+    if (!layout) errors.push({ definition: def, field: 'layoutKey', message: `unknown layout "${b.layoutKey}"` });
+    else if (layout.seats.length !== b.pub.seats)
+      errors.push({ definition: def, field: 'layoutKey', message: `layout "${layout.id}" has ${layout.seats.length} Seat anchors but the Pub has ${b.pub.seats} Seats` });
+    else if (layout.taps.length < 1) errors.push({ definition: def, field: 'layoutKey', message: `layout "${layout.id}" has no Tap anchor` });
+  }
   const traitBp: DefinitionRegistry['traitBp'] = {};
   for (const tr of Object.values(traits)) {
     // Data percentages become integer basis points once, here (50.2).

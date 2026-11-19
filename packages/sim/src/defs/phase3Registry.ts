@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import type { DefinitionError } from './registry';
 import { checkRawCondition, checkRawEffect } from './vocabularyCheck';
+import type { Condition } from './schemas';
 import {
   candidateDefSchema,
   customerTypeDefSchema,
@@ -21,6 +22,8 @@ export interface Phase3Context {
   jobIds: ReadonlySet<string>;
   modelKeys: ReadonlySet<string>;
   serviceIds: ReadonlySet<string>;
+  /** Features some Reveal_Trigger reveals (a Quest step may wait for one). */
+  revealFeatures: ReadonlySet<string>;
   textRef: (definition: string, field: string, key: string) => void;
 }
 
@@ -123,5 +126,29 @@ export function loadPhase3(raw: RawPhase3 | undefined, ctx: Phase3Context, error
       seen.add(s.id);
     });
   }
+  // Quest Conditions may only wait for things that exist (73.7): features, Services and other Quest steps.
+  const checkCondition = (def: string, field: string, c: Condition): void => {
+    switch (c.kind) {
+      case 'all':
+      case 'any':
+        c.of.forEach((x, i) => checkCondition(def, `${field}.of.${i}`, x));
+        break;
+      case 'not':
+        checkCondition(def, `${field}.of`, c.of);
+        break;
+      case 'revealed':
+        if (!ctx.revealFeatures.has(c.feature)) err(def, `${field}.feature`, `no Reveal_Trigger reveals "${c.feature}"`);
+        break;
+      case 'serviceUsed':
+        if (!ctx.serviceIds.has(c.serviceId)) err(def, `${field}.serviceId`, `unknown Service "${c.serviceId}"`);
+        break;
+      case 'questStepDone':
+        if (!quests[c.questId]?.steps.some((s) => s.id === c.stepId)) err(def, `${field}.stepId`, `unknown Quest step "${c.questId}.${c.stepId}"`);
+        break;
+      default:
+        break;
+    }
+  };
+  for (const q of Object.values(quests)) q.steps.forEach((s, j) => checkCondition(`phase3/quests#${q.id}`, `steps.${j}.done`, s.done));
   return { licenseTiers, loanOffers, fitOutItems, supplyDeals, candidates, requests, customerTypes, quests, layouts };
 }

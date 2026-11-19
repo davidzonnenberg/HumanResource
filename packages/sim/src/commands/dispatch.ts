@@ -2,7 +2,7 @@
 import type { TickContext } from '../core/context';
 import type { Command, CommandEnvelope, CommandResult, Rejection } from './types';
 import { handleAssign, handleFire, handleHire, handleUnassign } from '../systems/humans';
-import { handleSetDrinkPrice } from '../systems/pub';
+import { handleSetDrinkPrice, handleSetPubOpen, handleSetWorkerPace } from '../systems/pub';
 import { handleTransferSavings } from '../money/savings';
 import {
   handleEndManualDriving,
@@ -24,6 +24,8 @@ import { handleSetSourcingPolicy } from '../systems/phase2/sourcing';
 import { handleSetProductionRecipe } from '../systems/phase2/production';
 import { handleUseService } from './useService';
 import { requireAccess } from '../world/access';
+/** Counter key holding the Tick (+1) of the first visit to an office. */
+export const officeVisitKey = (defId: string): string => `visit:${defId}`;
 
 function handleUnlockDistrict(ctx: TickContext, env: CommandEnvelope, cmd: Extract<Command, { type: 'unlockDistrict' }>): Rejection | null {
   if (env.issuer !== 'system') return { reason: 'not_allowed' };
@@ -56,6 +58,10 @@ function dispatch(ctx: TickContext, env: CommandEnvelope): Rejection | null {
       return handleTransferSavings(ctx, cmd);
     case 'setDrinkPrice':
       return handleSetDrinkPrice(ctx, cmd);
+    case 'setWorkerPace':
+      return handleSetWorkerPace(ctx, cmd);
+    case 'setPubOpen':
+      return handleSetPubOpen(ctx, cmd);
     case 'placeOrder':
       return handlePlaceOrder(ctx, cmd);
     case 'setAutoReorder':
@@ -82,9 +88,18 @@ function dispatch(ctx: TickContext, env: CommandEnvelope): Rejection | null {
       return handleCeoEnter(ctx, cmd);
     case 'ceoExit':
       return handleCeoExit(ctx, cmd);
-    case 'uiEvent':
-      ctx.events.push({ type: 'uiManagementViewOpened' });
+    case 'uiEvent': {
+      if (cmd.event === 'managementViewOpened') {
+        ctx.events.push({ type: 'uiManagementViewOpened' });
+        return null;
+      }
+      const office = ctx.state.businesses[cmd.businessId];
+      if (!office || ctx.reg.businesses[office.defId]?.office === undefined) return { reason: 'unknown_entity', field: 'businessId' };
+      const counters = (ctx.state.counters ??= {});
+      const key = officeVisitKey(office.defId);
+      if (counters[key] === undefined) counters[key] = ctx.state.tick + 1; // later visits and repeated presses change nothing
       return null;
+    }
     case 'unlockDistrict':
       return handleUnlockDistrict(ctx, env, cmd);
     case 'marketBuy':

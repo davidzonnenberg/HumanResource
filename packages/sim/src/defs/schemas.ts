@@ -31,7 +31,11 @@ export type Condition =
   | { kind: 'pubOpen'; businessId?: string }
   | { kind: 'humanCountAtLeast'; count: number; jobId?: string }
   | { kind: 'serviceUsed'; serviceId: string }
-  | { kind: 'questStepDone'; questId: string; stepId: string };
+  | { kind: 'questStepDone'; questId: string; stepId: string }
+  /** The Player's Pub (or `businessId`) can still take another Tap (56.6). */
+  | { kind: 'tapsBelowMax'; businessId?: string }
+  /** A named counter of `state.counters` (for example `drinksServed`) has reached `count`. */
+  | { kind: 'counterAtLeast'; counter: string; count: number };
 export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
   z.union([
     z.object({
@@ -54,6 +58,8 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.object({ kind: z.literal('humanCountAtLeast'), count: z.number().int(), jobId: id.optional() }),
     z.object({ kind: z.literal('serviceUsed'), serviceId: id }),
     z.object({ kind: z.literal('questStepDone'), questId: id, stepId: id }),
+    z.object({ kind: z.literal('tapsBelowMax'), businessId: id.optional() }),
+    z.object({ kind: z.literal('counterAtLeast'), counter: id, count: z.number().int() }),
   ]),
 ) as z.ZodType<Condition>;
 /** An integer, or an inclusive `range` that is drawn from the seeded RNG in Effect order (52.2). */
@@ -135,7 +141,8 @@ export const resourceDefSchema = z.object({
   tradable: z.boolean(),
   modelKey: id,
   nameKey: id,
-  crateUnits: z.number().int().positive(),
+  /** How the Resource is shown and priced in bulk: crates or Kegs of `size` units. Orders, loads and Storage stay in units (58.1). */
+  container: z.object({ kind: z.enum(['crate', 'keg']), size: z.number().int().positive() }),
 });
 export type ResourceDef = z.infer<typeof resourceDefSchema>;
 
@@ -168,6 +175,8 @@ export const pubParamsSchema = z.object({
   paySeconds: z.number().positive(),
   leaveSeconds: z.number().positive(),
   serveDistance: z.number().positive(),
+  /** Most Taps this Pub Definition can ever have (56.6). */
+  maxTaps: z.number().int().positive(),
   minDrinkPrice: gold,
   maxDrinkPrice: gold,
   defaultDrinkPrice: gold,
@@ -236,7 +245,11 @@ export const businessDefSchema = z.object({
   /** Data-defined Services used through the useService Command. */
   services: z.array(serviceDefSchema).optional(),
   /** Marker: an office with a counter screen (Municipality, Bank, Job_Centre). Written as `{}` in JSON. */
-  office: z.record(z.string(), z.never()).optional(),
+  /** `queueTickets`: the ticket queue shown on the first visit in a Save_Slot (60.5). */
+  office: z.object({ queueTickets: z.number().int().positive().optional() }).optional(),
+  // ---- Phase 3 (Requirements 60, 73) ----
+  /** Role tag a Quest step or the Waypoint targets (`municipality`, `bank`, `supplier`, `pub`, ...); no system names a Business id. */
+  role: id.optional(),
 });
 export type BusinessDef = z.infer<typeof businessDefSchema>;
 
@@ -457,6 +470,26 @@ export const simConfigSchema = z.object({
   commandLogTailLimit: z.number().int().positive().default(2000),
   /** The State_Hash is computed every this many Ticks (53.7). */
   stateHashEveryTicks: z.number().int().positive().default(100),
+  /** Order in which an idle Bar_Worker looks for work (55.3). */
+  barWorkerPriority: z.array(z.enum(['takePayment', 'deliver', 'pour', 'takeOrder'])).min(1).default(['takePayment', 'deliver', 'pour', 'takeOrder']),
+  /** A Customer who finished waits this long for a worker to take the payment (57.9). */
+  payWaitSeconds: z.number().positive().default(10),
+  /** A wait for the first drink above this is a long wait (57.6). */
+  longWaitSeconds: z.number().positive().default(25),
+  longWaitVibePenalty: z.number().int().nonnegative().default(10),
+  longWaitVibeSeconds: z.number().positive().default(120),
+  /** Vibe below this makes a Walkout possible (57.4); the chance is `walkoutPct` of 100. */
+  walkoutVibeBelow: z.number().int().default(30),
+  walkoutPct: z.number().int().min(0).max(100).default(50),
+  /** Vibe of a Pub without decoration; the fit-out adds to it (57.3). */
+  vibeBase: z.number().int().default(50),
+  /** Length of one cleaning step of an idle Bar_Worker. */
+  cleanSeconds: z.number().positive().default(6),
+  /** Walking distance in metres used for the base Hands value until a cycle is measured (56.8). */
+  defaultWalkDistance: z.number().positive().default(6),
+  /** Worker pace id -> workSpeed Modifier in basis points (55.3, 56.1). */
+  paces: z.record(z.string(), z.number().int()).default({ relaxed: -1000, normal: 0, hustle: 1500 }),
+  defaultPace: z.string().default('normal'),
 });
 export type SimConfig = z.infer<typeof simConfigSchema>;
 
@@ -550,6 +583,10 @@ const startJob = z.union([
 ]);
 export const startStateDefSchema = z.object({
   gold: gold,
+  /** License_Tier the Player starts with; absent = none (Grand Opening start, task 49.1). */
+  license: id.optional(),
+  /** Supply deal the Player starts with (a `supplyDeals` id); absent = none, orders are rejected (Grand Opening start, task 49.1). */
+  supplyDeal: id.optional(),
   reputation: z.number().int().min(0).max(100),
   districts: z.record(z.string(), z.object({ unlocked: z.boolean() })),
   businesses: z.array(

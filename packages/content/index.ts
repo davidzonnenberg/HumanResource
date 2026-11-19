@@ -50,6 +50,8 @@ import requests from './data/phase3/requests.json';
 import customerTypes from './data/phase3/customerTypes.json';
 import quests from './data/phase3/quests.json';
 import layouts from './data/phase3/layouts.json';
+import phase3Businesses from './data/phase3/businesses.json';
+import phase3RevealTriggers from './data/phase3/reveal-triggers.json';
 // Which Commands are settings and whether they need the CEO present (Requirement 51).
 import settings from './data/settings.json';
 
@@ -85,7 +87,7 @@ export interface RawContent {
 export const rawContent: RawContent = {
   // Phase 2 definitions are appended after Phase 1 so Phase 1 ordering never changes.
   resources: [...resources, ...phase2Resources],
-  businesses: [...businesses, ...phase2Businesses],
+  businesses: [...businesses, ...phase2Businesses, ...phase3Businesses],
   vehicles,
   jobs,
   humans,
@@ -93,7 +95,7 @@ export const rawContent: RawContent = {
   recipes: [...recipes, ...phase2Recipes],
   brands: [...brands, ...phase2Brands],
   achievements: [...achievements, ...phase2Achievements],
-  revealTriggers: [...revealTriggers, ...phase2RevealTriggers],
+  revealTriggers: [...revealTriggers, ...phase2RevealTriggers, ...phase3RevealTriggers],
   models,
   namePool,
   startState,

@@ -108,8 +108,12 @@ export const questDefSchema = z.object({
 });
 export type QuestDef = z.infer<typeof questDefSchema>;
 
-/** Requirement 55.5: anchors of a pub interior; distances between them drive throughput. */
-const anchor = z.object({ x: z.number(), z: z.number() });
+/**
+ * Requirement 55.5: anchors of a pub interior; distances between them drive throughput.
+ * Coordinates are plot-local metres, so one layout fits any plot orientation: 'u' is the offset from the plot
+ * centre along its width, v the depth measured from the BACK wall towards the street (0 = back wall, plot depth = door).
+ */
+const anchor = z.object({ u: z.number(), v: z.number() });
 export const layoutDefSchema = z.object({
   id,
   door: anchor,
@@ -119,6 +123,7 @@ export const layoutDefSchema = z.object({
   cleanSpot: anchor,
   storage: anchor,
   exit: anchor,
+  /** Where a Bar_Worker stands to pour at tap i. */
   taps: z.array(anchor),
   seats: z.array(anchor),
 });

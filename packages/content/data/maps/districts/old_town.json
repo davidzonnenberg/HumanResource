@@ -50,7 +50,7 @@
       "slots": [
         { "kind": "filler", "id": "fl_n03", "width": 3.5 },
         { "kind": "business", "id": "plot_home", "width": 16 },
-        { "kind": "filler", "id": "fl_n04", "width": 12 },
+        { "kind": "business", "id": "plot_job_centre", "width": 12, "tags": ["commercial"] },
         { "kind": "business", "id": "plot_rival", "width": 16 },
         { "kind": "filler", "id": "fl_n05", "width": 3.5 }
       ]
@@ -66,9 +66,9 @@
     {
       "id": "main_south_west", "from": "w_end", "to": "e_end", "side": "right", "start": 0, "setback": 4.6, "depth": 12, "tags": ["commercial"],
       "slots": [
-        { "kind": "filler", "id": "fl_s01", "width": 8.5 },
-        { "kind": "filler", "id": "fl_s02", "width": 8.5 },
-        { "kind": "filler", "id": "fl_s03", "width": 8.5 }
+        { "kind": "filler", "id": "fl_s01", "width": 3.5 },
+        { "kind": "business", "id": "plot_municipality", "width": 11, "tags": ["commercial"] },
+        { "kind": "business", "id": "plot_bank", "width": 11, "tags": ["commercial"] }
       ]
     },
     {

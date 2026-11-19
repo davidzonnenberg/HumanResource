@@ -8,15 +8,45 @@
   "app.fatal.title": "Something went wrong",
   "app.fatal.body": "The simulation stopped to protect your save. Reload the game to continue.",
   "app.reload": "Reload",
-
-  "names.pub": ["The Golden Pint", "The Drunken Badger", "The Leaky Tap", "The Synergy Arms", "The Quarterly Pint"],
-  "names.rivalPub": ["The Rival Rooster", "Big Corp Tavern", "The Hostile Takeover", "The Sports Shed"],
-  "names.supplier": ["Barrel & Sons Wholesale", "Hopfully Ltd.", "Generic Beer Supply Co."],
-  "names.studentPub": ["The Overdrawn Student", "Last Minute Pub", "The Thesis Tap", "Resit & Refill"],
-  "names.brewery": ["Malt Disney Brewing", "The Fermentation Station", "Brewed Awakening", "Synergy Springs Brewery"],
-  "names.warehouse": ["Stack Overflow Storage", "The Pallet Palace", "Just-In-Time-ish Logistics", "Box Office Storage"],
-  "names.marketDepot": ["Market Depot"],
-
+  "names.pub": [
+    "The Golden Pint",
+    "The Drunken Badger",
+    "The Leaky Tap",
+    "The Synergy Arms",
+    "The Quarterly Pint"
+  ],
+  "names.rivalPub": [
+    "The Rival Rooster",
+    "Big Corp Tavern",
+    "The Hostile Takeover",
+    "The Sports Shed"
+  ],
+  "names.supplier": [
+    "Barrel & Sons Wholesale",
+    "Hopfully Ltd.",
+    "Generic Beer Supply Co."
+  ],
+  "names.studentPub": [
+    "The Overdrawn Student",
+    "Last Minute Pub",
+    "The Thesis Tap",
+    "Resit & Refill"
+  ],
+  "names.brewery": [
+    "Malt Disney Brewing",
+    "The Fermentation Station",
+    "Brewed Awakening",
+    "Synergy Springs Brewery"
+  ],
+  "names.warehouse": [
+    "Stack Overflow Storage",
+    "The Pallet Palace",
+    "Just-In-Time-ish Logistics",
+    "Box Office Storage"
+  ],
+  "names.marketDepot": [
+    "Market Depot"
+  ],
   "competitor.rival": "Rooster Holdings",
   "district.oldTown": "Old Town",
   "district.harbour": "Harbour (locked)",
@@ -47,12 +77,10 @@
   "news.questionable.midnightHops": "Neighbours report suspicious hops activity at midnight",
   "news.constructionDone": "{business} has opened its doors",
   "vehicle.deliveryVan": "Delivery Van",
-  "job.bartender": "Bartender",
-  "job.server": "Server",
+  "job.barWorker": "Bar worker",
   "job.driver": "Driver",
   "job.brewer": "Brewer",
   "job.warehouseWorker": "Warehouse worker",
-
   "hud.gold": "{amount} Gold",
   "hud.debt": "In debt",
   "hud.pause": "Pause",
@@ -69,7 +97,6 @@
   "hud.zoomOut": "Zoom out",
   "hud.notSynced": "Not synced",
   "hud.devMode": "Testing mode",
-
   "action.enter": "Enter",
   "action.exitBuilding": "Leave",
   "action.inspect": "Inspect",
@@ -168,7 +195,6 @@
   "app.bank.invest.soon": "📈 Investing is coming soon",
   "app.bank.invest.note": "Set Gold aside and watch it go up (or down). Not real yet, and the chart is decoration.",
   "action.helpServe": "Help serve",
-
   "alert.out_of_beer": "Out of Beer",
   "alert.lost_customers.patience_expired": "Understaffed",
   "alert.lost_customers.no_seat": "Out of seats",
@@ -182,7 +208,6 @@
   "alert.no_route": "Van has no route",
   "alert.saveFailed": "Saving failed, retrying",
   "alert.tooLargeToSync": "Too large to sync",
-
   "panel.close": "Close",
   "panel.owner.player": "Yours",
   "panel.owner.npc": "Independent",
@@ -203,6 +228,28 @@
   "panel.stat.demand": "Customer demand",
   "panel.stat.premiumPrice": "Price paid per drink",
   "panel.stat.repeatOrderChance": "Chance of another round",
+  "panel.stat.workSpeed": "Work speed",
+  "panel.stat.seats": "Seats",
+  "panel.stat.vibe": "Vibe",
+  "service.buyTap": "Buy a tap",
+  "panel.vibe": "Vibe",
+  "panel.walkouts": "Walkouts per minute",
+  "panel.openTabs": "Open tabs",
+  "panel.capacity": "Capacity",
+  "panel.capacity.seats": "Seats",
+  "panel.capacity.taps": "Taps",
+  "panel.capacity.hands": "Hands",
+  "panel.capacity.value": "{have} of {need}",
+  "panel.capacity.bottleneck": "Bottleneck: {what}",
+  "panel.capacity.none": "Nothing asked of the pub yet",
+  "panel.pace": "Pace",
+  "panel.pace.relaxed": "Relaxed",
+  "panel.pace.normal": "Normal",
+  "panel.pace.hustle": "Hustle",
+  "panel.pub.open": "Open for customers",
+  "panel.pub.closed": "Closed",
+  "panel.stat.taps": "Taps",
+  "reason.limit_reached": "That is the maximum",
   "panel.stat.source.trait": "Trait",
   "panel.stat.source.brand": "Brand",
   "panel.stat.source.recipe": "Recipe",
@@ -270,7 +317,6 @@
   "panel.finance.income": "Income: {amount} Gold",
   "panel.finance.expenses": "Expenses: {amount} Gold",
   "panel.finance.category": "{category}: {amount}",
-
   "reason.insufficient_gold": "Not enough Gold (missing {amount})",
   "reason.invalid_price": "That price is not allowed",
   "reason.invalid_quantity": "Invalid quantity",
@@ -295,7 +341,6 @@
   "reason.not_present": "You need to be there in person",
   "reason.conditions_not_met": "Not possible right now",
   "reason.already_done": "Already done",
-
   "pause.title": "Paused",
   "debug.tick": "tick {tick}",
   "debug.hash": "#{hash} @{tick}",
@@ -308,11 +353,9 @@
   "pause.exitToSlots": "Save and exit",
   "pause.finance": "Finances",
   "hud.finance": "Finances",
-
   "dialog.resumeRoute.title": "Resume the delivery route?",
   "dialog.resumeRoute.yes": "Yes, back to work",
   "dialog.resumeRoute.no": "Not now",
-
   "slots.title": "Your playthroughs",
   "slots.new": "New playthrough",
   "slots.newName": "Playthrough {n}",
@@ -332,7 +375,6 @@
   "slots.migrationFailed": "Upgrading this save failed at step {step}. Your save was not changed.",
   "slots.invalid": "This save is damaged ({field}). It was not loaded.",
   "slots.backToProfiles": "Switch profile",
-
   "profiles.title": "Who is playing?",
   "profiles.new": "New profile",
   "profiles.create": "Create",
@@ -347,7 +389,6 @@
   "profiles.pinLocked": "Too many tries. Wait {seconds} sec",
   "profiles.pinOk": "OK",
   "profiles.pinClear": "Clear",
-
   "sync.conflict.title": "This playthrough changed on another device",
   "sync.conflict.body": "Which version do you want to keep? The other one is kept as a backup.",
   "sync.conflict.keepServer": "Keep the other device's version",
@@ -356,11 +397,9 @@
   "sync.deleted.keep": "Keep it as a new playthrough",
   "sync.deleted.discard": "Discard",
   "sync.outdated": "Another device saved this playthrough with a newer game version. Please update the app.",
-
   "pwa.update": "A new version is ready.",
   "pwa.updateNow": "Update now",
   "pwa.later": "Later",
-
   "toast.physicsFailed": "Driving is unavailable on this device. Your Humans will keep delivering.",
   "toast.reveal.storageResponses": "Storage full! You can now respond to surplus stock.",
   "toast.reveal.hiring": "A customer gave up waiting. You can now hire Humans.",
@@ -377,7 +416,6 @@
   "toast.reveal.synergy_counter": "A chain! You now produce Synergy, which is a real thing now.",
   "toast.reveal.reputation_counter": "Your Reputation just changed. You can now see it.",
   "toast.tip": "Personal delivery tip: {amount} Gold",
-
   "finance.sales": "Sales",
   "finance.tip": "Tips",
   "finance.salary": "Salaries",
@@ -391,7 +429,6 @@
   "finance.fine": "Fines",
   "finance.market_sale": "Market sales",
   "finance.other": "Other",
-
   "customer.state.entering": "arriving",
   "customer.state.waiting": "waiting",
   "customer.state.drinking": "drinking",
@@ -423,5 +460,63 @@
   "cv.julia": "Thrives under pressure and tells customers exactly what she thinks of their order.",
   "cv.thomas": "Self-described road philosopher. Drives like a man with a quarterly target.",
   "customerType.regular": "Regular",
-  "customerType.nightOwl": "Night owl"
+  "customerType.nightOwl": "Night owl",
+  "quest.grandOpening": "Grand Opening",
+  "quest.grandOpening.municipality": "Get a licence at the Municipality",
+  "quest.grandOpening.bank": "Take a loan at the Bank",
+  "quest.grandOpening.fitOut": "Fit out the pub",
+  "quest.grandOpening.supplier": "Sign a keg deal with the Supplier",
+  "quest.grandOpening.jobCentre": "Hire your first Human at the Job Centre",
+  "quest.grandOpening.backAtPub": "Back at the pub: cut the ribbon",
+  "quest.first100": "First 100 pints",
+  "quest.first100.serve": "Serve 100 pints",
+  "quest.secondLocation": "Second location",
+  "quest.secondLocation.pub": "Own a second pub",
+  "news.grandOpening": "The pub is open. The ribbon was cut, the paperwork was filed.",
+  "news.first100": "One hundred pints served. Nobody counted, except you.",
+  "toast.reveal.license_granted": "Licence granted. The Municipality has a stamp for everything.",
+  "toast.reveal.loan_taken": "Loan taken. The Bank believes in you, at interest.",
+  "toast.reveal.fit_out_done": "The pub has been fitted out.",
+  "toast.reveal.supplier_deal": "Keg deal signed. Small print included.",
+  "toast.reveal.first_hire": "First hire. Welcome to the workforce.",
+  "toast.reveal.first_kegs": "The first kegs arrived at the pub.",
+  "toast.reveal.pub_open": "The pub is open for business.",
+  "toast.reveal.first_permit_offer": "A permit is on offer. Forms are involved.",
+  "unlock.licenseGranted.teaser": "Something to do with paperwork.",
+  "unlock.licenseGranted.desc": "A licence from the Municipality.",
+  "unlock.licenseGranted.gave": "Seats and customers",
+  "unlock.loanTaken.teaser": "Somebody believes in you.",
+  "unlock.loanTaken.desc": "A loan from the Bank.",
+  "unlock.loanTaken.gave": "A fit-out budget",
+  "unlock.fitOutDone.teaser": "Tables, taps and a plant.",
+  "unlock.fitOutDone.desc": "The pub has been fitted out.",
+  "unlock.fitOutDone.gave": "Seats, taps and Vibe",
+  "unlock.supplierDeal.teaser": "Barrels of small print.",
+  "unlock.supplierDeal.desc": "A keg deal with the Supplier.",
+  "unlock.supplierDeal.gave": "Beer at a fixed price",
+  "unlock.firstHire.teaser": "Somebody has to pour it.",
+  "unlock.firstHire.desc": "Your first hire at the Job Centre.",
+  "unlock.firstHire.gave": "A Human on the payroll",
+  "unlock.firstKegs.teaser": "Heavy things arrive.",
+  "unlock.firstKegs.desc": "The first kegs reached the pub.",
+  "unlock.firstKegs.gave": "Something to pour",
+  "unlock.pubOpen.teaser": "Scissors and a ribbon.",
+  "unlock.pubOpen.desc": "The pub opened its doors.",
+  "unlock.pubOpen.gave": "Customers",
+  "unlock.firstPermit.teaser": "An offer you cannot ignore.",
+  "unlock.firstPermit.desc": "The first permit offer.",
+  "unlock.firstPermit.gave": "A permit to consider",
+  "names.municipality": [
+    "Municipality of Small Print"
+  ],
+  "names.bank": [
+    "First Interest Bank"
+  ],
+  "names.jobCentre": [
+    "Job Centre Plus Minus"
+  ],
+  "panel.office.queue": "Please take a number",
+  "panel.office.ticket": "Your ticket",
+  "panel.office.serving": "Now serving",
+  "panel.office.yourTurn": "It is your turn. Please have your forms ready."
 }

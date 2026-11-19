@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { newGame } from '../src/state/newGame';
 import type { SimState } from '../src/state/types';
 import { registry } from './helpers';
+const reg0 = registry;
 
 const golden = JSON.parse(readFileSync(join(__dirname, 'fixtures', 'newgame-phase1-golden.json'), 'utf8')) as Record<string, SimState>;
 
@@ -15,7 +16,7 @@ function phase1Projection(state: SimState): SimState {
   const s = JSON.parse(JSON.stringify(state)) as SimState;
   for (const k of ['market', 'acquisitions', 'questionable', 'chains', 'boosts', 'reputationPending'] as const) Reflect.deleteProperty(s, k);
   for (const [id, b] of Object.entries(s.businesses)) {
-    if (b.defId === 'market_depot') {
+    if (b.defId === 'market_depot' || reg0().businesses[b.defId]?.office !== undefined) {
       Reflect.deleteProperty(s.businesses, id);
       Reflect.deleteProperty(s.plots, b.plotId);
       s.idCounters.biz = (s.idCounters.biz ?? 1) - 1;
@@ -26,7 +27,7 @@ function phase1Projection(state: SimState): SimState {
   Reflect.deleteProperty(s.player, 'savings'); // added by the v3 bank app
   // Phase 3 skeleton (schema v4): empty at the start, no behaviour yet
   for (const k of ['license', 'supplyDeal', 'fitOutBudget'] as const) Reflect.deleteProperty(s.player, k);
-  for (const k of ['loans', 'servicesUsed', 'quests', 'requests'] as const) Reflect.deleteProperty(s, k);
+  for (const k of ['loans', 'servicesUsed', 'quests', 'requests', 'counters'] as const) Reflect.deleteProperty(s, k);
   for (const b of Object.values(s.businesses))
     if (b.pub) for (const k of ['open', 'seatsBuilt', 'tapsBuilt', 'vibeBase', 'pace', 'lostIncome'] as const) Reflect.deleteProperty(b.pub, k);
   for (const v of Object.values(s.vehicles)) {

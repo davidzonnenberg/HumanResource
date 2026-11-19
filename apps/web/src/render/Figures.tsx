@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import type { Customer, DefinitionRegistry, Human, SimState } from '@hr/sim';
-import { plotCenter } from '@hr/sim';
+import { plotCenter, unitsPerContainer } from '@hr/sim';
 import { bridge } from '../store/simBridge';
 import { pubLayout } from './layout';
 import { camCfg, palette } from './theme';
@@ -27,7 +27,7 @@ function customerPos(reg: DefinitionRegistry, s: SimState, c: Customer, alpha: n
   const pub = s.businesses[c.pubId];
   const def = pub ? reg.businesses[pub.defId]?.pub : undefined;
   if (!pub || !def) return null;
-  const L = pubLayout(reg, pub.plotId, def.seats);
+  const L = pubLayout(reg, pub.plotId, pub.defId);
   const seat = L.seats[c.seat] ?? L.door;
   const tps = reg.config.ticksPerSecond;
   const tick = s.tick + alpha;
@@ -54,33 +54,31 @@ function customerPos(reg: DefinitionRegistry, s: SimState, c: Customer, alpha: n
   }
   return { x: seat.x, z: seat.z, indoor: true };
 }
-/** Staff animate at their task location: bartenders at the bar, servers between bar and table. */
+/**
+ * Bar_Workers animate from their task and the layout anchors (14.10, 55.4): pouring at the Tap they reserved,
+ * walking bar <-> table for orders and drinks, and cleaning at the clean spot while nothing is due.
+ */
 function staffPos(reg: DefinitionRegistry, s: SimState, h: Human, base: { x: number; z: number }, idx: number, alpha: number): { x: number; z: number } {
   if (h.location.kind !== 'at' || !h.location.insideBusinessId || h.status !== 'working') return base;
   const b = s.businesses[h.location.insideBusinessId];
   const def = b ? reg.businesses[b.defId]?.pub : undefined;
   const slotJob = h.assignment && b ? b.jobSlots.find((x) => x.slotId === h.assignment?.slotId)?.jobId : undefined;
-  if (!b || !def) return base;
-  const L = pubLayout(reg, b.plotId, def.seats);
-  const bar = L.barSpot(idx);
-  if (slotJob === 'bartender') return bar;
-  if (slotJob === 'server') {
-    const task = h.task;
-    if (task?.kind === 'carry') {
-      const c = s.customers[task.customerId];
-      const seat = c ? L.seats[c.seat] : undefined;
-      if (seat) {
-        const speed = reg.jobs.server?.movementSpeed ?? 2.5;
-        const dur = (def.serveDistance / speed) * reg.config.ticksPerSecond;
-        const t = 1 - Math.max(0, Math.min(1, (task.doneTick - (s.tick + alpha)) / dur));
-        return { x: lerp(bar.x, seat.x, t), z: lerp(bar.z + 1.2, seat.z, t) };
-      }
+  if (!b || !def || !slotJob || !reg.jobs[slotJob]?.service) return base;
+  const L = pubLayout(reg, b.plotId, b.defId);
+  const task = h.task;
+  if (task?.kind === 'pour') return L.taps[task.tap ?? 0] ?? L.barSpot(idx);
+  if (task?.kind === 'carry' || task?.kind === 'takeOrder') {
+    const c = s.customers[task.customerId];
+    const seat = c ? L.seats[c.seat] : undefined;
+    if (seat) {
+      const speed = reg.jobs[slotJob]?.movementSpeed ?? 2.5;
+      const dur = (Math.sqrt((seat.x - L.bar.x) ** 2 + (seat.z - L.bar.z) ** 2) / speed) * reg.config.ticksPerSecond;
+      const t = 1 - Math.max(0, Math.min(1, (task.doneTick - (s.tick + alpha)) / Math.max(1, dur)));
+      return { x: lerp(L.bar.x, seat.x, t), z: lerp(L.bar.z + 1.2, seat.z, t) };
     }
-    return { x: bar.x + 1.5, z: bar.z + 1.4 };
   }
-  return base;
+  return L.cleanSpot;
 }
-
 export function Figures() {
   const humans = useRef<THREE.InstancedMesh>(null);
   const customers = useRef<THREE.InstancedMesh>(null);
@@ -156,14 +154,15 @@ export function Figures() {
       const plot = reg.world.plots[b.plotId]?.def;
       if (!plot || b.id !== room) continue; // crates are storage inside: only in the interior view
       for (const [res, stock] of Object.entries(b.storage)) {
-        const units = reg.resources[res]?.crateUnits ?? 10;
+        const units = unitsPerContainer(reg, s, res);
         const count = Math.min(24, Math.ceil(stock.amount / units));
         for (let i = 0; i < count && k < MAX_CRATES; i++) {
           const col = i % 6;
           const layer = Math.floor(i / 12);
           const row = Math.floor((i % 12) / 6);
           tmp.position.set(plot.x + plot.w / 2 - 0.9 - row * 0.65, 0.35 + layer * 0.48, plot.z - plot.d / 2 + 0.9 + col * 0.62);
-          tmp.scale.setScalar(1);
+          if (reg.resources[res]?.container.kind === 'keg') tmp.scale.set(0.85, 1.4, 0.85);
+          else tmp.scale.setScalar(1);
           tmp.updateMatrix();
           crates.current.setMatrixAt(k++, tmp.matrix);
         }

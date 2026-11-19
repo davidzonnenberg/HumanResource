@@ -48,6 +48,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
 - Model: all open Phase 1 tasks suit a cheaper model that follows the existing Panel and handler patterns.
 - Verify: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd test`, `npm.cmd run build`.
 
+    - Built Nov 2026: StatId `vibe` (base `config.vibeBase` + `vibeBase`, 0 to 100); long wait adds a `longWait` Modifier once per Customer; at the pay deadline a Walkout is rolled only with low Vibe or a long wait, otherwise the Tab is paid and no random number is drawn; an idle worker finishing a clean step removes the oldest `longWait` Modifier. All thresholds are in `config/sim.json`.
 - [x] 1. Set up repository scaffold and tooling (in place, OneDrive-aware)
   - [x] 1.1 Create the root npm workspace and hygiene files
     - Root `package.json` with workspaces `packages/*`, `apps/*`; root scripts `test` (`vitest run`), `typecheck` (`tsc -b`), `lint`, `build`, `dev`; cross-platform scripts only (no `rm -rf`, use `rimraf` or Node scripts)
@@ -657,6 +658,7 @@ No task commits or pushes. Commit/push appears only as a clearly labelled, user-
     - Convert Trait `addPct` to `addBp` once at registry load; static Trait, Brand and Recipe Trait modifiers are derived from Definitions, not stored; `boosts` become `source.kind = 'boost'` Modifiers; Reputation demand modifier read through `getStat`; delete the duplicated direct computations in `defs/formulas.ts`
     - _Requirements: 50.2, 50.6, 80.1_
     - Built Nov 2026: before this task no system read Brand, Trait or Recipe modifiers at all, so the baseline (35.1) is a frozen reference (	est/baseline/legacyStats.ts) of the earlier direct computations and the grid in stat-baseline.json. The Phase 1 start state is bit-identical before and after (checked with an end-state hash over 8 scripted runs). The Reputation demand modifier is a derived Modifier (basis points, rounded once). state.boosts is read through BOOST_STAT; serviceSpeed has no StatId yet (task 43.1 adds workSpeed), so boosts convert to nothing until then.
+    - Built Nov 2026: `systems/pubCapacity.ts` (`seatsOf`, `tapsOf`, `pubCapacity`); StatIds `seats`, `taps` (base `seatsBuilt`/`tapsBuilt`); `maxTaps` in the Pub data (3). Seats are capped by the License_Tier and are 0 without a licence; the dev start (`start-state.json`) now names `license: "pub"`. Hands use the base value only (no measured cycle yet, 56.8).
   - [x] 35.4 Write property test for getStat equivalence
     - **Property 49: getStat equivalence with the earlier direct computation**
     - Required: compares against the baseline of task 35.1
@@ -793,6 +795,8 @@ ew-game\, \played\, \mid-order\ (an unpoured order in the queue) and \mid-carry\
     - zod schemas and starter JSON in `packages/content/data/phase3/` for `licenseTiers`, `loanOffers`, `fitOutItems`, `supplyDeals`, `candidates`, `requests`, `customerTypes`, `quests`, `layouts` and extended `reveal-triggers` (teaser and description keys); extend `FinanceCategory` with `loan`; text keys in `en.json`
     - _Requirements: 62.5, 63.1, 64.2, 65.1, 66.1, 67.1, 73.1_
     - Built Nov 2026: schemas in `defs/phase3Schemas.ts`, loader and checks in `defs/phase3Registry.ts` (`reg.phase3`; Loan rule 63.11, Quest vocabulary 73.7, referential and text checks), data in `data/phase3/`. `requests`, `quests` and `layouts` ship empty (tasks 51.1, 46.2, 42.1 fill them). Candidates use the current Job ids `bartender`, `server`, `driver` until task 42.2 switches Jan and Julia to `bar_worker`. `teaserKey`, `descriptionKey` and `gaveKey` are optional on Reveal_Triggers until task 50.1 makes the first two required. `player.license` stays a tier id string (tier data is read from `reg.phase3.licenseTiers`), not a copy of the tier in the save. Test: `test/phase3Registry.test.ts`.
+    - Built Nov 2026: layouts are plot-local data in `data/phase3/layouts.json` (`u` across the width, `v` from the back wall to the door), one per Pub Definition (`pub_small` 10 Seats, `pub_sports` 12, `pub_student` 14; the rival and student pubs got their own `layoutKey`). `packages/sim/src/layout/anchors.ts` has `layoutOf`, `anchorDistance` (`Math.sqrt`) and `anchorWorld`; the registry rejects a Pub whose Seat anchors differ from its Seats or that has no Tap anchor. `render/layout.ts` (`pubLayout(reg, plotId, defId)`) reads the same data.
+    - Built Nov 2026: one job `bar_worker` (4 slots per Pub, replacing 2 bartender + 2 server), Jan and Julia in the start state, the hiring candidates and the text key. Systems find the job through `service: true`, not by id.
   - [x] 41.3 Add the v3 state shape and migration skeleton
     - `CURRENT_SCHEMA_VERSION = 3`; state fields `loans`, `servicesUsed`, `quests`, `requests`, `player.license`, `player.supplyDeal`, `player.fitOutBudget`, pub runtime (`seatsBuilt`, `tapsBuilt`, `vibeBase`, `open`, `pace`, `lostIncome`, order queue `taken`), Customer `tab`, `typeId`, `waitedLong`; `migrations/v2_to_v3.ts` skeleton that adds empty values; later tasks extend it
     - _Requirements: 59.1, 59.3, 59.6_
@@ -801,94 +805,115 @@ ew-game\, \played\, \mid-order\ (an unpoured order in the queue) and \mid-carry\
 ewGame\. Behaviour is unchanged: the old golden hash is reproduced once the new fields are stripped, and the golden was then re-recorded on purpose for the new shape. The Phase 1 projection in \
 ewgame-golden.test.ts\ removes the new fields.
 
-- [ ] 42. Implement the Bar_Worker job
-  - [ ] 42.1 Add layout anchors to data and the registry
+- [x] 42. Implement the Bar_Worker job
+  - [x] 42.1 Add layout anchors to data and the registry
     - `packages/content/data/layouts/<key>.json` with door, mat, bar, till, clean spot, taps, seats, storage, exit; `reg.layouts` and `layout/anchors.ts` distance helpers (straight line, `Math.sqrt`); registry checks seat and tap anchor counts against the Pub Definition; the Renderer reads the same data
     - _Requirements: 55.5, 14.8_
-  - [ ] 42.2 Replace `bartender` and `server` by `bar_worker` in content
+  - [x] 42.2 Replace `bartender` and `server` by `bar_worker` in content
     - `jobs.json`, Pub Definitions (slot counts), `start-state.dev.json` (Jan and Julia as Bar_Workers) and text keys; no Job id special-casing in code
     - _Requirements: 55.1, 55.7, 3.1a_
-  - [ ] 42.3 Implement the worker state machine
+  - [x] 42.3 Implement the worker state machine
     - In `systems/staff.ts` keep the pipeline slot, order queue and bar entries; one `WorkerTask` cursor per working Bar_Worker or headcount unit; steps take order, pour, hand over or deliver, take payment, clean; priority from `config.barWorkerPriority`; Tap reservation per Tick; step duration from anchor distance, pour time and `getStat(worker, 'workSpeed')`
     - _Requirements: 55.2, 55.3, 55.4, 5.1, 5.2, 5.3, 5.4_
-  - [ ] 42.4 Animate workers from anchors
+    - Built Nov 2026: `staffSystem` in `systems/pub.ts`: tasks `takeOrder`, `pour` (with its `tap`), `carry` (= deliver) and `clean`; priority from `config.barWorkerPriority`; Taps limited to the layout Tap anchors until 43.1 switches to the `taps` stat; step length from anchor distance and the new `workSpeed` StatId (boosts `serviceSpeed` now convert to it). Orders carry `taken`; one without the flag counts as taken. Paying stays automatic until 44.1. Golden playthrough and the new-game fixture were re-recorded for the new jobs.
+  - [x] 42.4 Animate workers from anchors
     - Renderer drives worker and Customer movement from `reg.layouts` anchors and `WorkerTask`; indoor-only visibility rule stays
     - _Requirements: 5.7, 14.10_
-  - [ ]* 42.5 Write property test for layout distance
+    - Built Nov 2026: `Figures.tsx` `staffPos` places workers from their task: Tap anchor when pouring, bar to table when taking an order or carrying, clean spot when idle. Not seen in a browser yet.
+  - [x]* 42.5 Write property test for layout distance
     - **Property 61: Layout distance drives throughput**
     - **Validates: Requirements 55.4, 55.6**
-  - [ ]* 42.6 Write unit tests for the worker loop
+    - Built Nov 2026: `test/barWorker.test.ts`: a farther Seat gives a longer take-order step (a single case, not 100 random runs).
+  - [x]* 42.6 Write unit tests for the worker loop
     - Idle worker cleans, no worker means no pours, two workers share Taps, payment step ends the Tab
     - _Requirements: 55.2, 56.3_
 
-- [ ] 43. Implement Seats, Taps, Hands and pub settings
-  - [ ] 43.1 Compute Seats, Taps and Hands
+    - Built Nov 2026: same file: idle worker cleans, Taps are shared and never exceeded, no Beer means no pour, a Customer is served end to end. The payment step arrives with 44.1.
+- [x] 43. Implement Seats, Taps, Hands and pub settings
+  - [x] 43.1 Compute Seats, Taps and Hands
     - `systems/pubCapacity.ts`: `seats = license ? min(getStat seats, license maxSeats) : 0`; Hands base from pour time + default walk until a cycle is measured; bottleneck ratio 0 when demandLoad = 0 (56.8, 56.9), `taps = min(getStat taps, def.maxTaps)`, `hands` from the measured worker cycle; add `seats`, `taps`, `vibe`, `drinkPrice`, `workSpeed` to `StatId`; metrics expose three ratios and the bottleneck
     - _Requirements: 56.1, 56.4, 56.7_
-  - [ ] 43.2 Add `setWorkerPace` and `setPubOpen`
+  - [x] 43.2 Add `setWorkerPace` and `setPubOpen`
     - Commands with `remote` access in `settings.json`; Pace maps to `workSpeed` Modifiers from data; `open = false` stops arrivals but lets seated Customers finish
     - _Requirements: 56.1, 71.6, 71.10_
-  - [ ] 43.3 Show the three capacity bars
+    - Built Nov 2026: `setWorkerPace` (a `workSpeed` Modifier from `config.paces`, one per pub, source `policy`) and `setPubOpen`; both `remote` in `settings.json`. A closed pub gets no arrivals.
+  - [x] 43.3 Show the three capacity bars
     - Pub Panel shows Seats, Taps and Hands as bars with the lowest ratio coloured as bottleneck, plus pace and open toggle
     - _Requirements: 56.2_
-  - [ ] 43.4 Add tap purchase at the Supplier
+    - Built Nov 2026: `CapacityCard` in the Pub Panel: three bars, the bottleneck highlighted, pace buttons and the open toggle. Not seen in a browser.
+  - [x] 43.4 Add tap purchase at the Supplier
     - Service `buy_tap` using the `buyTap` domain op; `limit_reached` at the Pub maximum
     - _Requirements: 56.5, 56.6_
-  - [ ]* 43.5 Write property test for capacity limits
+    - Built Nov 2026: supplier Service `buy_tap` (cost 80.00, presence) with the new Condition `tapsBelowMax` (reason `limit_reached`, new Reason_Code) and the `buyTap` op.
+  - [x]* 43.5 Write property test for capacity limits
     - **Property 62: Capacity limits hold**
     - **Validates: Requirements 56.1, 56.3, 56.4, 56.5, 56.6, 64.5**
 
-- [ ] 44. Implement tabs, Walkouts and Vibe
-  - [ ] 44.1 Add Tabs and Customer types
+    - Built Nov 2026: `test/capacity.test.ts`, Property 62 with 25 random plays, plus the licence, ratio, open, pace and tap-purchase tests.
+- [x] 44. Implement tabs, Walkouts and Vibe
+  - [x] 44.1 Add Tabs and Customer types
     - Customer `tab` grows at each serve; Customers in `paying` wait for a `takePayment` step; `customerTypes.json` weights drawn only when more than one type is allowed; payment through `applyGold('sales')`
     - _Requirements: 57.1, 57.2, 4.7_
-  - [ ] 44.2 Implement Walkouts, long waits and Vibe
+    - Built Nov 2026: `takePayment` step (first in `barWorkerPriority`), Tab filled at the serve Tick, paid whole as `sales` by the worker. The migration computes a Tab for Customers that were mid-visit. Customer types are drawn only when the tier allows more than one (they have no effect yet, only a weight).
+  - [x] 44.2 Implement Walkouts, long waits and Vibe
     - Vibe via `getStat`; `longWait` Modifier on waits above the limit; Walkout roll only when Vibe is below the threshold or `waitedLong` (no RNG otherwise); unpaid Tab goes to `lostIncome`; a pay timeout (`payWaitSeconds`) without low Vibe or `waitedLong` pays the Tab automatically (57.9)
     - _Requirements: 57.3, 57.4, 57.5, 57.6_
-  - [ ] 44.3 Show Vibe, Walkouts and open Tabs
+  - [x] 44.3 Show Vibe, Walkouts and open Tabs
     - Pub Panel cards for Vibe, Walkouts per Game_Minute and open Tabs
     - _Requirements: 57.7_
-  - [ ] 44.4 Write property test for Tab conservation
+    - Built Nov 2026: Pub Panel rows for Vibe, Walkouts per minute (new optional metric ring `walkouts`) and open Tabs.
+  - [x] 44.4 Write property test for Tab conservation
     - **Property 63: Tab conservation**
     - Required
     - **Validates: Requirements 57.1, 57.2, 57.5, 57.8, 4.7**
-  - [ ]* 44.5 Write property test for Walkouts
+    - Built Nov 2026: `test/tabs.test.ts`, Property 63 (no Tab survives its Customer).
+  - [x]* 44.5 Write property test for Walkouts
     - **Property 64: Walkouts need a reason**
     - **Validates: Requirements 57.3, 57.4, 57.6**
 
-- [ ] 45. Implement Kegs
-  - [ ] 45.1 Add container sizes to Resources
+    - Built Nov 2026: same file, Property 64 (a Walkout needs low Vibe or a long wait and writes off the whole Tab).
+- [x] 45. Implement Kegs
+  - [x] 45.1 Add container sizes to Resources
     - `ResourceDef.container`; `storage/containers.ts` (`toContainers`, `fromContainers`); Kegs are visual and pricing units only: Orders, loads, unloads, capacity and limits stay in drinks (not rounded to whole kegs); unit price per drink = `pricePerKeg / kegDrinks`, cost rounded up; `supplyDeal.kegDrinks` overrides the display size
     - _Requirements: 58.1, 58.2, 58.4_
-  - [ ] 45.2 Render Kegs
+    - Built Nov 2026: Resource `container {kind, size}` replaces `crateUnits`; beer is a Keg of 20. `storage/containers.ts` (`unitsPerContainer`, `toContainers`, `fromContainers`, `orderCost`, `affordableQty`). Orders and auto-reorder price a keg deal as `ceil(qty x pricePerKeg / kegDrinks)`; the dev start signs `small_flexible` (5200 per 20 drinks, so beer still costs 2.60). The `deal_missing` rejection is task 48.4.
+  - [x] 45.2 Render Kegs
     - Model swap in `modelMap.ts`; keg count = `ceil(amount / drinksPerContainer)` on Vehicles and in Storage
     - _Requirements: 58.3_
-  - [ ]* 45.3 Write property test for containers
+    - Built Nov 2026: `keg_beer` model entry; Storage and Vehicle counts use `unitsPerContainer` and show kegs taller and narrower. Not seen in a browser.
+  - [x]* 45.3 Write property test for containers
     - **Property 65: Container helpers preserve drinks**
     - **Validates: Requirements 58.2, 58.4, 58.5**
 
-- [ ] 46. Implement the quest engine
-  - [ ] 46.1 Implement `quests.json` and the `quests` system
+    - Built Nov 2026: `test/containers.test.ts`, Property 65.
+- [x] 46. Implement the quest engine
+  - [x] 46.1 Implement `quests.json` and the `quests` system
     - `QuestDef` schema, `state.quests`, system in slot 20.5 advancing steps once and applying rewards once, `requires` ordering, `targetBusinessRole` role tags
     - _Requirements: 73.1, 73.2, 73.7, 61.2_
-  - [ ] 46.2 Author the quest chain
+    - Built Nov 2026: `systems/quests.ts` in pipeline slot 20.5 (`quests`), new Condition `counterAtLeast` over `state.counters` (`drinksServed` counts the Player`s served drinks), event `questStepDone`. The registry rejects a Quest whose Condition names an unknown kind, Reveal feature, Service or step.
+  - [x] 46.2 Author the quest chain
     - `grand_opening` (Municipality, Bank, Pub fit-out, Supplier, Job centre, Back at the pub), "First 100 pints" and "Second location"
     - _Requirements: 61.1, 61.4, 73.3_
-  - [ ]* 46.3 Write property test for quest steps
+    - Built Nov 2026: `phase3/quests.json` (Grand Opening, First 100 pints, Second location) and the eight Phase 3 Reveal_Triggers in `phase3/reveal-triggers.json` with teaser, description and gave keys (this is the content part of task 48.8). Quest roles: `municipality`, `bank`, `supplier`, `job_centre`, `pub`. The triggers other than `license_granted`, `loan_taken` and `first_kegs` fire from their domain ops, so in a new game they only fire once tasks 48 and 49 exist.
+  - [x]* 46.3 Write property test for quest steps
     - **Property 72: Quest steps advance once**
     - **Validates: Requirements 73.1, 73.2, 61.4**
 
-- [ ] 47. Add the offices to the town
-  - [ ] 47.1 Define the office Businesses
+    - Built Nov 2026: `test/quests.test.ts`, Property 72.
+- [x] 47. Add the offices to the town
+  - [x] 47.1 Define the office Businesses
     - Municipality, Bank and Job_Centre as Business Definitions (`owner: 'npc'`, no Storage, `role` tag, `office`, `services`) with placeholder models in `models.json` and `modelMap.ts`
     - _Requirements: 60.1, 60.2_
-  - [ ] 47.2 Place the offices as frontage slots
+    - Built Nov 2026: `phase3/businesses.json`: `municipality`, `bank`, `job_centre` (owner npc, no storage, `role`, `office`, empty `services` until task 48), models `building_municipality/bank/job_centre` as boxes. Fixed one-entry name tables, so they draw no random numbers. Roles added to the supplier and the pubs.
+  - [x] 47.2 Place the offices as frontage slots
     - Business slots in the Old Town streets; the Grand Opening start creates them; the dev start keeps them too
     - _Requirements: 60.4, 54.4_
-  - [ ] 47.3 Show a simple counter screen
+    - Built Nov 2026: business slots `plot_municipality` and `plot_bank` (south-west street, replacing three fillers) and `plot_job_centre` (replacing `fl_n04` between the two pubs); created by `start-state.json` in every new game. Saves from before this task get the offices in the v3 to v4 migration (task 52.1).
+  - [x] 47.3 Show a simple counter screen
     - `contextActionFor` offers Enter at Businesses with an `office` marker (and at the Player Pub for presence Services); entering an office opens a plain Panel with service cards (full Desk in task 60); municipality ticket queue on the first visit that repeated presses do not shorten
     - _Requirements: 60.3, 60.5_
 
+    - Built Nov 2026: Enter at an office opens `OfficePanel` (no walking inside); the first visit stores a counter and shows a ticket queue that runs on game time; pressing again changes nothing (command `uiEvent officeVisited`).
 - [ ] 48. Implement the Grand Opening services
   - [ ] 48.1 Loans
     - `startLoan` and `payOffLoan` domain ops, Loan record (Gold += principal − fitOutBudget; the fit-out budget is part of the principal), repayment with exact carry in `finance`, category `loan`, Bank services; Gold may go negative; load-time validation of `loanOffers` (`fitOutBudget ≤ principal`, `repaymentPerMinute × termMinutes ≥ principal + interest`)

@@ -20,7 +20,12 @@ export const lotSchema = z.object({
 export const stockSchema = z.object({ amount: nonNegInt, lots: z.array(lotSchema) });
 
 export const staffTaskSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('pour'), customerId: id, doneTick: nonNegInt }),
+  /** `tap` is the Tap anchor the worker pours at (Taps are reserved per Tick, 55.3). */
+  z.object({ kind: z.literal('pour'), customerId: id, doneTick: nonNegInt, tap: nonNegInt.optional() }),
+  /** Bar_Worker steps (Requirement 55.2): walk to the table and take the order; clean while nothing else is due. */
+  z.object({ kind: z.literal('takeOrder'), customerId: id, doneTick: nonNegInt }),
+  z.object({ kind: z.literal('takePayment'), customerId: id, doneTick: nonNegInt }),
+  z.object({ kind: z.literal('clean'), doneTick: nonNegInt }),
   z.object({ kind: z.literal('carry'), customerId: id, doneTick: nonNegInt }),
   z.object({ kind: z.literal('produce'), doneTick: nonNegInt }),
   z.object({ kind: z.literal('questionable'), runId: id }),
@@ -214,6 +219,8 @@ export const pubMetricsSchema = z.object({
   waitSum: ringSchema,
   waitCount: ringSchema,
   staff: ringSchema,
+  /** Walkouts per second (57.7). Absent in saves from before Phase 3. */
+  walkouts: ringSchema.optional(),
 });
 
 export const metricsSchema = z.object({
@@ -419,4 +426,6 @@ export const simStateSchema = z.object({
   quests: z.record(z.string(), questProgressSchema).optional(),
   /** Open municipality and bank requests (task 51.1), by id. */
   requests: z.record(z.string(), requestSchema).optional(),
+  /** Named running totals for Conditions, for example `drinksServed` (Requirement 73, "First 100 pints"). */
+  counters: z.record(z.string(), nonNegInt).optional(),
 });
