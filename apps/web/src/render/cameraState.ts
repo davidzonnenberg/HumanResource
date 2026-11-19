@@ -13,9 +13,11 @@ export const camState = {
   physicsPose: null as null | { x: number; z: number; /** Unit forward direction of the van on the ground. */ fx?: number; fz?: number },
   /** Smoothed forward direction used by the cab camera. */
   cabDir: { x: 0, z: -1 },
-  /** Cab camera distance behind the van, in metres: 0 = on the roof, more = GTA-style chase view. */
-  cabBack: 0,
-  cabBackTarget: 0,
+  /** Cab camera distance behind the van, in metres: at least minBack (roof in view), more = GTA-style chase view. */
+  cabBack: camCfg.cab.minBack,
+  cabBackTarget: camCfg.cab.minBack,
+  /** Last zoom per view, so zooming in one view does not change the others (the cab camera has its own, above). */
+  viewZoom: {} as Partial<Record<'ceo' | 'management', number>>,
   /** Smoothed point the chase camera follows (the van pose without physics jitter). */
   cabAnchor: { x: 0, z: 0, set: false },
 };
@@ -25,6 +27,8 @@ export interface CabConfig {
   eyeForward: number;
   lookAhead: number;
   lookHeight: number;
+  /** Closest the camera may get: a little behind the roof so you still see the van top. */
+  minBack: number;
   maxBack: number;
   chaseFullAt: number;
   chaseRise: number;
@@ -54,8 +58,8 @@ export function cabCameraPose(x: number, z: number, fx: number, fz: number, cab:
 
 export function zoomBy(factor: number): void {
   if (useSession.getState().driveCam === 'cab') {
-    // In the cab camera zoom moves the camera behind the van: zooming out pulls back (additive, since 0 is a valid distance).
-    camState.cabBackTarget = Math.min(camCfg.cab.maxBack, Math.max(0, camState.cabBackTarget + (factor - 1) * camCfg.cab.zoomPerFactor));
+    // In the cab camera zoom moves the camera behind the van: zooming out pulls back (additive).
+    camState.cabBackTarget = Math.min(camCfg.cab.maxBack, Math.max(camCfg.cab.minBack, camState.cabBackTarget + (factor - 1) * camCfg.cab.zoomPerFactor));
     return;
   }
   camState.targetDistance = Math.min(camCfg.dMax, Math.max(camCfg.dMin, camState.targetDistance * factor));
@@ -67,7 +71,8 @@ export function zoomBy(factor: number): void {
   camState.panDz = 0;
   camState.physicsPose = null;
   camState.cabDir = { x: 0, z: -1 };
-  camState.cabBack = 0;
-  camState.cabBackTarget = 0;
+  camState.cabBack = camCfg.cab.minBack;
+  camState.cabBackTarget = camCfg.cab.minBack;
+  camState.viewZoom = {};
   camState.cabAnchor.set = false;
 }

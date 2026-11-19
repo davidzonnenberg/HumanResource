@@ -58,13 +58,13 @@ describe('cab camera', () => {
   });
   it('zoom moves the camera back and forth while the cab camera is on, not the overview distance', () => {
     useSession.getState().set({ driveCam: 'cab' });
-    camState.cabBackTarget = 0;
+    camState.cabBackTarget = cab.minBack;
     const overview = camState.targetDistance;
     zoomBy(1.3);
-    expect(camState.cabBackTarget).toBeGreaterThan(0);
+    expect(camState.cabBackTarget).toBeGreaterThan(cab.minBack);
     zoomBy(1 / 1.3);
     zoomBy(1 / 1.3);
-    expect(camState.cabBackTarget).toBe(0);
+    expect(camState.cabBackTarget).toBe(cab.minBack); // closest: the roof stays in view
     for (let i = 0; i < 50; i++) zoomBy(1.5);
     expect(camState.cabBackTarget).toBe(cab.maxBack);
     expect(camState.targetDistance).toBe(overview);
@@ -74,5 +74,24 @@ describe('cab camera', () => {
     const p = cabCameraPose(0, 0, 3, 4, cab);
     expect(Math.hypot(p.look.x, p.look.z)).toBeCloseTo(cab.lookAhead);
     expect(Number.isFinite(cabCameraPose(0, 0, 0, 0, cab).eye.x)).toBe(true);
+  });
+});
+
+describe('zoom is remembered per view', () => {
+  it('the cab camera has its own zoom, separate from the overview', () => {
+    useSession.getState().set({ driveCam: 'overview' });
+    camState.targetDistance = 40;
+    camState.cabBackTarget = camCfg.cab.minBack;
+    useSession.getState().set({ driveCam: 'cab' });
+    zoomBy(1.5);
+    expect(camState.targetDistance).toBe(40);
+    useSession.getState().set({ driveCam: 'overview' });
+    zoomBy(1 / 1.5);
+    expect(camState.targetDistance).toBeLessThan(40);
+    expect(camState.cabBackTarget).toBeGreaterThan(camCfg.cab.minBack);
+  });
+  it('the closest cab zoom is about one scroll notch behind the roof', () => {
+    expect(camCfg.cab.minBack).toBeGreaterThan(0);
+    expect(camCfg.cab.minBack).toBeLessThanOrEqual(camCfg.cab.chaseFullAt / 2);
   });
 });

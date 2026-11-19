@@ -6,7 +6,7 @@
   "dMin": 8,
   "dMax": 260,
   "drivingMax": 120,
-  "cab": { "eyeHeight": 3.3, "eyeForward": 0.4, "lookAhead": 16, "lookHeight": 1.8, "fovDeg": 62, "smoothing": 8, "maxBack": 20, "chaseFullAt": 5, "chaseRise": 0.45, "chaseLookHeight": 1.3, "chaseFovDeg": 50, "chaseTurnSmoothing": 3.5, "chaseFollowSmoothing": 7, "zoomPerFactor": 10 },
+  "cab": { "eyeHeight": 3.3, "eyeForward": 0.4, "lookAhead": 16, "lookHeight": 1.8, "fovDeg": 62, "smoothing": 8, "minBack": 2.2, "maxBack": 20, "chaseFullAt": 5, "chaseRise": 0.45, "chaseLookHeight": 1.3, "chaseFovDeg": 50, "chaseTurnSmoothing": 3.5, "chaseFollowSmoothing": 7, "zoomPerFactor": 10 },
   "startDistance": 16,
   "bands": [
     { "id": "person", "max": 14 },

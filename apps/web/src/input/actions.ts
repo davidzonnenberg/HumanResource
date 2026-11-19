@@ -74,12 +74,13 @@ export function toggleViewMode(): void {
   const ui = useUi.getState();
   if (bridge.loop?.sim.state.ceo.drivingVehicleId) return; // driving stays in CEO follow (15.7)
   const next = ui.viewMode === 'ceo' ? 'management' : 'ceo';
+  camState.viewZoom[ui.viewMode] = camState.targetDistance; // each view remembers its own zoom
   ui.set({ viewMode: next });
   if (next === 'management') {
-    camState.targetDistance = MANAGEMENT_VIEW_DISTANCE;
+    camState.targetDistance = camState.viewZoom.management ?? MANAGEMENT_VIEW_DISTANCE;
     bridge.loop?.sim.submit({ type: 'uiEvent', event: 'managementViewOpened' }, 'ui');
   } else {
-    camState.targetDistance = CEO_VIEW_DISTANCE;
+    camState.targetDistance = camState.viewZoom.ceo ?? CEO_VIEW_DISTANCE;
   }
 }
 
