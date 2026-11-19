@@ -4,6 +4,7 @@ import { bridge } from '../../store/simBridge';
 
 export interface AlertRow {
   key: string;
+  type: string;
   objectId: string;
   text: string;
 }
@@ -33,7 +34,7 @@ export function alertRows(alerts: { key: string; type: string; objectId: string;
     // "Out of Beer" and "Beer storage empty" describe the same situation for a Pub
     if (base === 'storage_empty' && alerts.some((x) => x.objectId === a.objectId && x.type === 'out_of_beer')) continue;
     seen.add(dedupe);
-    rows.push({ key: a.key, objectId: a.objectId, text });
+    rows.push({ key: a.key, type: a.type, objectId: a.objectId, text });
   }
   return rows;
 }

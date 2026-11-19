@@ -11,11 +11,12 @@ export const phoneSettingsSchema = z.object({
   reducedMotion: z.enum(['system', 'on', 'off']),
   dnd: z.boolean(),
   questPings: z.boolean(),
+  haptics: z.boolean(),
   devRevealAllApps: z.boolean(),
 });
 export type PhoneSettings = z.infer<typeof phoneSettingsSchema>;
 
-export const DEFAULT_PHONE_SETTINGS: PhoneSettings = { darkMode: 'system', textSize: 'm', reducedMotion: 'system', dnd: false, questPings: true, devRevealAllApps: false };
+export const DEFAULT_PHONE_SETTINGS: PhoneSettings = { darkMode: 'system', textSize: 'm', reducedMotion: 'system', dnd: false, questPings: true, haptics: true, devRevealAllApps: false };
 
 /** Merges stored data over the defaults field by field; invalid fields fall back (12.7). */
 export function parsePhoneSettings(raw: unknown): PhoneSettings {

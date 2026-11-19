@@ -18,6 +18,10 @@ export const appSchema = z.object({
   /** Dock position, or null for the grid. */
   dock: z.number().int().nonnegative().nullable(),
   order: z.number().int(),
+  /** Alert base types (the part before ':') this app owns: drives badges, notification links and "Fix". */
+  alertTypes: z.array(z.string().min(1)).default([]),
+  /** Tab opened by a deep link from an Alert. */
+  fixTab: z.string().min(1).optional(),
 });
 
 export const appsSchema = z.array(appSchema).superRefine((apps, ctx) => {
@@ -35,6 +39,7 @@ export const appsSchema = z.array(appSchema).superRefine((apps, ctx) => {
       if (tabIds.has(t.id)) ctx.addIssue({ code: 'custom', path: [i, 'tabs', j, 'id'], message: `duplicate tab id "${t.id}" in app "${a.id}"` });
       tabIds.add(t.id);
     });
+    if (a.fixTab !== undefined && !tabIds.has(a.fixTab)) ctx.addIssue({ code: 'custom', path: [i, 'fixTab'], message: `fixTab "${a.fixTab}" is not a tab of "${a.id}"` });
   });
 });
 

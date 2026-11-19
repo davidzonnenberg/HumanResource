@@ -6,12 +6,22 @@ import { useHud } from '../../store/stores';
 import type { PhoneApp } from './appsSchema';
 import { dockApps, gridApps } from './installedApps';
 import { openPhoneApp } from './phoneActions';
+import { badgeCount } from './phoneAlerts';
+import { usePhone } from './phoneStore';
 
 function AppIcon({ app, showName }: { app: PhoneApp; showName: boolean }) {
+  const alerts = useHud((h) => h.alerts);
+  const seen = usePhone((s) => s.badgeSeen);
+  const badge = badgeCount(app, alerts, seen);
   return (
-    <button type="button" className="ph-appicon" aria-label={tDynamic(app.nameKey)} onClick={() => openPhoneApp(app.id)}>
+    <button type="button" className="ph-appicon" aria-label={badge > 0 ? t('phone.badge', { app: tDynamic(app.nameKey), count: badge }) : tDynamic(app.nameKey)} onClick={() => openPhoneApp(app.id)}>
       <span className="ph-ic" style={{ background: app.colour }} aria-hidden="true">
         {app.icon}
+        {badge > 0 && (
+          <span className="ph-badge" aria-hidden="true">
+            {badge > 9 ? '9+' : badge}
+          </span>
+        )}
       </span>
       {showName && <span className="ph-appname">{tDynamic(app.nameKey)}</span>}
     </button>

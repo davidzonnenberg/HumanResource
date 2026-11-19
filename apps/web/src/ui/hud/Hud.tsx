@@ -6,7 +6,9 @@ import { t, tDynamic } from '../../text/t';
 import { useHud, useSession, useSimVersion, useUi } from '../../store/stores';
 import { bridge, onDomainEvents } from '../../store/simBridge';
 import { inputState } from '../../input/inputState';
-import { togglePhone } from '../phone/phoneActions';
+import { openPhoneApp, openPhoneAppIfInstalled, togglePhone } from '../phone/phoneActions';
+import { alertTarget } from '../phone/phoneAlerts';
+import { useInstalledApps } from '../phone/useInstalledApps';
 import { Joystick } from '../../input/Joystick';
 import { runContextAction, setPauseMenu, setSpeed, speedsAvailable, toggleSpeedPause, toggleViewMode, zoomIn, zoomOut } from '../../input/actions';
 import { alertRows } from './alertText';
@@ -109,10 +111,20 @@ export function Hud() {
   );
 
   const rows = alertRows(alerts);
+  const installed = useInstalledApps();
+  const hasLedgr = installed.some((a) => a.id === 'ledgr');
+  const goldClass = `gold ${gold < 0 ? 'debt' : ''}`;
   return (
     <div className="hud">
       <div className="hud-top-left">
-        <div className={`gold ${gold < 0 ? 'debt' : ''}`}>{t('hud.gold', { amount: goldToWholeFloor(gold).toLocaleString() })}</div>
+        {/* Money pill opens Ledgr once it is installed (7.4). */}
+        {hasLedgr ? (
+          <button type="button" className={goldClass} onClick={() => openPhoneAppIfInstalled('ledgr')}>
+            {t('hud.gold', { amount: goldToWholeFloor(gold).toLocaleString() })}
+          </button>
+        ) : (
+          <div className={goldClass}>{t('hud.gold', { amount: goldToWholeFloor(gold).toLocaleString() })}</div>
+        )}
         {gold < 0 && <div className="debt-warning">{t('hud.debt')}</div>}
         <button className="mode-label" onClick={toggleViewMode} aria-label={t('hud.mode.toggle')}>
           {t(viewMode === 'ceo' ? 'hud.mode.ceo' : 'hud.mode.management')}
@@ -130,7 +142,16 @@ export function Hud() {
       </div>
       <div className="alerts">
         {rows.map((r) => (
-          <button key={r.key} className="alert" onClick={() => useUi.getState().set({ selection: { kind: 'business', id: r.objectId } })}>
+          <button
+            key={r.key}
+            className="alert"
+            onClick={() => {
+              // "Fix" goes to the owning phone app when one is installed (7.4), else to the Business panel.
+              const target = alertTarget(r, installed);
+              if (target) openPhoneApp(target.app, { ...(target.tab !== undefined ? { tab: target.tab } : {}), ...(target.id !== undefined ? { id: target.id } : {}) });
+              else useUi.getState().set({ selection: { kind: 'business', id: r.objectId } });
+            }}
+          >
             {r.text}
           </button>
         ))}

@@ -104,18 +104,18 @@ No commits or pushes unless the user asks.
       - edge swipe goes Back
     - Existing panels (Pub, Vehicle, Finance) still open and work.
 
-- [ ] 2. Notification shade, badges and deep links
-  - [ ] 2.1 Shade and notification feed
+- [x] 2. Notification shade, badges and deep links
+  - [x] 2.1 Shade and notification feed
     - Files: `apps/web/src/ui/phone/NotificationShade.tsx`, `apps/web/src/ui/phone/phoneNotifications.ts` (session ring of the last 20, derived from `useHud.alerts` and `onDomainEvents`).
     - Quick tiles: DND, Dark mode, Haptics, Settings. DND shows "silenced"; the HUD bell is unaffected. `N` key and status-bar tap/swipe open it.
     - _Requirements: 6.1–6.5_
-  - [ ] 2.2 Badges and the alert → app mapping
+  - [x] 2.2 Badges and the alert → app mapping
     - Files: `packages/content/data/ui/apps.json` (`alertTypes` per app, `fix` targets), `appsSchema.ts`, `HomeScreen.tsx`, `phoneStore.ts` (`badgeSeen`).
     - _Requirements: 7.1–7.3_
-  - [ ] 2.3 Deep links from the HUD
+  - [x] 2.3 Deep links from the HUD
     - Files: `apps/web/src/ui/hud/Hud.tsx`: money pill → Ledgr (once installed), quest tracker → To-Do™ (once S2 exists), alert "Fix" → `phone.open(app, {tab, id})`.
     - _Requirements: 7.4, 7.5_
-  - [ ] 2.4 Write unit tests for badges and deep links
+  - [x] 2.4 Write unit tests for badges and deep links
     - Cases: badge counts and seen markers, the DND filter, deep-link targets resolve to installed apps only.
     - _Requirements: 6.4, 7.1–7.5_
 

@@ -10,6 +10,7 @@ import { useUi } from '../store/stores';
 import { ownerColor, palette, theme } from './theme';
 import { MODEL_MAP, type GltfEntry } from './assets/modelMap';
 import { GltfVehicle } from './assets/GltfVehicle';
+import { ProceduralVanBody } from './procedural/van/ProceduralVanBody';
 
 /** GLB for a vehicle model key, preferring an owner variant (e.g. `vehicle_van_player`). */
 export function vehicleGltf(modelKey: string, owner: string): GltfEntry | null {
@@ -19,6 +20,8 @@ export function vehicleGltf(modelKey: string, owner: string): GltfEntry | null {
 
 /** The drawn vehicle: generated GLB when mapped, else the placeholder van. */
 export function VehicleBody({ modelKey, owner, color, crates, wobble }: { modelKey: string; owner: string; color: string; crates: number; wobble?: RefObject<THREE.Group | null> }) {
+  // TEMP: the player's van is the procedural van (render/procedural/van) so we can judge it in play.
+  if (owner === 'player') return <ProceduralVanBody color={color} crates={crates} {...(wobble ? { wobble } : {})} />;
   const gltf = vehicleGltf(modelKey, owner);
   const box = <VanBody color={color} crates={crates} {...(wobble ? { wobble } : {})} />;
   return gltf ? <GltfVehicle entry={gltf} crates={crates} fallback={box} {...(wobble ? { wobble } : {})} /> : box;
@@ -109,7 +112,7 @@ function VehicleMesh({ id, owner, colorToken, modelKey, cargoCrates }: { id: str
     useUi.getState().set({ selection: { kind: 'vehicle', id } });
   };
   const color = ownerColor(owner, colorToken);
-  const gltf = vehicleGltf(modelKey, owner);
+  const gltf = owner === 'player' || vehicleGltf(modelKey, owner); // TEMP: player van is procedural
   return (
     <group ref={group} onClick={onClick} scale={theme.vehicleScale}>
       {gltf ? <VehicleBody modelKey={modelKey} owner={owner} color={color} crates={cargoCrates} /> : <VanBody color={color} crates={0} />}

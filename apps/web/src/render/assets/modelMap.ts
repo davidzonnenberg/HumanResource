@@ -42,7 +42,8 @@ export const MODEL_MAP: Record<string, ModelEntry> = {
   // Owner variant: `<modelKey>_<owner>` wins for that owner (render-only, see Vehicles.tsx vehicleGltf).
   // scale 1 = fitted to the placeholder van's length; rotationY Math.PI if it drives backwards.
   // `scale` also scales the van's physics hitbox and wheel positions (physics/ManualDriving.tsx).
-  vehicle_van_player: { kind: 'gltf', url: '/models/van_00001.glb', scale: 1.1, offset: [0, 0, 0], rotationY: Math.PI, brightness: 2.2 },
+  // The player's van is procedural for now (Vehicles.tsx VehicleBody); the old GLB van is the rival's.
+  vehicle_van_cmp_rival: { kind: 'gltf', url: '/models/van_00001.glb', scale: 1.1, offset: [0, 0, 0], rotationY: Math.PI, brightness: 2.2 },
 };
 
 export function modelFor(key: string): ModelEntry {

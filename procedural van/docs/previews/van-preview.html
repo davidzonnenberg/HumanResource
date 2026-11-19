@@ -1,0 +1,307 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Procedural van preview</title>
+<style>body{margin:0;overflow:hidden;font-family:system-ui,sans-serif;background:#bfe3ff}#ui{position:fixed;left:10px;top:10px;background:rgba(255,255,255,.85);padding:10px 12px;border-radius:14px;font-size:13px;max-width:290px}
+#ui button{min-height:36px;margin:3px 2px;border:0;border-radius:18px;padding:0 12px;cursor:pointer;font:inherit}.sw{width:36px;padding:0!important}
+#pad{position:fixed;right:12px;bottom:12px;display:grid;grid-template-columns:repeat(3,56px);gap:6px}#pad button{height:56px;border:0;border-radius:16px;background:rgba(255,255,255,.85);font-size:20px;touch-action:none}</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.170.0/build/three.module.js","three/examples/jsm/":"https://unpkg.com/three@0.170.0/examples/jsm/"}}</script>
+</head><body><div id="ui"><b>Procedural van</b><br>WASD / arrows drive · Space = bump · C = auto circle<br>
+Owner: <span id="cols"></span><br><button id="auto">Auto circle: off</button><button id="bump">Bump</button><div id="info"></div></div>
+<div id="pad"><span></span><button data-k="f">▲</button><span></span><button data-k="l">◀</button><button data-k="b">▼</button><button data-k="r">▶</button></div>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+// ---- generated from src/vanRecipe.ts, vanRig.ts, vanGeometry.ts (same code as the project files) ----
+const DARK = '#3b3a42';
+const GLASS = '#9fd3ff';
+const TRIM = '#4a4a52';
+const DEFAULT_VAN_RECIPE = {
+    parts: [
+        // Chassis skirt
+        { shape: 'roundedBox', size: [2.2, 0.24, 1.12], pos: [0, 0.37, 0], radius: 0.06, colour: DARK },
+        // Wheel wells (dark recesses behind the wheels)
+        { shape: 'cylinder', radius: 0.31, length: 1.13, axis: 'z', pos: [0.74, 0.31, 0], colour: '#26252b' },
+        { shape: 'cylinder', radius: 0.31, length: 1.13, axis: 'z', pos: [-0.7, 0.31, 0], colour: '#26252b' },
+        // Cargo box and cab
+        { shape: 'roundedBox', size: [1.45, 1.05, 1.18], pos: [-0.38, 0.98, 0], radius: 0.13, colour: 'owner' },
+        { shape: 'roundedBox', size: [0.8, 0.78, 1.14], pos: [0.72, 0.86, 0], radius: 0.15, colour: 'owner' },
+        // Windscreen and cab side windows
+        { shape: 'box', size: [0.04, 0.36, 0.94], pos: [1.1, 1.02, 0], rot: [0, 0, 0.22], colour: GLASS },
+        { shape: 'box', size: [0.42, 0.3, 0.02], pos: [0.74, 1.03, 0.572], colour: GLASS, mirrorZ: true },
+        // Side stripe and round logo badge on the cargo box
+        { shape: 'box', size: [1.3, 0.12, 0.02], pos: [-0.38, 0.72, 0.592], colour: 'ownerLight', mirrorZ: true },
+        { shape: 'cylinder', radius: 0.22, length: 0.02, axis: 'z', pos: [-0.38, 1.12, 0.595], colour: '#fff4e0', mirrorZ: true },
+        { shape: 'cylinder', radius: 0.14, length: 0.025, axis: 'z', pos: [-0.38, 1.12, 0.6], colour: 'ownerDark', mirrorZ: true },
+        // Rear doors seam and handle
+        { shape: 'box', size: [0.02, 0.9, 0.02], pos: [-1.105, 0.98, 0], colour: 'ownerDark' },
+        { shape: 'box', size: [0.03, 0.05, 0.14], pos: [-1.11, 0.95, 0.1], colour: TRIM },
+        // Bumpers, grille, lights, mirrors
+        { shape: 'roundedBox', size: [0.16, 0.17, 1.18], pos: [1.15, 0.43, 0], radius: 0.06, colour: TRIM },
+        { shape: 'roundedBox', size: [0.14, 0.17, 1.18], pos: [-1.13, 0.43, 0], radius: 0.06, colour: TRIM },
+        { shape: 'box', size: [0.03, 0.14, 0.5], pos: [1.125, 0.62, 0], colour: '#2c2c33' },
+        { shape: 'cylinder', radius: 0.085, length: 0.04, axis: 'x', pos: [1.12, 0.66, 0.4], colour: '#fff3b0', mirrorZ: true },
+        { shape: 'box', size: [0.03, 0.16, 0.1], pos: [-1.108, 0.74, 0.5], colour: '#e03131', mirrorZ: true },
+        { shape: 'roundedBox', size: [0.08, 0.12, 0.14], pos: [0.98, 1.0, 0.64], radius: 0.03, colour: 'ownerDark', mirrorZ: true },
+        // Roof rack with a crate
+        { shape: 'box', size: [1.2, 0.05, 0.06], pos: [-0.38, 1.54, 0.42], colour: TRIM, mirrorZ: true },
+        { shape: 'box', size: [0.06, 0.05, 0.9], pos: [-0.85, 1.54, 0], colour: TRIM },
+        { shape: 'box', size: [0.06, 0.05, 0.9], pos: [0.09, 1.54, 0], colour: TRIM },
+        { shape: 'roundedBox', size: [0.42, 0.26, 0.42], pos: [-0.5, 1.7, 0], radius: 0.03, colour: '#c58b4b' },
+    ],
+    wheels: {
+        radius: 0.28,
+        width: 0.2,
+        anchors: [
+            [0.74, 0.28, 0.5],
+            [0.74, 0.28, -0.5],
+            [-0.7, 0.28, 0.5],
+            [-0.7, 0.28, -0.5],
+        ],
+        steering: [0, 1],
+        maxSteerRad: 0.55,
+        tyreColour: '#2b2a30',
+        rimColour: '#d9d6de',
+        hubColour: '#f2c94c',
+        spokes: 3,
+    },
+    rig: {
+        steerPerTurnRate: 0.6,
+        steerSmoothing: 10,
+        motionSmoothing: 8,
+        bodySmoothing: 6,
+        rollPerLateral: 0.012,
+        maxRollRad: 0.09,
+        pitchPerAccel: 0.012,
+        maxPitchRad: 0.05,
+        bobAmplitude: 0.015,
+        bobFrequencyHz: 2.2,
+        bobFullSpeed: 4,
+        squashAmount: 0.15,
+        squashDecay: 6,
+        teleportDistance: 5,
+    },
+};
+
+function createVanRigState() {
+    return { initialised: false, prevX: 0, prevZ: 0, prevHeading: 0, speed: 0, accel: 0, steer: 0, roll: 0, pitch: 0, bob: 0, time: 0, squash: 0, lastImpact: 0, wheelAngle: 0 };
+}
+const TAU = Math.PI * 2;
+const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+const wrapAngle = (a) => ((((a + Math.PI) % TAU) + TAU) % TAU) - Math.PI;
+/** Frame-rate independent smoothing factor. */
+const smooth = (rate, dt) => 1 - Math.exp(-rate * dt);
+function stepVanRig(s, m, dt, rig, wheels) {
+    if (!s.initialised) {
+        s.initialised = true;
+        s.prevX = m.x;
+        s.prevZ = m.z;
+        s.prevHeading = m.heading;
+        s.lastImpact = m.impact ?? 0;
+        return;
+    }
+    if (dt <= 0)
+        return;
+    const dx = m.x - s.prevX;
+    const dz = m.z - s.prevZ;
+    const jumped = Math.hypot(dx, dz) > rig.teleportDistance;
+    // Signed distance along the facing direction (forward = (cos h, -sin h) in XZ).
+    const fwd = jumped ? 0 : dx * Math.cos(s.prevHeading) - dz * Math.sin(s.prevHeading);
+    const turnRate = jumped ? 0 : wrapAngle(m.heading - s.prevHeading) / dt;
+    const rawSpeed = fwd / dt;
+    const rawAccel = (rawSpeed - s.speed) / dt;
+    const km = smooth(rig.motionSmoothing, dt);
+    s.speed += (rawSpeed - s.speed) * km;
+    s.accel += (rawAccel - s.accel) * km;
+    // Spin: forward motion along +X rolls the wheel with negative rotation about Z.
+    s.wheelAngle = (s.wheelAngle - fwd / wheels.radius) % TAU;
+    // Steering: explicit input when driving, otherwise inferred from the turn rate.
+    const dir = s.speed < -0.05 ? -1 : 1;
+    const targetSteer = m.steer ?? clamp(turnRate * rig.steerPerTurnRate * dir, -wheels.maxSteerRad, wheels.maxSteerRad);
+    s.steer += (clamp(targetSteer, -wheels.maxSteerRad, wheels.maxSteerRad) - s.steer) * smooth(rig.steerSmoothing, dt);
+    // Body: roll outward in turns, nose up when accelerating.
+    const kb = smooth(rig.bodySmoothing, dt);
+    const targetRoll = clamp(turnRate * s.speed * rig.rollPerLateral, -rig.maxRollRad, rig.maxRollRad);
+    const targetPitch = clamp(s.accel * rig.pitchPerAccel, -rig.maxPitchRad, rig.maxPitchRad);
+    s.roll += (targetRoll - s.roll) * kb;
+    s.pitch += (targetPitch - s.pitch) * kb;
+    // Idle-free bob that grows with speed.
+    s.time += dt;
+    s.bob = Math.sin(s.time * rig.bobFrequencyHz * TAU) * rig.bobAmplitude * Math.min(1, Math.abs(s.speed) / rig.bobFullSpeed);
+    // Impact squash.
+    const impact = m.impact ?? 0;
+    if (impact !== s.lastImpact) {
+        s.lastImpact = impact;
+        s.squash = 1;
+    }
+    s.squash *= Math.exp(-rig.squashDecay * dt);
+    s.prevX = m.x;
+    s.prevZ = m.z;
+    s.prevHeading = m.heading;
+}
+
+/**
+ * Builds the van as two cached, merged, vertex-coloured geometries:
+ * one body (per model key + owner colour) and one wheel (per model key).
+ * One shared matte material, no textures, no shadows: chunky toy style.
+ */
+
+
+
+const VAN_MATERIAL = new THREE.MeshLambertMaterial({ vertexColors: true });
+const WHITE = new THREE.Color('#ffffff');
+function resolveColour(c, ownerHex) {
+    const owner = new THREE.Color(ownerHex);
+    if (c === 'owner')
+        return owner;
+    if (c === 'ownerDark')
+        return owner.multiplyScalar(0.62);
+    if (c === 'ownerLight')
+        return owner.lerp(WHITE, 0.45);
+    return new THREE.Color(c);
+}
+function shapeGeometry(p) {
+    const seg = p.segments;
+    if (p.shape === 'cylinder') {
+        const g = new THREE.CylinderGeometry(p.radius, p.radius, p.length, seg ?? 24);
+        if (p.axis === 'x')
+            g.rotateZ(Math.PI / 2);
+        if (p.axis === 'z')
+            g.rotateX(Math.PI / 2);
+        return g;
+    }
+    const [w, h, d] = p.size;
+    if (p.shape === 'roundedBox') {
+        const r = Math.min(p.radius ?? 0.05, Math.min(w, h, d) / 2 - 0.001);
+        return new RoundedBoxGeometry(w, h, d, seg ?? 3, Math.max(r, 0.001));
+    }
+    return new THREE.BoxGeometry(w, h, d);
+}
+function paintedPart(p, ownerHex, mirror) {
+    let g = shapeGeometry(p);
+    const rot = p.rot ?? [0, 0, 0];
+    const rx = mirror ? -rot[0] : rot[0];
+    const ry = mirror ? -rot[1] : rot[1];
+    if (rx)
+        g.rotateX(rx);
+    if (ry)
+        g.rotateY(ry);
+    if (rot[2])
+        g.rotateZ(rot[2]);
+    g.translate(p.pos[0], p.pos[1], mirror ? -p.pos[2] : p.pos[2]);
+    if (g.index) {
+        const ni = g.toNonIndexed();
+        g.dispose();
+        g = ni;
+    }
+    if (g.getAttribute('uv'))
+        g.deleteAttribute('uv');
+    const col = resolveColour(p.colour, ownerHex);
+    const n = g.getAttribute('position').count;
+    const arr = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+        arr[i * 3] = col.r;
+        arr[i * 3 + 1] = col.g;
+        arr[i * 3 + 2] = col.b;
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(arr, 3));
+    return g;
+}
+function mergeParts(parts, ownerHex) {
+    const geos = [];
+    for (const p of parts) {
+        geos.push(paintedPart(p, ownerHex, false));
+        if (p.mirrorZ)
+            geos.push(paintedPart(p, ownerHex, true));
+    }
+    const merged = mergeGeometries(geos, false);
+    geos.forEach((g) => g.dispose());
+    if (!merged)
+        throw new Error('van geometry merge failed');
+    merged.computeBoundingSphere();
+    return merged;
+}
+function wheelParts(w) {
+    const r = w.radius;
+    const parts = [
+        { shape: 'cylinder', radius: r, length: w.width, axis: 'z', pos: [0, 0, 0], colour: w.tyreColour, segments: 28 },
+        { shape: 'cylinder', radius: r * 0.62, length: w.width + 0.02, axis: 'z', pos: [0, 0, 0], colour: w.rimColour, segments: 24 },
+        { shape: 'cylinder', radius: r * 0.2, length: w.width + 0.05, axis: 'z', pos: [0, 0, 0], colour: w.hubColour, segments: 16 },
+    ];
+    for (let i = 0; i < w.spokes; i++) {
+        parts.push({ shape: 'box', size: [r * 1.12, r * 0.13, w.width + 0.035], pos: [0, 0, 0], rot: [0, 0, (i * Math.PI) / w.spokes], colour: w.hubColour });
+    }
+    return parts;
+}
+const bodyCache = new Map();
+const wheelCache = new Map();
+/** Cached per model key + owner colour. Owners are few, so the cache stays small. */
+function getVanBodyGeometry(modelKey, recipe, ownerHex) {
+    const key = `${modelKey}|${ownerHex.toLowerCase()}`;
+    let g = bodyCache.get(key);
+    if (!g) {
+        g = mergeParts(recipe.parts, ownerHex);
+        bodyCache.set(key, g);
+    }
+    return g;
+}
+/** Wheels don't use owner colours, so one geometry per model key. */
+function getVanWheelGeometry(modelKey, wheels) {
+    let g = wheelCache.get(modelKey);
+    if (!g) {
+        g = mergeParts(wheelParts(wheels), '#ffffff');
+        wheelCache.set(modelKey, g);
+    }
+    return g;
+}
+/** For hot reload or a content change in dev. */
+function clearVanGeometryCache() {
+    bodyCache.forEach((g) => g.dispose());
+    wheelCache.forEach((g) => g.dispose());
+    bodyCache.clear();
+    wheelCache.clear();
+}
+
+// ---- preview scene (stand-in for ProceduralVan.tsx) ----
+const R = DEFAULT_VAN_RECIPE;
+const renderer = new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#bfe3ff');
+scene.add(new THREE.HemisphereLight('#ffffff','#8a7f70',1.6)); const sun=new THREE.DirectionalLight('#fff4e0',1.4); sun.position.set(4,8,3); scene.add(sun);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshLambertMaterial({color:'#9cc47a'})); ground.rotation.x=-Math.PI/2; scene.add(ground);
+const road=new THREE.Mesh(new THREE.RingGeometry(9,13,64),new THREE.MeshLambertMaterial({color:'#8d8580'})); road.rotation.x=-Math.PI/2; road.position.y=0.01; scene.add(road);
+for(let i=0;i<20;i++){const t=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshLambertMaterial({color:i%2?'#e9c46a':'#f4a261'}));const a=i/20*Math.PI*2;t.position.set(Math.cos(a)*17,0.5,Math.sin(a)*17);scene.add(t);}
+const camera=new THREE.PerspectiveCamera(40,1,0.1,500);
+const root=new THREE.Group(), body=new THREE.Group(); root.add(body); scene.add(root);
+let owner='#e8590c'; const bodyMesh=new THREE.Mesh(getVanBodyGeometry('van_small',R,owner),VAN_MATERIAL); body.add(bodyMesh);
+const wheels=R.wheels.anchors.map((a)=>{const p=new THREE.Group(),st=new THREE.Group(),sp=new THREE.Group();p.position.set(...a);sp.add(new THREE.Mesh(getVanWheelGeometry('van_small',R.wheels),VAN_MATERIAL));st.add(sp);p.add(st);root.add(p);return{p,st,sp,a};});
+const cols=document.getElementById('cols');
+['#e8590c','#1c7ed6','#2f9e44','#c2255c','#5f3dc4','#f2c94c'].forEach(c=>{const bt=document.createElement('button');bt.className='sw';bt.style.background=c;bt.ariaLabel=c;bt.onclick=()=>{owner=c;bodyMesh.geometry=getVanBodyGeometry('van_small',R,c)};cols.appendChild(bt)});
+const motion={x:11,z:0,heading:Math.PI/2,steer:null,impact:0}; const rig=createVanRigState();
+const keys=new Set(); let auto=false, v=0, steerIn=0;
+const map={KeyW:'f',ArrowUp:'f',KeyS:'b',ArrowDown:'b',KeyA:'l',ArrowLeft:'l',KeyD:'r',ArrowRight:'r'};
+addEventListener('keydown',e=>{if(map[e.code]){keys.add(map[e.code]);e.preventDefault()} if(e.code==='Space'){motion.impact++;e.preventDefault()} if(e.code==='KeyC')toggleAuto()});
+addEventListener('keyup',e=>{if(map[e.code])keys.delete(map[e.code])});
+document.querySelectorAll('#pad button').forEach(b=>{const k=b.dataset.k;b.onpointerdown=()=>keys.add(k);b.onpointerup=b.onpointerleave=b.onpointercancel=()=>keys.delete(k)});
+const autoBtn=document.getElementById('auto'); function toggleAuto(){auto=!auto;autoBtn.textContent='Auto circle: '+(auto?'on':'off')}
+autoBtn.onclick=toggleAuto; document.getElementById('bump').onclick=()=>motion.impact++;
+let ang=0; const clock=new THREE.Clock(); const info=document.getElementById('info');
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()} addEventListener('resize',resize); resize();
+renderer.setAnimationLoop(()=>{
+  const dt=Math.min(clock.getDelta(),0.1);
+  if(auto){ ang+=dt*0.45; motion.x=Math.cos(ang)*11; motion.z=-Math.sin(ang)*11; motion.heading=ang+Math.PI/2; motion.steer=null; }
+  else {
+    const thr=(keys.has('f')?1:0)-(keys.has('b')?1:0); const st=(keys.has('l')?1:0)-(keys.has('r')?1:0);
+    v+=thr*9*dt; v*=Math.exp(-(thr?0.6:2.2)*dt); v=Math.max(-4,Math.min(9,v));
+    steerIn+=(st*R.wheels.maxSteerRad-steerIn)*Math.min(1,dt*8);
+    motion.heading+=v*Math.tan(steerIn)/1.44*dt; // bicycle model, wheelbase 1.44
+    motion.x+=Math.cos(motion.heading)*v*dt; motion.z-=Math.sin(motion.heading)*v*dt; motion.steer=steerIn;
+  }
+  const s=rig; stepVanRig(s,motion,dt,R.rig,R.wheels);
+  root.position.set(motion.x,0,motion.z); root.rotation.y=motion.heading;
+  const sq=s.squash*R.rig.squashAmount; body.rotation.x=s.roll; body.rotation.z=s.pitch; body.position.y=s.bob; body.scale.set(1+sq*.5,1-sq,1+sq*.5);
+  wheels.forEach((w,i)=>{w.st.rotation.y=R.wheels.steering.includes(i)?s.steer:0; w.sp.rotation.z=s.wheelAngle;});
+  camera.position.set(motion.x+7,7.5,motion.z+9); camera.lookAt(motion.x,0.6,motion.z); // fixed yaw, like the game
+  info.textContent='speed '+s.speed.toFixed(1)+' m/s · steer '+s.steer.toFixed(2)+' · roll '+s.roll.toFixed(3);
+  renderer.render(scene,camera);
+});
+</script></body></html>

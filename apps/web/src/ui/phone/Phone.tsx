@@ -4,13 +4,13 @@
 import { useEffect, useRef, type PointerEvent } from 'react';
 import { t } from '../../text/t';
 import { bridge } from '../../store/simBridge';
-import { useHud, useSession, useSimVersion } from '../../store/stores';
+import { useSession, useSimVersion } from '../../store/stores';
 import { ownerColor } from '../../render/theme';
-import { devModeOn } from '../../input/actions';
 import { usePhone } from './phoneStore';
 import { topScreen } from './phoneNav';
-import { PHONE_APPS } from './appsSchema';
-import { installedApps } from './installedApps';
+import { useInstalledApps } from './useInstalledApps';
+import { startPhoneFeed } from './phoneFeed';
+import { NotificationShade } from './NotificationShade';
 import { usePhoneSettings, resolvedDark, resolvedReducedMotion } from './phoneSettings';
 import { canOpenPhone } from './phoneKeys';
 import { formatElapsed } from './elapsed';
@@ -25,13 +25,19 @@ export function Phone() {
   const stack = usePhone((s) => s.stack);
   const nav = usePhone();
   const settings = usePhoneSettings((s) => s.settings);
-  const revealed = useHud((h) => h.revealed);
+  const shadeOpen = usePhone((s) => s.shadeOpen);
+  const installed = useInstalledApps();
   const speed = useSession((s) => s.gameSpeed);
   const speedPaused = useSession((s) => s.speedPaused);
   useSession((s) => s.devTesting);
   useSimVersion((v) => v.v); // 5 Hz refresh for the elapsed time and the driving check
   const root = useRef<HTMLDivElement>(null);
   const swipe = useRef<{ x: number; id: number } | null>(null);
+  const shadeSwipe = useRef<{ y: number; id: number } | null>(null);
+  const swipedShade = useRef(false);
+
+  // Collect Alerts and reveals into the notification ring while the phone is closed too (6.2).
+  useEffect(() => startPhoneFeed(), []);
 
   // Close when the van starts moving while the phone is open (9.4).
   const loop = bridge.loop;
@@ -51,7 +57,6 @@ export function Phone() {
   }, [open]);
 
   if (!open) return null;
-  const installed = installedApps(revealed, PHONE_APPS, devModeOn() && settings.devRevealAllApps);
   const top = topScreen({ ...nav, stack });
   const tps = loop?.sim.reg.config.ticksPerSecond ?? 10;
   const elapsed = formatElapsed(loop?.sim.state.tick ?? 0, tps);
@@ -90,18 +95,37 @@ export function Phone() {
       onPointerUp={onPointerUp}
     >
       <div className="ph-screen">
-        {/* Status bar. Tapping it opens the notification shade from task 2 on; until then it is static. */}
-        <div className="ph-status">
+        {/* Status bar: tap or swipe down opens the notification shade (6.5). */}
+        <button
+          type="button"
+          className="ph-status"
+          aria-expanded={shadeOpen}
+          aria-label={t('phone.shade.toggle')}
+          onPointerDown={(e) => (shadeSwipe.current = { y: e.clientY, id: e.pointerId })}
+          onPointerUp={(e) => {
+            const s = shadeSwipe.current;
+            shadeSwipe.current = null;
+            if (s && s.id === e.pointerId && e.clientY - s.y > 30) {
+              swipedShade.current = true;
+              nav.openShade();
+            }
+          }}
+          onClick={() => {
+            if (swipedShade.current) swipedShade.current = false;
+            else nav.toggleShade();
+          }}
+        >
           <span aria-label={t('phone.status.elapsed')}>{elapsed}</span>
           <span className="ph-cam" aria-hidden="true" />
           <span>
             {settings.dnd && <span aria-label={t('phone.status.dnd')}>🔕 </span>}
             <span aria-label={t('phone.status.speed')}>{speedPaused ? '⏸' : (SPEED_ICON[speed] ?? '1×')}</span> <span aria-hidden="true">🔋</span>
           </span>
-        </div>
+        </button>
         <div className="ph-main" aria-live="polite">
           {screen}
         </div>
+        {shadeOpen && <NotificationShade />}
         <nav className="ph-nav" aria-label={t('phone.nav')}>
           <button type="button" aria-label={t('phone.back')} onClick={nav.back}>
             ◀

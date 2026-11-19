@@ -63,6 +63,7 @@ const appArb: fc.Arbitrary<PhoneApp> = fc.record({
   colour: fc.constant('#123456'),
   revealFeature: fc.option(fc.constantFrom('f1', 'f2', 'f3'), { nil: null }),
   tabs: fc.constant([]),
+  alertTypes: fc.constant([]),
   dock: fc.option(fc.nat(5), { nil: null }),
   order: fc.integer({ min: -5, max: 50 }),
 });

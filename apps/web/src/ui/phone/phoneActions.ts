@@ -5,6 +5,11 @@ import { inputState } from '../../input/inputState';
 import { usePhone } from './phoneStore';
 import { canOpenPhone, phoneKeyAction } from './phoneKeys';
 import type { AppId } from './phoneNav';
+import { devModeOn } from '../../input/actions';
+import { PHONE_APPS, type PhoneApp } from './appsSchema';
+import { installedApps } from './installedApps';
+import { appAlertKeys } from './phoneAlerts';
+import { usePhoneSettings } from './phoneSettings';
 
 /** Stops CEO movement from keys that were held when the phone opened. */
 function releaseMovement(recompute: () => void): void {
@@ -34,11 +39,27 @@ export function togglePhone(): void {
   p.setOpen(true);
 }
 
-/** Deep links and app taps: opens the phone on an app (9.3 still applies). */
+/** The apps installed right now (reveals + the Dev_Mode "reveal all" switch), outside React. */
+export function currentInstalledApps(): PhoneApp[] {
+  return installedApps(useHud.getState().revealed, PHONE_APPS, devModeOn() && usePhoneSettings.getState().settings.devRevealAllApps);
+}
+
+/** Deep links and app taps: opens the phone on an app (9.3 still applies). Every deep link comes through here (7.5). */
 export function openPhoneApp(app: AppId, opts?: { tab?: string; id?: string }): void {
   if (!usePhone.getState().open && !allowedToOpen()) return;
   releaseMovement(recomputeMove);
-  usePhone.getState().openApp(app, opts);
+  const p = usePhone.getState();
+  p.openApp(app, opts);
+  // Opening an app marks its current Alerts as seen, so the badge only counts newer ones (7.3).
+  const meta = PHONE_APPS.find((a) => a.id === app);
+  if (meta) p.markSeen(app, appAlertKeys(meta, useHud.getState().alerts));
+}
+
+/** HUD deep link: opens the app only when it is installed. Returns false when it is not. */
+export function openPhoneAppIfInstalled(app: AppId, opts?: { tab?: string; id?: string }): boolean {
+  if (!currentInstalledApps().some((a) => a.id === app)) return false;
+  openPhoneApp(app, opts);
+  return true;
 }
 
 /** Moves focus between focusable controls inside the phone (arrow keys / WASD). */
@@ -89,7 +110,8 @@ export function handlePhoneKey(e: KeyboardEvent): boolean {
       p.showRecents();
       return true;
     case 'shade':
-      return true; // the notification shade arrives in ceo-phone task 2
+      p.toggleShade();
+      return true;
     case 'tab':
       e.preventDefault();
       cycleTab(a.dir);
