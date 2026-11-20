@@ -18,20 +18,22 @@ Do not commit or push unless the user asks. Never hand-edit the generated JSON: 
   - [x] `townSchema.ts` with zod schemas for Brief, Overrides and TownData; Brief checks required zone keys and a rule with weight > 0 in every zone.
   - [x] `npm.cmd run town:bake` wired (tsx); validates Brief and Overrides before generating and TownData before writing; run once for `start_city`.
   - [x] Tests (`apps/web/test/town/`): determinism, unique ids, no overlaps (ribbons, water, footprints), roads >= 2 points, junction references, gates N and S, applyOverrides, lock test, property test over 100 seeds (`Feature: procedural-town, Property 1`), content test for the committed Brief and Overrides.
-  - [ ] Preview and bake give the same counts for the same seed (needs the preview rebuilt from the real TS, see T2; the committed bake matches the handover numbers: 326 roads, 1323 buildings, 19 bridges, 566 junctions).
+  - [x] Preview and bake give the same counts for the same seed (done in T2: 326 roads, 1265 buildings, 19 bridges, 566 junctions).
   - _Requirements: 1.1 to 1.7, 2.2, 2.4, 2.5, 3.1 to 3.3, 3.6_
   - _Done when: the bake exists, preview and bake give the same counts for the same seed, all tests pass._
 
-- [ ] T2. Preview stays the design tool
-  - Keep `docs/previews/town-map-preview.html` working from the real TS (a small build step, or a dev page `?dev=1&town=preview`).
-  - Clicking a building shows its id; "Download baked JSON" works.
+- [x] T2. Preview stays the design tool
+  - [x] Keep `docs/previews/town-map-preview.html` working from the real TS: `npm.cmd run town:preview` bundles `render/procedural/town/preview/` (`--check` verifies the page is current).
+  - [x] Clicking a building shows its id; "Download baked JSON" works (checked in headless Edge: page renders, counts line shows).
+  - [x] Same counts as the bake for the same seed (326 roads, 1265 buildings, 19 bridges, 566 junctions) and the same JSON byte for byte: the preview passes the locked buildings of the committed bake to the generator, like `town:bake --force` does.
   - _Requirements: 4.1, 4.2_
   - _Done when: the preview runs from the repo's TS and gives the same counts as the bake for the same seed._
 
-- [ ] T3. Chunk the bake
-  - The bake step splits roads, buildings, trees and signs into 256 m chunks (`generated/town-<id>/chunk_<cx>_<cz>.json` plus an index file). Roads crossing chunk borders are clipped per chunk and keep their id.
-  - Test: the union of the chunks equals the monolithic bake (no object lost, only clipped road parts repeated).
+- [x] T3. Chunk the bake
+  - [x] The bake step splits roads, buildings, trees and signs into 256 m chunks (`generated/town-<id>/chunk_<cx>_<cz>.json` plus an index file). Roads crossing chunk borders are clipped per chunk and keep their id.
+  - [x] Test: the union of the chunks equals the monolithic bake (no object lost, only clipped road parts repeated).
   - _Requirements: 5.1, 5.2_
+  - Everything not listed above (water, bridges, junctions, roundabouts, cul-de-sacs, parks, plaza, zone grid, warnings) stays whole in `index.json` under `shared`; the highway is chunked like a road. `town:bake -- <id> --chunks` re-writes the chunks from the existing bake without touching it.
   - _Done when: chunks and index are written by `town:bake`, and the union test passes._
 
 - [ ] T4. Render roads, water and bridges from the bake
@@ -83,6 +85,8 @@ Do not commit or push unless the user asks. Never hand-edit the generated JSON: 
 ## Progress
 
 - T1 built (Nov 2026). Typecheck, lint and tests are green. Open items for the user (see the T1 report): the footprint sampling limit of the generator, the id clash after `--force` with locked buildings, and the preview that still has to be rebuilt from the real TS (T2).
+
+- T2 and T3 built (Nov 2026). The committed bake has 1265 buildings (not the 1323 of the handover): it is `town:bake --force` with the locked building `lane_0/L2`, which a plain `generateTown` (1290) does not have. A `--force` re-bake reproduces the committed file byte for byte. `--check` lists 2 stale example overrides (`ring/L1`, `ring/L2`), which were already stale.
 
 ## Notes
 

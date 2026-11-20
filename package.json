@@ -27,6 +27,7 @@
     "clean": "node scripts/clean.mjs",
     "models:optimize": "node scripts/optimizeModels.mjs",
     "town:bake": "tsx scripts/town-bake.ts",
+    "town:preview": "tsx scripts/town-preview.ts",
     "smoke:docker": "node scripts/docker-smoke.mjs"
   },
   "devDependencies": {

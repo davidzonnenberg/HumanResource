@@ -2,10 +2,11 @@
 //   packages/content/data/maps/town-brief.json
 //   packages/content/data/maps/town-overrides.json
 //   packages/content/data/maps/generated/town-<id>.json
+//   packages/content/data/maps/generated/town-<id>/index.json and chunk_<cx>_<cz>.json (T3)
 // Same style as ../buildings/streetsSchema.ts. The types live in townTypes.ts; the `_assert*` functions at the
 // bottom make the compiler fail if a schema and its type drift apart.
 import { z } from 'zod';
-import type { TownBrief, TownData, TownOverrides } from './townTypes';
+import type { TownBrief, TownChunk, TownChunkIndex, TownData, TownOverrides } from './townTypes';
 
 const num = z.number();
 const pos = z.number().positive();
@@ -150,30 +151,38 @@ const building = z.object({
   locked: z.boolean().optional(),
 });
 
+const zoneGrid = z.object({ cell: pos, cols: z.number().int().positive(), rows: z.number().int().positive(), zones: z.array(z.string()), data: z.array(z.number().int().min(0)) });
+const water = z.object({ id, kind: z.enum(['river', 'singel']), points: z.array(vec2).min(2), widths: z.array(pos) });
+const junction = z.object({ id, at: vec2, roads: z.tuple([id, id]), type: z.enum(['tee', 'roundabout', 'ramp']) });
+const bridge = z.object({ id, roadId: id, x: num, z: num, angle: num, length: pos, width: pos, over: z.enum(['river', 'singel', 'highway']) });
+const sign = z.object({ id, kind: z.enum(['yield', 'speed30', 'highway', 'centre']), x: num, z: num });
+const park = z.object({
+  id,
+  centre: vec2,
+  outline: z.array(vec2).min(3),
+  pond: z.object({ x: num, z: num, rx: num, rz: num, angle: num }),
+});
+const tree = z.tuple([num, num, num]);
+
 export const townDataSchema = z.object({
   version: z.literal(1),
   briefId: id,
   seed: z.number().int().min(0),
   size: z.tuple([pos, pos]),
   centre: vec2,
-  zoneGrid: z.object({ cell: pos, cols: z.number().int().positive(), rows: z.number().int().positive(), zones: z.array(z.string()), data: z.array(z.number().int().min(0)) }),
-  water: z.array(z.object({ id, kind: z.enum(['river', 'singel']), points: z.array(vec2).min(2), widths: z.array(pos) })),
+  zoneGrid,
+  water: z.array(water),
   highway: road,
   roads: z.array(road),
-  junctions: z.array(z.object({ id, at: vec2, roads: z.tuple([id, id]), type: z.enum(['tee', 'roundabout', 'ramp']) })),
+  junctions: z.array(junction),
   roundabouts: z.array(vec2),
   culDeSacs: z.array(vec2),
   plaza: vec2,
-  bridges: z.array(z.object({ id, roadId: id, x: num, z: num, angle: num, length: pos, width: pos, over: z.enum(['river', 'singel', 'highway']) })),
-  signs: z.array(z.object({ id, kind: z.enum(['yield', 'speed30', 'highway', 'centre']), x: num, z: num })),
-  parks: z.array(z.object({
-    id,
-    centre: vec2,
-    outline: z.array(vec2).min(3),
-    pond: z.object({ x: num, z: num, rx: num, rz: num, angle: num }),
-  })),
+  bridges: z.array(bridge),
+  signs: z.array(sign),
+  parks: z.array(park),
   buildings: z.array(building),
-  trees: z.array(z.tuple([num, num, num])),
+  trees: z.array(tree),
   warnings: z.array(z.string()),
 }).superRefine((t, ctx) => {
   const dup = (path: string, ids: string[]) => {
@@ -190,6 +199,65 @@ export const townDataSchema = z.object({
   const roadIds = new Set([...t.roads.map((r) => r.id), t.highway.id]);
   t.junctions.forEach((j, i) => {
     for (const r of j.roads) if (!roadIds.has(r)) ctx.addIssue({ code: 'custom', path: ['junctions', i, 'roads'], message: `junction ${j.id} references unknown road "${r}"` });
+  });
+});
+
+// ---------- chunked bake (generated/town-<id>/index.json and chunk_<cx>_<cz>.json) ----------
+
+const roadPiece = road.extend({ piece: z.number().int().min(0), pieces: z.number().int().min(1) })
+  .refine((p) => p.piece < p.pieces, { message: 'piece must be < pieces' });
+const chunkInt = z.number().int();
+const CHUNK_FILE = /^chunk_(-?\d+)_(-?\d+)\.json$/;
+
+export const townChunkSchema = z.object({
+  version: z.literal(1),
+  briefId: id,
+  cx: chunkInt,
+  cz: chunkInt,
+  roads: z.array(roadPiece),
+  highway: z.array(roadPiece),
+  buildings: z.array(building),
+  trees: z.array(tree),
+  signs: z.array(sign),
+});
+
+export const townChunkIndexSchema = z.object({
+  version: z.literal(1),
+  briefId: id,
+  seed: z.number().int().min(0),
+  size: z.tuple([pos, pos]),
+  chunkSize: pos,
+  chunks: z.array(z.object({
+    cx: chunkInt,
+    cz: chunkInt,
+    file: z.string().regex(CHUNK_FILE, 'file must be chunk_<cx>_<cz>.json'),
+    counts: z.object({
+      roads: z.number().int().min(0), highway: z.number().int().min(0), buildings: z.number().int().min(0),
+      trees: z.number().int().min(0), signs: z.number().int().min(0),
+    }),
+  })),
+  totals: z.object({ roads: z.number().int().min(0), buildings: z.number().int().min(0), trees: z.number().int().min(0), signs: z.number().int().min(0) }),
+  shared: z.object({
+    centre: vec2,
+    zoneGrid,
+    water: z.array(water),
+    junctions: z.array(junction),
+    roundabouts: z.array(vec2),
+    culDeSacs: z.array(vec2),
+    plaza: vec2,
+    bridges: z.array(bridge),
+    parks: z.array(park),
+    warnings: z.array(z.string()),
+  }),
+}).superRefine((ix, ctx) => {
+  const seen = new Set<string>();
+  ix.chunks.forEach((c, i) => {
+    const m = CHUNK_FILE.exec(c.file);
+    if (m && (Number(m[1]) !== c.cx || Number(m[2]) !== c.cz)) {
+      ctx.addIssue({ code: 'custom', path: ['chunks', i, 'file'], message: `file ${c.file} does not match chunk ${c.cx},${c.cz}` });
+    }
+    if (seen.has(c.file)) ctx.addIssue({ code: 'custom', path: ['chunks', i, 'file'], message: `duplicate chunk ${c.file}` });
+    seen.add(c.file);
   });
 });
 
@@ -219,7 +287,21 @@ export function parseTownData(data: unknown, what = 'town data'): TownData {
   return r.data as TownData;
 }
 
+export function parseTownChunk(data: unknown, what = 'town chunk'): TownChunk {
+  const r = townChunkSchema.safeParse(data);
+  if (!r.success) fail(what, r.error.issues);
+  return r.data as TownChunk;
+}
+
+export function parseTownChunkIndex(data: unknown, what = 'town chunk index'): TownChunkIndex {
+  const r = townChunkIndexSchema.safeParse(data);
+  if (!r.success) fail(what, r.error.issues);
+  return r.data as TownChunkIndex;
+}
+
 // ---------- drift guards (compile-time only) ----------
 export const _assertBrief = (b: TownBrief): z.input<typeof townBriefSchema> => b;
 export const _assertOverrides = (o: TownOverrides): z.input<typeof townOverridesSchema> => o;
 export const _assertData = (t: TownData): z.input<typeof townDataSchema> => t;
+export const _assertChunk = (c: TownChunk): z.input<typeof townChunkSchema> => c;
+export const _assertChunkIndex = (i: TownChunkIndex): z.input<typeof townChunkIndexSchema> => i;

@@ -135,3 +135,53 @@ export interface TownOverrides {
   }>;
   roads: Record<string, { name?: string; surface?: Surface; width?: number; note?: string }>;
 }
+
+// ---------- chunked bake (T3) ----------
+// generated/town-<id>/index.json + chunk_<cx>_<cz>.json, derived from the monolithic bake by chunkTown().
+
+/** One clipped part of a road (or of the highway). A road that crosses chunk borders has several pieces with the same id. */
+export interface RoadPiece extends Road {
+  piece: number;  // 0-based order along the original road, over all chunks
+  pieces: number; // how many pieces the original road was cut into
+}
+
+export interface TownChunk {
+  version: 1;
+  briefId: string;
+  cx: number; cz: number;               // chunk column / row: floor(x / chunkSize), floor(z / chunkSize). Can be negative.
+  roads: RoadPiece[];                   // clipped pieces of TownData.roads
+  highway: RoadPiece[];                 // clipped pieces of TownData.highway
+  buildings: Building[];                // by centre point (a footprint can overhang the chunk border)
+  trees: Array<[number, number, number]>;
+  signs: Sign[];
+}
+
+/** Everything in the bake that is not chunked: always loaded with the index. */
+export interface TownChunkShared {
+  centre: Vec2;
+  zoneGrid: TownData['zoneGrid'];
+  water: Water[];
+  junctions: Junction[];
+  roundabouts: Vec2[];
+  culDeSacs: Vec2[];
+  plaza: Vec2;
+  bridges: Bridge[];
+  parks: Park[];
+  warnings: string[];
+}
+
+export interface TownChunkIndex {
+  version: 1;
+  briefId: string;
+  seed: number;
+  size: Vec2;
+  chunkSize: number;
+  /** Non-empty chunks only, sorted by cz then cx. */
+  chunks: Array<{
+    cx: number; cz: number; file: string;
+    counts: { roads: number; highway: number; buildings: number; trees: number; signs: number }; // pieces / objects in the chunk
+  }>;
+  /** Objects in the monolithic bake, to check that nothing was lost. `roads` counts distinct road ids (highway excluded). */
+  totals: { roads: number; buildings: number; trees: number; signs: number };
+  shared: TownChunkShared;
+}
