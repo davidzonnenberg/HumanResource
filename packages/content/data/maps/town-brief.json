@@ -1,0 +1,574 @@
+{
+  "id": "start_city",
+  "seed": "v1",
+  "size": [
+    1300,
+    1050
+  ],
+  "centre": {
+    "x": [
+      0.47,
+      0.53
+    ],
+    "z": [
+      0.41,
+      0.45
+    ]
+  },
+  "singel": {
+    "halfWidth": [
+      140,
+      160
+    ],
+    "halfDepth": [
+      175,
+      195
+    ],
+    "waterWidth": 12,
+    "squareness": 0.5
+  },
+  "ring": {
+    "extraWidth": [
+      120,
+      140
+    ],
+    "extraDepth": [
+      110,
+      125
+    ],
+    "roadWidth": 10
+  },
+  "river": {
+    "widthInside": 12,
+    "widthOutside": 24,
+    "amplitude": [
+      25,
+      45
+    ]
+  },
+  "radials": {
+    "count": [
+      6,
+      7
+    ],
+    "width": 8
+  },
+  "gates": [
+    "N",
+    "S"
+  ],
+  "highway": {
+    "width": 26,
+    "points": [
+      [
+        -0.03,
+        0.92
+      ],
+      [
+        0.28,
+        0.94
+      ],
+      [
+        0.55,
+        0.93
+      ],
+      [
+        0.8,
+        0.89
+      ],
+      [
+        0.93,
+        0.55
+      ],
+      [
+        0.94,
+        0.25
+      ],
+      [
+        0.95,
+        -0.04
+      ]
+    ]
+  },
+  "core": {
+    "laneWidth": 3.4,
+    "laneSpacing": [
+      13,
+      21
+    ],
+    "crossLanes": 34,
+    "riverBridges": 6
+  },
+  "parks": {
+    "count": 6,
+    "radius": [
+      30,
+      55
+    ],
+    "districts": [
+      "rich",
+      "west"
+    ]
+  },
+  "sectors": [
+    {
+      "fromDeg": 27,
+      "toDeg": 120,
+      "district": "business"
+    },
+    {
+      "fromDeg": 120,
+      "toDeg": 240,
+      "district": "west"
+    }
+  ],
+  "defaultDistrict": "rich",
+  "zones": {
+    "core": {
+      "roadWidth": 3.4,
+      "surface": "klinkers",
+      "branchSpacing": [
+        20,
+        30
+      ],
+      "branchLength": [
+        50,
+        100
+      ],
+      "curveJitter": 0.012,
+      "curveMax": 0.05,
+      "bothSidesChance": 0.5,
+      "culDeSacChance": 0,
+      "treeChance": 0.05,
+      "streetTrees": false,
+      "buildings": [
+        {
+          "kind": "canal",
+          "weight": 1,
+          "width": [
+            4,
+            6.5
+          ],
+          "depth": [
+            7,
+            11
+          ],
+          "gap": [
+            0,
+            0
+          ],
+          "setback": [
+            0,
+            0
+          ],
+          "pad": 0,
+          "palette": [
+            "#7a3326",
+            "#8c4632",
+            "#5b3a2e",
+            "#a44a32",
+            "#6e2f24",
+            "#94553a",
+            "#4e5560"
+          ]
+        }
+      ]
+    },
+    "west_inner": {
+      "roadWidth": 5,
+      "surface": "asphalt",
+      "branchSpacing": [
+        34,
+        46
+      ],
+      "branchLength": [
+        60,
+        140
+      ],
+      "curveJitter": 0.004,
+      "curveMax": 0.025,
+      "bothSidesChance": 0.5,
+      "culDeSacChance": 0,
+      "treeChance": 0.3,
+      "streetTrees": false,
+      "buildings": [
+        {
+          "kind": "flat",
+          "weight": 1,
+          "width": [
+            16,
+            26
+          ],
+          "depth": [
+            9,
+            12
+          ],
+          "gap": [
+            3,
+            6
+          ],
+          "setback": [
+            2,
+            4
+          ],
+          "pad": 2,
+          "palette": [
+            "#c9c3b6",
+            "#b8b2a5",
+            "#d6cfbf",
+            "#a9a69e",
+            "#c2b8a0"
+          ]
+        },
+        {
+          "kind": "terrace",
+          "weight": 3,
+          "width": [
+            5,
+            7
+          ],
+          "depth": [
+            8,
+            10
+          ],
+          "gap": [
+            0.2,
+            0.2
+          ],
+          "setback": [
+            1,
+            1
+          ],
+          "pad": 0,
+          "palette": [
+            "#8c4632",
+            "#a65a3c",
+            "#6b4a3a",
+            "#7a3326",
+            "#9b4b35"
+          ]
+        }
+      ]
+    },
+    "west_outer": {
+      "roadWidth": 6,
+      "surface": "asphalt",
+      "branchSpacing": [
+        60,
+        80
+      ],
+      "branchLength": [
+        110,
+        240
+      ],
+      "curveJitter": 0.002,
+      "curveMax": 0.012,
+      "bothSidesChance": 0.45,
+      "culDeSacChance": 0,
+      "treeChance": 0.6,
+      "streetTrees": false,
+      "buildings": [
+        {
+          "kind": "flat",
+          "weight": 1,
+          "width": [
+            26,
+            46
+          ],
+          "depth": [
+            10,
+            13
+          ],
+          "gap": [
+            10,
+            18
+          ],
+          "setback": [
+            6,
+            12
+          ],
+          "pad": 4,
+          "palette": [
+            "#c9c3b6",
+            "#b8b2a5",
+            "#d6cfbf",
+            "#a9a69e",
+            "#c2b8a0"
+          ],
+          "perpendicularChance": 0.5
+        }
+      ]
+    },
+    "rich_inner": {
+      "roadWidth": 5,
+      "surface": "klinkers",
+      "branchSpacing": [
+        36,
+        50
+      ],
+      "branchLength": [
+        60,
+        130
+      ],
+      "curveJitter": 0.006,
+      "curveMax": 0.04,
+      "bothSidesChance": 0.45,
+      "culDeSacChance": 0,
+      "treeChance": 0.45,
+      "streetTrees": true,
+      "buildings": [
+        {
+          "kind": "herenhuis",
+          "weight": 1,
+          "width": [
+            6,
+            8.5
+          ],
+          "depth": [
+            9,
+            11
+          ],
+          "gap": [
+            0.3,
+            0.3
+          ],
+          "setback": [
+            2,
+            3
+          ],
+          "pad": 0,
+          "palette": [
+            "#efe6d2",
+            "#e2d6bd",
+            "#c9b79a",
+            "#a65a3c",
+            "#f3efe6"
+          ]
+        }
+      ]
+    },
+    "rich_outer": {
+      "roadWidth": 5,
+      "surface": "klinkers",
+      "branchSpacing": [
+        45,
+        60
+      ],
+      "branchLength": [
+        60,
+        140
+      ],
+      "curveJitter": 0.01,
+      "curveMax": 0.05,
+      "bothSidesChance": 0.4,
+      "culDeSacChance": 0.75,
+      "treeChance": 0.95,
+      "streetTrees": true,
+      "buildings": [
+        {
+          "kind": "villa",
+          "weight": 1,
+          "width": [
+            9,
+            13
+          ],
+          "depth": [
+            9,
+            12
+          ],
+          "gap": [
+            8,
+            16
+          ],
+          "setback": [
+            5,
+            9
+          ],
+          "pad": 2.5,
+          "palette": [
+            "#f4f1ea",
+            "#e8dcc4",
+            "#8a5a44",
+            "#5d6470",
+            "#d9cbb0"
+          ]
+        }
+      ]
+    },
+    "business_inner": {
+      "roadWidth": 7,
+      "surface": "asphalt",
+      "branchSpacing": [
+        50,
+        65
+      ],
+      "branchLength": [
+        70,
+        160
+      ],
+      "curveJitter": 0.002,
+      "curveMax": 0.015,
+      "bothSidesChance": 0.4,
+      "culDeSacChance": 0,
+      "treeChance": 0.15,
+      "streetTrees": false,
+      "buildings": [
+        {
+          "kind": "office",
+          "weight": 9,
+          "width": [
+            12,
+            20
+          ],
+          "depth": [
+            12,
+            18
+          ],
+          "gap": [
+            2,
+            5
+          ],
+          "setback": [
+            3,
+            3
+          ],
+          "pad": 1,
+          "palette": [
+            "#5c6f86",
+            "#6a7f99",
+            "#4d5d70",
+            "#7d8da1"
+          ]
+        },
+        {
+          "kind": "tower",
+          "weight": 1,
+          "width": [
+            18,
+            24
+          ],
+          "depth": [
+            18,
+            24
+          ],
+          "gap": [
+            4,
+            8
+          ],
+          "setback": [
+            4,
+            6
+          ],
+          "pad": 2,
+          "palette": [
+            "#3f5168",
+            "#56708f",
+            "#2f3d4f"
+          ]
+        }
+      ]
+    },
+    "business_outer": {
+      "roadWidth": 8,
+      "surface": "concrete",
+      "branchSpacing": [
+        80,
+        100
+      ],
+      "branchLength": [
+        130,
+        260
+      ],
+      "curveJitter": 0.0012,
+      "curveMax": 0.008,
+      "bothSidesChance": 0.4,
+      "culDeSacChance": 0,
+      "treeChance": 0.15,
+      "streetTrees": false,
+      "buildings": [
+        {
+          "kind": "office",
+          "weight": 45,
+          "width": [
+            16,
+            26
+          ],
+          "depth": [
+            16,
+            24
+          ],
+          "gap": [
+            8,
+            14
+          ],
+          "setback": [
+            6,
+            10
+          ],
+          "pad": 3,
+          "palette": [
+            "#5c6f86",
+            "#6a7f99",
+            "#4d5d70",
+            "#7d8da1"
+          ]
+        },
+        {
+          "kind": "warehouse",
+          "weight": 55,
+          "width": [
+            30,
+            60
+          ],
+          "depth": [
+            22,
+            34
+          ],
+          "gap": [
+            8,
+            14
+          ],
+          "setback": [
+            6,
+            10
+          ],
+          "pad": 3,
+          "palette": [
+            "#9aa0a8",
+            "#a7adb5",
+            "#8c939c",
+            "#b3a68f"
+          ]
+        }
+      ]
+    }
+  },
+  "landmarks": [
+    {
+      "id": "zuid:tower_synergy",
+      "kind": "tower",
+      "anchor": "centre",
+      "at": [
+        -110,
+        390
+      ],
+      "width": 28,
+      "depth": 28,
+      "angleDeg": 8,
+      "colour": "#2f3d4f"
+    },
+    {
+      "id": "zuid:tower_amrobot",
+      "kind": "tower",
+      "anchor": "centre",
+      "at": [
+        170,
+        420
+      ],
+      "width": 32,
+      "depth": 22,
+      "angleDeg": -12,
+      "colour": "#3f5168"
+    }
+  ]
+}
