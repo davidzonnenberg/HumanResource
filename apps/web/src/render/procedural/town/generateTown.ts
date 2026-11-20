@@ -9,7 +9,7 @@ import type {
   Building, BuildingRule, Bridge, Junction, LandmarkSpec, Park, Road, RoadKind, Sign,
   Surface, TownBrief, TownData, Vec2, Water, ZoneRule,
 } from './townTypes';
-import { hashSeed, mulberry32 } from './rng';
+import { hashSeed, mulberry32 } from '../buildings/randomBuilding';
 import { bbox, catmullRom, measure, offsetLine, pointInPolygon, sampleAt, segIntersect } from './geom';
 
 export interface GenerateOptions {
@@ -24,7 +24,7 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
   const R = mulberry32(seed);
   const rnd = (a: number, b: number) => a + (b - a) * R();
   const rr = (r: [number, number]) => rnd(r[0], r[1]);
-  const pick = <T>(a: T[]): T => a[Math.floor(R() * a.length)];
+  const pick = <T>(a: T[]): T => a[Math.floor(R() * a.length)]!;
   const warnings: string[] = [];
 
   const W = Math.round(brief.size[0]), H = Math.round(brief.size[1]);
@@ -33,7 +33,7 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
   // ---------- singel (rounded rectangle canal) + ring road shapes ----------
   const A = rr(brief.singel.halfWidth), B = rr(brief.singel.halfDepth);
   const rot = rnd(-0.12, 0.12), c0 = Math.cos(rot), s0 = Math.sin(rot);
-  const k = [0, 0, 0, 0, 0].map(() => R() * TAU);
+  const k = [0, 0, 0, 0, 0].map(() => R() * TAU) as [number, number, number, number, number];
   const rp = (x: number, y: number): Vec2 => [cx + x * c0 - y * s0, cy + x * s0 + y * c0];
   const se = (t: number, e: number): Vec2 => {
     const c = Math.cos(t), s = Math.sin(t);
@@ -57,7 +57,7 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
   const ringPts = loop(RP, 480);
   const pS = loop((t) => SP(t, 0), 240), pI = loop((t) => SP(t, -(sw / 2 + 7)), 240), pR = loop(RP, 240);
   const bS = bbox(pS), bI = bbox(pI), bR = bbox(pR);
-  const inB = (b: number[], x: number, y: number) => x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3];
+  const inB = (b: [number, number, number, number], x: number, y: number) => x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3];
   const inS = (x: number, y: number) => inB(bS, x, y) && pointInPolygon(pS, x, y);
   const inI = (x: number, y: number) => inB(bI, x, y) && pointInPolygon(pI, x, y);
   const inR = (x: number, y: number) => inB(bR, x, y) && pointInPolygon(pR, x, y);
@@ -86,9 +86,9 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
   }
   const zoneAt = (x: number, y: number) => {
     const gx = Math.min(ZW - 1, Math.max(0, Math.floor(x / ZC))), gy = Math.min(ZH - 1, Math.max(0, Math.floor(y / ZC)));
-    return zoneNames[zg[gy * ZW + gx]];
+    return zoneNames[zg[gy * ZW + gx]!]!;
   };
-  const rule = (z: string): ZoneRule => brief.zones[z];
+  const rule = (z: string): ZoneRule => brief.zones[z]!;
 
   // ---------- occupancy grids (1 m cells) ----------
   const N = W * H;
@@ -101,12 +101,12 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
     const y0 = Math.max(0, Math.floor(y - r)), y1 = Math.min(H - 1, Math.floor(y + r)), r2 = r * r;
     for (let gy = y0; gy <= y1; gy++) for (let gx = x0; gx <= x1; gx++) {
       const dx = gx + 0.5 - x, dy = gy + 0.5 - y;
-      if (dx * dx + dy * dy <= r2) { const i = gy * W + gx; if (or) arr[i] |= v; else if (!arr[i]) arr[i] = v; }
+      if (dx * dx + dy * dy <= r2) { const i = gy * W + gx; if (or) arr[i]! |= v; else if (!arr[i]) arr[i] = v; }
     }
   };
   const stamp = (arr: Uint8Array | Int32Array, p: Vec2[], r: number, v: number, or = true) => {
     for (let i = 0; i < p.length - 1; i++) {
-      const a = p[i], b = p[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / 1.5));
+      const a = p[i]!, b = p[i + 1]!, L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / 1.5));
       for (let j = 0; j <= n; j++) { const t = j / n; mark(arr, a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, r, v, or); }
     }
   };
@@ -114,12 +114,14 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
     const ca = Math.cos(ang), sa = Math.sin(ang);
     for (let u = -w / 2 - pad; u <= w / 2 + pad + 0.01; u += 0.7) for (let q = -d / 2 - pad; q <= d / 2 + pad + 0.01; q += 0.7) {
       const X = x + u * ca - q * sa, Y = y + u * sa + q * ca;
-      if (X >= 0 && Y >= 0 && X < W && Y < H) arr[(Y | 0) * W + (X | 0)] |= v;
+      if (X >= 0 && Y >= 0 && X < W && Y < H) arr[(Y | 0) * W + (X | 0)]! |= v;
     }
   };
   const rectFree = (arr: Uint8Array | Int32Array, x: number, y: number, ang: number, w: number, d: number) => {
-    const ca = Math.cos(ang), sa = Math.sin(ang), st = Math.max(0.9, Math.min(w, d) / 10);
-    for (let u = -w / 2 + 0.4; u <= w / 2 - 0.4 + 0.01; u += st) for (let q = -d / 2 + 0.4; q <= d / 2 - 0.4 + 0.01; q += st) {
+    const ca = Math.cos(ang), sa = Math.sin(ang);
+    // Sample a grid that includes both edges exactly (inset 0.4 m) with a step of at most 1 m.
+    const us = edgeSamples(w / 2 - 0.4), qs = edgeSamples(d / 2 - 0.4);
+    for (const u of us) for (const q of qs) {
       const X = x + u * ca - q * sa, Y = y + u * sa + q * ca;
       if (X < 2 || Y < 2 || X > W - 2 || Y > H - 2) return false;
       if (arr[(Y | 0) * W + (X | 0)]) return false;
@@ -133,7 +135,7 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
   const rx = (y: number) => cx + rf(y) - rf(cy);
   const riverPts: Vec2[] = [], riverW: number[] = [];
   for (let y = -30; y <= H + 30; y += 5) { const x = rx(y); riverPts.push([x, y]); riverW.push(inS(x, y) ? brief.river.widthInside : brief.river.widthOutside); }
-  for (let i = 0; i < riverPts.length - 1; i++) stamp(blk, [riverPts[i], riverPts[i + 1]], Math.max(riverW[i], riverW[i + 1]) / 2 + 3, 1);
+  for (let i = 0; i < riverPts.length - 1; i++) stamp(blk, [riverPts[i]!, riverPts[i + 1]!], Math.max(riverW[i]!, riverW[i + 1]!) / 2 + 3, 1);
   stamp(blk, singel, sw / 2 + 3, 1);
   const water: Water[] = [
     { id: 'river', kind: 'river', points: riverPts, widths: riverW },
@@ -184,16 +186,16 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
   for (const r of rads) {
     for (let i = 0; i < r.points.length - 1; i++) {
       let hit: Vec2 | null = null;
-      for (let j = 0; j < ring.points.length - 1 && !hit; j++) hit = segIntersect(r.points[i], r.points[i + 1], ring.points[j], ring.points[j + 1]);
+      for (let j = 0; j < ring.points.length - 1 && !hit; j++) hit = segIntersect(r.points[i]!, r.points[i + 1]!, ring.points[j]!, ring.points[j + 1]!);
       if (hit) {
         roundabouts.push(hit); junction(hit, r.id, 'ring', 'roundabout');
-        const a = r.points[i], b = r.points[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, dx = (b[0] - a[0]) / L, dy = (b[1] - a[1]) / L;
+        const a = r.points[i]!, b = r.points[i + 1]!, L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, dx = (b[0] - a[0]) / L, dy = (b[1] - a[1]) / L;
         sign('yield', hit[0] - dx * 17 - dy * 8, hit[1] - dy * 17 + dx * 8);
         sign('yield', hit[0] + dx * 17 + dy * 8, hit[1] + dy * 17 - dx * 8);
         break;
       }
     }
-    const p = r.points[1], a = roadAngle.get(r.id)!;
+    const p = r.points[1]!, a = roadAngle.get(r.id)!;
     sign('speed30', p[0] + Math.cos(a + 1.57) * 7, p[1] + Math.sin(a + 1.57) * 7);
   }
   // overpasses + ramps where a radial crosses the highway
@@ -203,12 +205,12 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
     bridges.push({ id: `br${bridgeN++}`, roadId, x: round2(x), z: round2(z), angle: round4(angle), length, width, over });
   rads.forEach((r, ri) => {
     for (let i = 0; i < r.points.length - 1; i++) for (let j = 0; j < hwPts.length - 1; j++) {
-      const q = segIntersect(r.points[i], r.points[i + 1], hwPts[j], hwPts[j + 1]);
+      const q = segIntersect(r.points[i]!, r.points[i + 1]!, hwPts[j]!, hwPts[j + 1]!);
       if (!q) continue;
-      const a = r.points[i], b = r.points[i + 1];
+      const a = r.points[i]!, b = r.points[i + 1]!;
       let L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
       const ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L;
-      const c = hwPts[j], d = hwPts[j + 1];
+      const c = hwPts[j]!, d = hwPts[j + 1]!;
       L = Math.hypot(d[0] - c[0], d[1] - c[1]) || 1;
       const hx = (d[0] - c[0]) / L, hy = (d[1] - c[1]) / L, nx = -hy, ny = hx;
       const P: Vec2 = [q[0] - ux * 30, q[1] - uy * 30];
@@ -227,8 +229,8 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
     }
   });
   for (let j = 0; j < hwPts.length - 1; j++) for (let i = 0; i < riverPts.length - 1; i++) {
-    const q = segIntersect(hwPts[j], hwPts[j + 1], riverPts[i], riverPts[i + 1]);
-    if (q) bridge('highway', q[0], q[1], Math.atan2(hwPts[j + 1][1] - hwPts[j][1], hwPts[j + 1][0] - hwPts[j][0]), brief.river.widthOutside + 16, brief.highway.width + 6, 'river');
+    const q = segIntersect(hwPts[j]!, hwPts[j + 1]!, riverPts[i]!, riverPts[i + 1]!);
+    if (q) bridge('highway', q[0], q[1], Math.atan2(hwPts[j + 1]![1] - hwPts[j]![1], hwPts[j + 1]![0] - hwPts[j]![0]), brief.river.widthOutside + 16, brief.highway.width + 6, 'river');
   }
 
   // gates: short roads across the singel into the centre (N/S/E/W), placed beside the river
@@ -273,8 +275,8 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
       x += Math.cos(h) * 3; y += Math.sin(h) * 3;
       if (!inI(x, y)) { p.push([x, y]); hit = singelInnerRoad; break; }
       const ci = cell(x, y); if (ci < 0) break;
-      if (i > 1 && blk[ci] & 1) break;
-      if (i > 3 && rdId[ci]) { p.push([x, y]); hit = roads[rdId[ci] - 1]; break; }
+      if (i > 1 && blk[ci]! & 1) break;
+      if (i > 3 && rdId[ci]) { p.push([x, y]); hit = roads[rdId[ci]! - 1]!; break; }
       p.push([x, y]);
     }
     return { p, hit };
@@ -290,8 +292,8 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
         const res = lane(x, y, (sd > 0 ? 0 : Math.PI) + rnd(-0.35, 0.35), 400);
         if (res.p.length > 4) {
           const r = addRoad(`lane_${laneN++}`, 'lane', res.p, cw, 'core', 'klinkers');
-          lanes.push(r); junction(res.p[0], r.id, sd > 0 ? 'quay_river_e' : 'quay_river_w');
-          if (res.hit) junction(res.p[res.p.length - 1], r.id, res.hit.id);
+          lanes.push(r); junction(res.p[0]!, r.id, sd > 0 ? 'quay_river_e' : 'quay_river_w');
+          if (res.hit) junction(res.p[res.p.length - 1]!, r.id, res.hit.id);
         }
       }
       y += rr(brief.core.laneSpacing);
@@ -301,19 +303,19 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
     const y = cy + rnd(-B * 0.8, B * 0.8), x = rx(y), off = brief.river.widthInside / 2 + 3;
     if (inI(x, y)) {
       const r = addRoad(`lane_${laneN++}`, 'lane', [[x - off, y], [x + off, y]], cw, 'core', 'klinkers');
-      junction(r.points[0], r.id, 'quay_river_w'); junction(r.points[1], r.id, 'quay_river_e');
+      junction(r.points[0]!, r.id, 'quay_river_w'); junction(r.points[1]!, r.id, 'quay_river_e');
     }
   }
   const nL = lanes.length;
   for (let i = 0; i < Math.min(brief.core.crossLanes, nL * 2); i++) {
     const parent = pick(lanes); const p = parent.points;
     if (p.length < 10) continue;
-    const q = p[Math.floor(rnd(0.3, 0.8) * p.length)];
+    const q = p[Math.floor(rnd(0.3, 0.8) * p.length)]!;
     const res = lane(q[0], q[1], (R() < 0.5 ? -1 : 1) * (Math.PI / 2) + rnd(-0.3, 0.3), 300);
     if (res.p.length > 4) {
       const r = addRoad(`lane_${laneN++}`, 'lane', res.p, cw - 0.2, 'core', 'klinkers', parent.id);
       lanes.push(r); junction(q, r.id, parent.id);
-      if (res.hit) junction(res.p[res.p.length - 1], r.id, res.hit.id);
+      if (res.hit) junction(res.p[res.p.length - 1]!, r.id, res.hit.id);
     }
   }
 
@@ -322,14 +324,19 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
 
   // landmarks (fixed towers / hero buildings) + locked buildings from overrides
   const fixed: Building[] = [];
-  const placeFixed = (b: Building) => {
-    const ok = rectFree(blk, b.x, b.z, b.angle, b.width, b.depth) && rectFree(rdId, b.x, b.z, b.angle, b.width, b.depth);
-    if (!ok) warnings.push(`landmark ${b.id} overlaps water/road/highway – move it in the brief`);
+  const reservedIds = new Set<string>(); // ids of landmarks and locked buildings: new houses never reuse them
+  // A locked building was placed next to its road by the previous bake, so it is only checked against water, highway and
+  // other fixed buildings (rdId holds a 2 m keep-clear margin around every road that houses legitimately sit in).
+  const placeFixed = (b: Building, isLocked = false) => {
+    const ok = rectFree(blk, b.x, b.z, b.angle, b.width, b.depth) && (isLocked || rectFree(rdId, b.x, b.z, b.angle, b.width, b.depth));
+    if (!ok) warnings.push(isLocked ? `locked building ${b.id} overlaps water/highway/a landmark – unlock or move it` : `landmark ${b.id} overlaps water/road/highway – move it in the brief`);
     fillRect(blk, b.x, b.z, b.angle, b.width, b.depth, 2, 8);
     fixed.push(b);
+    reservedIds.add(b.id);
   };
   for (const l of brief.landmarks) placeFixed(landmarkToBuilding(l, cx, cy));
-  for (const b of opts.locked ?? []) placeFixed({ ...b, locked: true });
+  const lockedNow: Building[] = [];
+  for (const b of opts.locked ?? []) { const nb: Building = { ...b, locked: true }; placeFixed(nb, true); lockedNow.push(nb); }
 
   // parks
   const parks: Park[] = [];
@@ -347,11 +354,11 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
     if (!ok) continue;
     const outline: Vec2[] = [];
     for (let s = 0; s < 20; s++) { const a = (s / 20) * TAU, d = r * (0.85 + 0.2 * Math.sin(a * 2 + x) + 0.08 * Math.sin(a * 5 + y)); outline.push([round2(x + Math.cos(a) * d), round2(y + Math.sin(a) * d)]); }
-    outline.push(outline[0]);
+    outline.push(outline[0]!);
     parks.push({ id: `park_${parks.length}`, centre: [round2(x), round2(y)], outline, pond: { x: round2(x + rnd(-r * 0.2, r * 0.2)), z: round2(y + rnd(-r * 0.2, r * 0.2)), rx: round2(r * rnd(0.2, 0.3)), rz: round2(r * rnd(0.12, 0.18)), angle: round4(R() * 3) } });
     for (let gy = Math.max(0, Math.floor(y - r * 1.2)); gy <= Math.min(H - 1, y + r * 1.2); gy++)
       for (let gx = Math.max(0, Math.floor(x - r * 1.2)); gx <= Math.min(W - 1, x + r * 1.2); gx++)
-        if (pointInPolygon(outline, gx + 0.5, gy + 0.5)) blk[gy * W + gx] |= 4;
+        if (pointInPolygon(outline, gx + 0.5, gy + 0.5)) blk[gy * W + gx]! |= 4;
   }
 
   // neighbourhood streets: branch off main roads, curve, stop at obstacles or connect to a road
@@ -365,7 +372,7 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
       if (ci < 0 || x < 5 || y < 5 || x > W - 5 || y > H - 5) break;
       if (blk[ci]) break;
       if (zoneAt(x, y) === 'core') break;
-      if (i > 2 && rdId[ci]) { p.push([x, y]); hit = roads[rdId[ci] - 1]; break; }
+      if (i > 2 && rdId[ci]) { p.push([x, y]); hit = roads[rdId[ci]! - 1]!; break; }
       p.push([x, y]);
     }
     return { p, hit };
@@ -373,8 +380,8 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
   const queue = roads.filter((r) => r.kind === 'ring' || r.kind === 'singel' || r.kind === 'radial').map((r) => ({ r, d: 0 }));
   const childCount = new Map<string, number>();
   for (let qi = 0; qi < queue.length && roads.length < 4000; qi++) {
-    const { r, d } = queue[qi];
-    const c = measure(r.points), L = c[c.length - 1];
+    const { r, d } = queue[qi]!;
+    const c = measure(r.points), L = c[c.length - 1]!;
     let s = rnd(8, 20);
     while (s < L - 8) {
       const q = sampleAt(r.points, c, s), z = zoneAt(q.x, q.z);
@@ -393,8 +400,8 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
           const n = (childCount.get(r.id) ?? 0) + 1; childCount.set(r.id, n);
           const nr = addRoad(`${r.id}.${n}`, 'branch', [[q.x, q.z], ...res.p], P.roadWidth, z, P.surface, r.id);
           junction([q.x, q.z], nr.id, r.id);
-          if (res.hit) junction(res.p[res.p.length - 1], nr.id, res.hit.id);
-          else if (R() < P.culDeSacChance) culs.push(res.p[res.p.length - 1]);
+          if (res.hit) junction(res.p[res.p.length - 1]!, nr.id, res.hit.id);
+          else if (R() < P.culDeSacChance) culs.push(res.p[res.p.length - 1]!);
           queue.push({ r: nr, d: d + 1 });
         }
       }
@@ -409,10 +416,10 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
     for (const o of waters) {
       let last: Vec2 | null = null;
       for (let i = 0; i < r.points.length - 1; i++) {
-        const a = r.points[i], b = r.points[i + 1];
+        const a = r.points[i]!, b = r.points[i + 1]!;
         const mnx = Math.min(a[0], b[0]), mxx = Math.max(a[0], b[0]), mny = Math.min(a[1], b[1]), mxy = Math.max(a[1], b[1]);
         for (let j = 0; j < o.p.length - 1; j++) {
-          const c = o.p[j], d = o.p[j + 1];
+          const c = o.p[j]!, d = o.p[j + 1]!;
           if (Math.max(c[0], d[0]) < mnx || Math.min(c[0], d[0]) > mxx || Math.max(c[1], d[1]) < mny || Math.min(c[1], d[1]) > mxy) continue;
           const q = segIntersect(a, b, c, d);
           if (!q || (last && Math.hypot(q[0] - last[0], q[1] - last[1]) < 10)) continue;
@@ -425,21 +432,33 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
   }
 
   // ---------- buildings ----------
-  for (let i = 0; i < N; i++) occ[i] = blk[i] & 11 ? 1 : blk[i] & 4 ? 2 : 0;
+  for (let i = 0; i < N; i++) occ[i] = blk[i]! & 11 ? 1 : blk[i]! & 4 ? 2 : 0;
   mark(occ, plaza[0], plaza[1], 15, 1);
   for (const r of roads) stamp(occ, r.points, r.width / 2 + 1.3, 1);
   for (const b of roundabouts) mark(occ, b[0], b[1], 12, 1);
   for (const c of culs) mark(occ, c[0], c[1], 8.5, 1);
   for (const p of parks) mark(occ, p.pond.x, p.pond.z, p.pond.rx + 2, 1);
 
+  // A locked building keeps its id and old road as lockedRoadId; roadId becomes the road it touches now (or null).
+  const touching = (b: Building): string | null => {
+    let best: string | null = null, bestGap = 2.5;
+    for (const r of roads) {
+      let dmin = Infinity;
+      for (let i = 0; i < r.points.length - 1; i++) dmin = Math.min(dmin, distPointSeg(b.x, b.z, r.points[i]!, r.points[i + 1]!));
+      const gap = dmin - r.width / 2 - Math.max(b.width, b.depth) / 2;
+      if (gap <= bestGap) { bestGap = gap; best = r.id; }
+    }
+    return best;
+  };
+  for (const b of lockedNow) { b.lockedRoadId = b.lockedRoadId ?? b.roadId; b.roadId = touching(b); }
   const buildings: Building[] = [...fixed];
   const pickRule = (rules: BuildingRule[]) => {
     const tot = rules.reduce((s, b) => s + b.weight, 0); let v = R() * tot;
     for (const b of rules) { v -= b.weight; if (v <= 0) return b; }
-    return rules[rules.length - 1];
+    return rules[rules.length - 1]!;
   };
   const placeAlong = (r: Road) => {
-    const p = r.points, c = measure(p), L = c[c.length - 1];
+    const p = r.points, c = measure(p), L = c[c.length - 1]!;
     for (const sd of [-1, 1]) {
       let s = rnd(0, 4), guard = 0, n = 0;
       while (s < L - 2 && guard++ < 5000) {
@@ -451,7 +470,8 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
         const hx = m.x + nx * o, hz = m.z + nz * o, ang = Math.atan2(m.tz, m.tx) + (perp ? Math.PI / 2 : 0);
         if (rectFree(occ, hx, hz, ang, w, d)) {
           fillRect(occ, hx, hz, ang, w, d, br.pad, 1);
-          const id = `${r.id}/${sd < 0 ? 'L' : 'R'}${n++}`;
+          let id = `${r.id}/${sd < 0 ? 'L' : 'R'}${n++}`;
+          while (reservedIds.has(id)) id = `${r.id}/${sd < 0 ? 'L' : 'R'}${n++}`;
           buildings.push({ id, roadId: r.id, zone: z, kind: br.kind, x: round2(hx), z: round2(hz), angle: round4(ang), width: round2(w), depth: round2(d), colour: pick(br.palette), seed: hashSeed(id) });
           s += ew + rr(br.gap);
         } else s += z === 'core' || z.endsWith('_inner') ? 1.2 : 2.5;
@@ -464,7 +484,7 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
   const trees: Array<[number, number, number]> = [];
   for (const r of roads) {
     if (r.kind !== 'branch' || !rule(r.zone).streetTrees) continue;
-    const c = measure(r.points), L = c[c.length - 1];
+    const c = measure(r.points), L = c[c.length - 1]!;
     for (let s = 4; s < L - 4; s += 9) {
       const q = sampleAt(r.points, c, s);
       for (const sd of [-1, 1]) {
@@ -478,7 +498,7 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
     if (v && !park) continue;
     if (!park && R() > rule(zoneAt(x, y)).treeChance) continue;
     let ok = true;
-    for (const dd of [[4, 0], [-4, 0], [0, 4], [0, -4]]) { const cj = cell(x + dd[0], y + dd[1]); if (cj < 0 || (occ[cj] && occ[cj] !== 2)) { ok = false; break; } }
+    for (const dd of [[4, 0], [-4, 0], [0, 4], [0, -4]] as Vec2[]) { const cj = cell(x + dd[0], y + dd[1]); if (cj < 0 || (occ[cj] && occ[cj] !== 2)) { ok = false; break; } }
     if (!ok) continue;
     const tr = rnd(2, 3.8); trees.push([round2(x), round2(y), round2(tr)]); mark(occ, x, y, tr + 0.6, 1);
   }
@@ -492,6 +512,19 @@ export function generateTown(brief: TownBrief, opts: GenerateOptions = {}): Town
     junctions, roundabouts: roundabouts.map(r2v), culDeSacs: culs.map(r2v), plaza: r2v(plaza),
     bridges, signs, parks, buildings, trees, warnings,
   };
+}
+
+/** Offsets from -half to +half (inclusive, both edges exact) with a step of at most 1 m. */
+function edgeSamples(half: number): number[] {
+  if (half <= 0) return [0];
+  const n = Math.max(1, Math.ceil((2 * half) / 1));
+  return Array.from({ length: n + 1 }, (_, i) => -half + (2 * half * i) / n);
+}
+
+function distPointSeg(px: number, pz: number, a: Vec2, b: Vec2): number {
+  const dx = b[0] - a[0], dz = b[1] - a[1], l2 = dx * dx + dz * dz;
+  const t = l2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - a[0]) * dx + (pz - a[1]) * dz) / l2));
+  return Math.hypot(px - (a[0] + dx * t), pz - (a[1] + dz * t));
 }
 
 function landmarkToBuilding(l: LandmarkSpec, cx: number, cy: number): Building {

@@ -82,6 +82,7 @@ export interface Road {
 export interface Building {
   id: string;           // stable: "<roadId>/<L|R><n>" or the landmark id
   roadId: string | null;
+  lockedRoadId?: string | null; // set on a locked building after --force: the road it belonged to in the previous bake
   zone: string;
   kind: BuildingKind;
   x: number; z: number; angle: number; // angle in radians, facade parallel to the road

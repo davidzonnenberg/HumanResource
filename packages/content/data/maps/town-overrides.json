@@ -3,19 +3,35 @@
     "lane_0/L2": {
       "recipe": "pub_cosy_local",
       "lock": true,
+      "at": [
+        639.94,
+        275.28
+      ],
       "note": "example: hero pub on a canal lane, uses the fixed recipe"
     },
     "ring.1/L0": {
       "seed": 12345,
+      "at": [
+        969.38,
+        465.25
+      ],
       "note": "example: reroll only this house"
     },
     "ring/L1": {
       "remove": true,
+      "at": [
+        963.06,
+        501.8
+      ],
       "note": "example: empty plot for a future business"
     },
     "ring/L2": {
       "colour": "#2f5d50",
       "kind": "herenhuis",
+      "at": [
+        949.02,
+        609.97
+      ],
       "note": "example: change look"
     }
   },
