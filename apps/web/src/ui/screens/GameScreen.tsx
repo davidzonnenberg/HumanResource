@@ -11,11 +11,13 @@ import { t } from '../../text/t';
 import { Phone } from '../phone/Phone';
 import { DebugOverlay } from '../DebugOverlay';
 import { usePhoneSettings } from '../phone/phoneSettings';
+import { useQualityStore } from '../../render/qualityStore';
 
 export function GameScreen({ onExit, profileId }: { onExit: () => void; profileId: string }) {
   const wrap = useRef<HTMLDivElement>(null);
   useEffect(() => installKeyboard(), []);
   useEffect(() => void usePhoneSettings.getState().load(profileId), [profileId]); // per-device phone settings (D7)
+  useEffect(() => void useQualityStore.getState().load(), []); // per-device render quality (T6)
   useEffect(() => (wrap.current ? installGestures(wrap.current) : undefined), []);
   const exit = async () => {
     await stopSlot(true);

@@ -79,7 +79,7 @@ export function randomDutchHouse(seed: number, opts: RandomHouseOptions = {}): B
   const district = districtStyle(opts.district ?? 'old_town');
   const arch = archetypeOf(opts.archetype ?? weighted(rng, district.archetypes));
   const width = opts.width ?? r2(inRange(rng, district.widths) * inRange(rng, arch.widthMul));
-  const bays = Math.max(1, Math.min(6, Math.round(width / 1.45)));
+  const bays = Math.max(1, Math.min(arch.maxBays ?? 6, Math.round(width / (arch.bayWidth ?? 1.45))));
   const upper = opts.floors ?? intIn(rng, district.floors);
   const fh0 = inRange(rng, arch.floorHeight);
   const floorHeights: number[] = [];
@@ -105,7 +105,7 @@ export function randomDutchHouse(seed: number, opts: RandomHouseOptions = {}): B
 
   const identity = arch.identity;
   const signText = arch.signTexts.length ? pick(rng, arch.signTexts) : null;
-  const gableHeight = kind === 'cornice' || kind === 'flat' ? 0 : r2(width * inRange(rng, [0.6, 0.85]));
+  const gableHeight = kind === 'cornice' || kind === 'flat' ? 0 : r2(Math.min(arch.gableMax ?? 8, width * inRange(rng, [0.6, 0.85])));
 
   return {
     style: 'dutch_row',

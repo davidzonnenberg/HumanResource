@@ -13,6 +13,7 @@ import { Figures } from './Figures';
 import { Vehicles } from './Vehicles';
 import { HumanLabels, ManagementOverlay } from './Overlays';
 import { AdaptiveDpr } from './AdaptiveDpr';
+import { QualityProbe } from './QualityProbe';
 import { camCfg, palette } from './theme';
 
 const ManualDriving = lazy(() => import('../physics/ManualDriving'));
@@ -70,6 +71,7 @@ export function Scene() {
       <directionalLight position={[30, 60, 20]} intensity={1.2} />
       <CameraController />
       <AdaptiveDpr />
+      <QualityProbe />
       <WorldContent />
       <Figures />
       <HumanLabels />

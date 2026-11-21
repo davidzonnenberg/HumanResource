@@ -36,18 +36,18 @@ Do not commit or push unless the user asks. Never hand-edit the generated JSON: 
   - Everything not listed above (water, bridges, junctions, roundabouts, cul-de-sacs, parks, plaza, zone grid, warnings) stays whole in `index.json` under `shared`; the highway is chunked like a road. `town:bake -- <id> --chunks` re-writes the chunks from the existing bake without touching it.
   - _Done when: chunks and index are written by `town:bake`, and the union test passes._
 
-- [ ] T4. Render roads, water and bridges from the bake
+- [x] T4. Render roads, water and bridges from the bake
   - Dev scene behind a flag first. Ribbon meshes per road (width and surface from the data), curved, merged per chunk; water ribbons; bridge decks; roundabouts; signs as instanced meshes.
   - Replaces the "one width, one texture" assumption in `roadField` and the road mesh (wishlist: map layout).
   - _Requirements: 6.1_
   - _Done when: the dev scene shows the whole town with correct widths and surfaces, with the draw-call budget met on Low._
 
-- [ ] T5. Render buildings with LOD and instancing
+- [x] T5. Render buildings with LOD and instancing
   - LOD0: existing procedural recipe at `low`, fed with `seed`, `width`, `depth`, `kind`. Add archetypes for `flat`, `office`, `tower`, `warehouse`, `villa` (data). LOD1: box, roof, atlas. LOD2: merged chunk mesh. Fixed recipes (overrides, landmarks) use `buildings.recipes.json`. Hitboxes from width x depth.
   - _Requirements: 6.2 to 6.5_
   - _Done when: the dev scene shows buildings at all three LODs, hitboxes match, and the Low budgets hold in the dev scene._
 
-- [ ] T6. Quality presets
+- [x] T6. Quality presets (phone measurement still open, see Progress)
   - The `quality` object, auto-detect on first launch, a setting in the CEO Phone Settings app (per device, not in the save).
   - Measure on the user's phone against the section 7 budgets (manual check for the user).
   - _Requirements: 7.1 to 7.3, 6.6_
@@ -87,6 +87,10 @@ Do not commit or push unless the user asks. Never hand-edit the generated JSON: 
 - T1 built (Nov 2026). Typecheck, lint and tests are green. Open items for the user (see the T1 report): the footprint sampling limit of the generator, the id clash after `--force` with locked buildings, and the preview that still has to be rebuilt from the real TS (T2).
 
 - T2 and T3 built (Nov 2026). The committed bake has 1265 buildings (not the 1323 of the handover): it is `town:bake --force` with the locked building `lane_0/L2`, which a plain `generateTown` (1290) does not have. A `--force` re-bake reproduces the committed file byte for byte. `--check` lists 2 stale example overrides (`ring/L1`, `ring/L2`), which were already stale.
+
+- T4 built (Nov 2026). Dev scene: `npm.cmd run dev` then open `/?dev=1&town=roads`. Code in `render/procedural/town/` (`townRoadMesh.ts` pure mesh data, `TownScene.tsx`, `TownDevScene.tsx`, `townLoader.ts`), flag in `dev/townDevFlag.ts`. One merged mesh per chunk, one shared mesh (water, bridges, roundabouts, cul-de-sacs, parks, plaza), one instanced mesh per sign kind: about 40 draw calls for the whole town (budget test: <= 150 calls, <= 400k triangles). Not done yet: the existing game scene still uses the old `Roads`/`roadField`; swapping it in comes with T7. Draw calls on a real phone are not measured (T6).
+
+- T5 and T6 built (Nov 2026). Dev scene: `npm.cmd run dev`, open `/?dev=1&town=full` (add `&q=low` or `&q=high` to force a preset; arrow keys or right mouse pan, wheel zooms). LOD0 = recipe at `low` from seed/width/depth/kind (`townBuildings.ts`), LOD1 = two instanced draw calls (walls with a window texture, roofs), LOD2 = one merged mesh per far chunk. New archetypes `flat_block`, `office_block`, `tower_block`, `warehouse_shed`, `villa_house` with their own `town_*` districts, so the old streets do not change. The recipe schema now allows width up to 64, depth up to 40 and 14 floors. Quality: `render/quality.ts` (presets, probe), `qualityStore.ts` (per device, key `renderQuality`), a Graphics section in the Settings app. Low caps LOD0 at 5 buildings (the handover had no cap; 10 gave up to 490k triangles). Measured by test on the committed bake at the 13 densest spots: Low <= 56 draw calls and <= 260k triangles (budget 150 / 400k). Not done: the game scene does not draw the town yet (T7), the LOD0 hitbox is only a pure function (`buildingHitbox`) until T7 wires collision, and instancing of LOD0 shapes was left out (LOD1 is the instanced tier). **Open for you (manual): measure on your phone with the dev scene (`window.__townStats`, or the console line every 5 s) and write the numbers here.**
 
 ## Notes
 

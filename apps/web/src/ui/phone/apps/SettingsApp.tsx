@@ -6,10 +6,13 @@ import { devModeOn } from '../../../input/actions';
 import { Switch } from '../components/Switch';
 import { Segmented } from '../components/Segmented';
 import { usePhoneSettings, resolvedDark, resolvedReducedMotion } from '../phoneSettings';
+import { useQualityStore } from '../../../render/qualityStore';
 
 export function SettingsApp() {
   const s = usePhoneSettings((x) => x.settings);
   const update = usePhoneSettings((x) => x.update);
+  const quality = useQualityStore((x) => x.choice); // per device, not per profile (T6)
+  const setQuality = useQualityStore((x) => x.setChoice);
   useSession((x) => x.devTesting); // re-render when the Testing toggle changes Dev_Mode
   const dev = devModeOn();
   return (
@@ -36,6 +39,25 @@ export function SettingsApp() {
         <div className="ph-row">
           <span>{t('app.set.reducedMotion')}</span>
           <Switch checked={resolvedReducedMotion(s)} label={t('app.set.reducedMotion')} onChange={(on) => update({ reducedMotion: on ? 'on' : 'off' })} />
+        </div>
+      </div>
+      <h3 className="ph-hd">{t('app.set.graphics')}</h3>
+      <div className="ph-card">
+        <div className="ph-row ph-col">
+          <span>
+            {t('app.set.quality')}
+            <span className="ph-mut ph-block">{t('app.set.quality.hint')}</span>
+          </span>
+          <Segmented
+            label={t('app.set.quality')}
+            value={quality}
+            onChange={setQuality}
+            options={[
+              { value: 'auto', label: t('app.set.quality.auto') },
+              { value: 'low', label: t('app.set.quality.low') },
+              { value: 'high', label: t('app.set.quality.high') },
+            ]}
+          />
         </div>
       </div>
       <h3 className="ph-hd">{t('app.set.notifications')}</h3>
